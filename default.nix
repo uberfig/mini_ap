@@ -6,5 +6,4 @@ pkgs.mkShell {
     postgresql
     pkg-config
   ];
-  # DATABASE_URL=sqlite:db/analytics.sqlite;
 }

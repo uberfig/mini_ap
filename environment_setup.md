@@ -41,8 +41,8 @@ sudo -u postgres psql -c "ALTER ROLE ivy WITH PASSWORD 'password';"
 ## droping and creating the database
 
 ```shell
-dropdb gaterdile_dev
+dropdb mini_ap
 ```
 ```shell
-createdb gaterdile_dev
+createdb mini_ap
 ```
