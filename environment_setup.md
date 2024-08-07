@@ -1,3 +1,18 @@
+## install openssl
+
+### debian/ubuntu
+
+```shell
+sudo apt install openssl
+```
+```shell
+sudo apt install libssl-dev
+```
+
+### nixos
+
+you just need to run `nix-shell` before building
+
 ## intsall postgres
 
 ### debian/ubuntu
