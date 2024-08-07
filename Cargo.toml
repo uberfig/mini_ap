@@ -1,0 +1,25 @@
+[package]
+name = "mini_ap"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = "4"
+
+confik = "0.11"
+deadpool-postgres = { version = "0.12", features = ["serde"] }
+serde = "1.0.204"
+
+dotenvy = "0.15.7"
+derive_more = "0.99.18"
+tokio-postgres = "0.7.11"
+tokio-pg-mapper = "0.2.0"
+tokio-pg-mapper-derive = "0.2.0"
+refinery = { version = "0.8", features = ["rusqlite"]}
+serde_json = "1.0.122"
+
+argon2 = "0.5.3"
+openssl = "0.10.64"
+httpdate = "1.0.3"
+reqwest = "0.12.4"
+url = {version = "2.5.1", features = ["serde"]}

@@ -1,0 +1,5 @@
+database_url="postgres://ivy:password@localhost/activityfun_dev"
+instance_domain="place.ivytime.gay"
+bind_address="127.0.0.1"
+port=8020
+contact_email="public.ivy.gifford@gmail.com"
