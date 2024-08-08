@@ -5,7 +5,5 @@ pub struct DbConn {
 }
 
 impl DbConn {
-    pub async fn get_private_key(&self, preferred_username: &str) {
-        
-    }
+    pub async fn get_private_key(&self, preferred_username: &str) {}
 }

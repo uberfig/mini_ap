@@ -12,6 +12,7 @@ use actix_web::{
 };
 
 use mini_ap::{config::Config, db::conn::DbConn};
+use refinery::Migration;
 use tokio_postgres::NoTls;
 
 mod embedded {
@@ -74,11 +75,25 @@ async fn main() -> std::io::Result<()> {
     let client = conn.deref_mut().deref_mut();
     let report = embedded::migrations::runner().run_async(client).await;
     match report {
-        Ok(x) => println!("{:?}", x),
+        Ok(x) => {
+            println!("migrations sucessful");
+            // println!("{:?}", x);
+            if x.applied_migrations().is_empty() {
+                println!("no migrations applied")
+            } else {
+                println!("applied migrations: ");
+                for migration in x.applied_migrations() {
+                    match migration.applied_on() {
+                        Some(x) => println!(" - {} applied {}", migration.name(), x),
+                        None => println!(" - {} applied N/A", migration.name()),
+                    }
+                }
+            }
+        }
         Err(x) => {
             println!("{:?}", x);
             return Ok(());
-        },
+        }
     }
 
     HttpServer::new(move || {
