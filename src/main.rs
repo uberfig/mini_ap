@@ -96,10 +96,13 @@ async fn main() -> std::io::Result<()> {
         }
     }
 
+    println!("starting server at http://{}:{}", &config.bind_address, &config.port);
+
     HttpServer::new(move || {
         App::new()
             .app_data(Data::new(DbConn { db: pool.clone() }))
             .app_data(Data::new(config.to_owned()))
+            .service(hello)
     })
     .bind((bind, port))?
     .run()
