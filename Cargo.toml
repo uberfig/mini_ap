@@ -15,7 +15,7 @@ derive_more = "0.99.18"
 tokio-postgres = "0.7.11"
 tokio-pg-mapper = "0.2.0"
 tokio-pg-mapper-derive = "0.2.0"
-refinery = { version = "0.8", features = ["rusqlite"]}
+refinery = { version = "0.8", features = ["tokio-postgres"]}
 serde_json = "1.0.122"
 
 argon2 = "0.5.3"
@@ -24,4 +24,5 @@ httpdate = "1.0.3"
 reqwest = "0.12.4"
 url = {version = "2.5.1", features = ["serde"]}
 config = { version = "0.14.0", features = ["toml"]}
-xsd-types = "0.9.5"
+# xsd-types = "0.9.5"
+xsd-types = {version = "0.9.5", features = ["serde"]}

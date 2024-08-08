@@ -4,7 +4,7 @@ use actix_web::web::Data;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::{activitystream_objects::object, cache_and_fetch::Cache, db::conn::DbConn};
+use crate::activitystream_objects::object;
 
 use super::{
     actors::RangeLinkActor,
@@ -110,51 +110,51 @@ pub struct Activity {
     pub extends_intransitive: IntransitiveActivity,
 }
 
-impl Activity {
-    pub async fn verify_attribution(&self, cache: &Cache, conn: &Data<DbConn>) -> Result<(), ()> {
-        match self.type_field {
-            ActivityType::Create => {
-                let object = self.object.get_concrete(cache, conn).await;
-                let object = match object {
-                    Ok(x) => x,
-                    Err(x) => {
-                        dbg!(x);
-                        return Err(());
-                    }
-                };
-                let object = match object.get_object() {
-                    Some(x) => x,
-                    None => {
-                        return Err(());
-                    }
-                };
+// impl Activity {
+//     pub async fn verify_attribution(&self, cache: &Cache, conn: &Data<DbConn>) -> Result<(), ()> {
+//         match self.type_field {
+//             ActivityType::Create => {
+//                 let object = self.object.get_concrete(cache, conn).await;
+//                 let object = match object {
+//                     Ok(x) => x,
+//                     Err(x) => {
+//                         dbg!(x);
+//                         return Err(());
+//                     }
+//                 };
+//                 let object = match object.get_object() {
+//                     Some(x) => x,
+//                     None => {
+//                         return Err(());
+//                     }
+//                 };
 
-                if let Some(x) = &object.attributed_to {
-                    if self.extends_intransitive.actor.get_id() == x.get_id() {
-                        return Ok(());
-                    }
-                };
+//                 if let Some(x) = &object.attributed_to {
+//                     if self.extends_intransitive.actor.get_id() == x.get_id() {
+//                         return Ok(());
+//                     }
+//                 };
 
-                return Err(());
-            }
-            // ActivityType::Add |
-            // ActivityType::Remove |
-            ActivityType::Undo | ActivityType::Update | ActivityType::Delete => {
-                let Some(actor_domain) = self.extends_intransitive.actor.get_id().domain() else {
-                    return Err(());
-                };
-                let Some(obj_domain) = self.object.get_id().domain() else {
-                    return Err(());
-                };
-                if actor_domain == obj_domain {
-                    return Ok(());
-                }
-                return Err(());
-            }
-            _ => return Ok(()),
-        };
-    }
-}
+//                 return Err(());
+//             }
+//             // ActivityType::Add |
+//             // ActivityType::Remove |
+//             ActivityType::Undo | ActivityType::Update | ActivityType::Delete => {
+//                 let Some(actor_domain) = self.extends_intransitive.actor.get_id().domain() else {
+//                     return Err(());
+//                 };
+//                 let Some(obj_domain) = self.object.get_id().domain() else {
+//                     return Err(());
+//                 };
+//                 if actor_domain == obj_domain {
+//                     return Ok(());
+//                 }
+//                 return Err(());
+//             }
+//             _ => return Ok(()),
+//         };
+//     }
+// }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum ActivityType {

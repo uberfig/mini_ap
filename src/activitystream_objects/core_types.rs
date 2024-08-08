@@ -2,10 +2,10 @@ use actix_web::web::Data;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::{
-    cache_and_fetch::{fetch_object, Cache, FetchErr},
-    db::conn::DbConn,
-};
+// use crate::{
+//     cache_and_fetch::{fetch_object, Cache, FetchErr},
+//     db::conn::DbConn,
+// };
 
 use super::{
     activities::*,
@@ -47,31 +47,30 @@ impl ActivityStream {
         }
     }
     pub fn is_activity(&self) -> bool {
-        matches!(&self.content.activity_stream, RangeLinkExtendsObject::Object(ExtendsObject::ExtendsIntransitive(_)))
+        matches!(
+            &self.content.activity_stream,
+            RangeLinkExtendsObject::Object(ExtendsObject::ExtendsIntransitive(_))
+        )
     }
-    pub async fn verify_attribution(&self, cache: &Cache, conn: &Data<DbConn>) -> Result<(), ()> {
-        match &self.content.activity_stream {
-            RangeLinkExtendsObject::Object(ExtendsObject::ExtendsIntransitive(x)) => match &**x {
-                ExtendsIntransitive::ExtendsActivity(x) => x.verify_attribution(cache, conn).await,
-                _ => Ok(()),
-            },
-            _ => Ok(()),
-        }
-    }
+    // pub async fn verify_attribution(&self, cache: &Cache, conn: &Data<DbConn>) -> Result<(), ()> {
+    //     match &self.content.activity_stream {
+    //         RangeLinkExtendsObject::Object(ExtendsObject::ExtendsIntransitive(x)) => match &**x {
+    //             ExtendsIntransitive::ExtendsActivity(x) => x.verify_attribution(cache, conn).await,
+    //             _ => Ok(()),
+    //         },
+    //         _ => Ok(()),
+    //     }
+    // }
     pub fn get_owner(&self) -> Option<&Url> {
         match &self.content.activity_stream {
-            RangeLinkExtendsObject::Object(x) => {
-                match x {
-                    ExtendsObject::Object(x) => {
-                        match &x.object.attributed_to {
-                            Some(x) => Some(x.get_id()),
-                            None => None,
-                        }
-                    },
-                    ExtendsObject::ExtendsIntransitive(x) => Some(x.get_actor()),
-                    ExtendsObject::ExtendsCollection(_) => None,
-                    ExtendsObject::Actor(x) => Some(x.get_id()),
-                }
+            RangeLinkExtendsObject::Object(x) => match x {
+                ExtendsObject::Object(x) => match &x.object.attributed_to {
+                    Some(x) => Some(x.get_id()),
+                    None => None,
+                },
+                ExtendsObject::ExtendsIntransitive(x) => Some(x.get_actor()),
+                ExtendsObject::ExtendsCollection(_) => None,
+                ExtendsObject::Actor(x) => Some(x.get_id()),
             },
             RangeLinkExtendsObject::Link(x) => todo!(),
         }
@@ -155,30 +154,30 @@ pub enum RangeLinkExtendsObject {
 }
 
 impl RangeLinkExtendsObject {
-    pub async fn get_concrete(
-        &self,
-        cache: &Cache,
-        conn: &Data<DbConn>,
-    ) -> Result<ExtendsObject, ConcreteErr> {
-        match self {
-            RangeLinkExtendsObject::Object(x) => Ok(x.clone()),
-            RangeLinkExtendsObject::Link(x) => {
-                let val = fetch_object(x.get_id(), cache, conn).await;
+    // pub async fn get_concrete(
+    //     &self,
+    //     cache: &Cache,
+    //     conn: &Data<DbConn>,
+    // ) -> Result<ExtendsObject, ConcreteErr> {
+    //     match self {
+    //         RangeLinkExtendsObject::Object(x) => Ok(x.clone()),
+    //         RangeLinkExtendsObject::Link(x) => {
+    //             let val = fetch_object(x.get_id(), cache, conn).await;
 
-                match val {
-                    Ok(x) => {
-                        let object = x.get_extends_object();
+    //             match val {
+    //                 Ok(x) => {
+    //                     let object = x.get_extends_object();
 
-                        match object {
-                            Some(x) => Ok(x),
-                            None => Err(ConcreteErr::NotAnObject),
-                        }
-                    }
-                    Err(x) => Err(ConcreteErr::FetchErr(x)),
-                }
-            }
-        }
-    }
+    //                     match object {
+    //                         Some(x) => Ok(x),
+    //                         None => Err(ConcreteErr::NotAnObject),
+    //                     }
+    //                 }
+    //                 Err(x) => Err(ConcreteErr::FetchErr(x)),
+    //             }
+    //         }
+    //     }
+    // }
     pub fn get_id(&self) -> &Url {
         match self {
             RangeLinkExtendsObject::Object(x) => x.get_id(),
@@ -195,11 +194,11 @@ pub enum RangeLinkObject {
     Link(Box<LinkSimpleOrExpanded>),
 }
 
-#[derive(Debug, Clone)]
-pub enum ConcreteErr {
-    FetchErr(FetchErr),
-    NotAnObject,
-}
+// #[derive(Debug, Clone)]
+// pub enum ConcreteErr {
+//     FetchErr(FetchErr),
+//     NotAnObject,
+// }
 impl RangeLinkObject {
     pub fn get_id(&self) -> &Url {
         match self {
@@ -207,28 +206,28 @@ impl RangeLinkObject {
             RangeLinkObject::Link(x) => x.get_id(),
         }
     }
-    pub async fn get_concrete(
-        &self,
-        cache: &Cache,
-        conn: &Data<DbConn>,
-    ) -> Result<ObjectWrapper, ConcreteErr> {
-        match self {
-            RangeLinkObject::Object(x) => Ok(x.clone()),
-            RangeLinkObject::Link(x) => {
-                let val = fetch_object(x.get_id(), cache, conn).await;
+    // pub async fn get_concrete(
+    //     &self,
+    //     cache: &Cache,
+    //     conn: &Data<DbConn>,
+    // ) -> Result<ObjectWrapper, ConcreteErr> {
+    //     match self {
+    //         RangeLinkObject::Object(x) => Ok(x.clone()),
+    //         RangeLinkObject::Link(x) => {
+    //             let val = fetch_object(x.get_id(), cache, conn).await;
 
-                match val {
-                    Ok(x) => {
-                        let object = x.get_object();
+    //             match val {
+    //                 Ok(x) => {
+    //                     let object = x.get_object();
 
-                        match object {
-                            Some(x) => Ok(*x),
-                            None => Err(ConcreteErr::NotAnObject),
-                        }
-                    }
-                    Err(x) => Err(ConcreteErr::FetchErr(x)),
-                }
-            }
-        }
-    }
+    //                     match object {
+    //                         Some(x) => Ok(*x),
+    //                         None => Err(ConcreteErr::NotAnObject),
+    //                     }
+    //                 }
+    //                 Err(x) => Err(ConcreteErr::FetchErr(x)),
+    //             }
+    //         }
+    //     }
+    // }
 }

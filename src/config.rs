@@ -12,5 +12,5 @@ pub struct Config {
     pub pg_password: String,
     pub pg_host: String,
     pub pg_port: u16,
-    pub pg_dbname: String,    
+    pub pg_dbname: String,
 }

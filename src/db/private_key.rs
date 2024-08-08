@@ -1,4 +1,5 @@
-use sqlx::query;
+use deadpool_postgres::Client;
+use tokio_pg_mapper::FromTokioPostgresRow;
 use url::Url;
 
 use crate::activitystream_objects::actors::PublicKey;
