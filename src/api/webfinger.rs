@@ -4,9 +4,8 @@ use actix_web::{
     web::{self, Data},
     HttpResponse, Result,
 };
+use deadpool_postgres::Pool;
 use serde::{Deserialize, Serialize};
-
-use crate::db::conn::DbConn;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct WebfingerQuery {
@@ -68,70 +67,71 @@ struct Info {
 #[get("/.well-known/webfinger")]
 async fn webfinger(
     state: Data<crate::config::Config>,
-    conn: Data<DbConn>,
+    conn: Data<Pool>,
     info: web::Query<Info>,
 ) -> Result<HttpResponse> {
-    let resource = info.into_inner().resource;
-    let result = WebfingerQuery::parse_query(resource);
+    // let resource = info.into_inner().resource;
+    // let result = WebfingerQuery::parse_query(resource);
 
-    if let Some(x) = result.domain {
-        if !x.eq_ignore_ascii_case(&state.instance_domain) {
-            return Err(ErrorBadRequest("not from this domain"));
-        }
-    }
-    let preferred_username = match result.preferred_username {
-        Some(x) => x,
-        None => return Err(ErrorBadRequest("no preferred username provided")),
-    };
+    // if let Some(x) = result.domain {
+    //     if !x.eq_ignore_ascii_case(&state.instance_domain) {
+    //         return Err(ErrorBadRequest("not from this domain"));
+    //     }
+    // }
+    // let preferred_username = match result.preferred_username {
+    //     Some(x) => x,
+    //     None => return Err(ErrorBadRequest("no preferred username provided")),
+    // };
 
-    let val = sqlx::query!(
-        "SELECT activitypub_actor FROM  internal_users WHERE preferred_username = $1",
-        preferred_username
-    )
-    .fetch_optional(&conn.db)
-    .await;
+    // let val = sqlx::query!(
+    //     "SELECT activitypub_actor FROM  internal_users WHERE preferred_username = $1",
+    //     preferred_username
+    // )
+    // .fetch_optional(&conn.db)
+    // .await;
 
-    let id = match val.unwrap() {
-        Some(x) => x.activitypub_actor,
-        None => {
-            return Err(ErrorNotFound("not found"));
-        }
-    };
+    // let id = match val.unwrap() {
+    //     Some(x) => x.activitypub_actor,
+    //     None => {
+    //         return Err(ErrorNotFound("not found"));
+    //     }
+    // };
 
-    let actor = sqlx::query!(
-        "SELECT id, preferred_username FROM activitypub_users WHERE ap_user_id = $1",
-        id
-    )
-    .fetch_one(&conn.db)
-    .await
-    .unwrap();
+    // let actor = sqlx::query!(
+    //     "SELECT id, preferred_username FROM activitypub_users WHERE ap_user_id = $1",
+    //     id
+    // )
+    // .fetch_one(&conn.db)
+    // .await
+    // .unwrap();
 
-    let preferred_uname = actor.preferred_username;
-    let domain = state.instance_domain.clone();
+    // let preferred_uname = actor.preferred_username;
+    // let domain = state.instance_domain.clone();
 
-    let subject = format!("acct:{preferred_uname}@{domain}");
+    // let subject = format!("acct:{preferred_uname}@{domain}");
 
-    let id = actor.id;
+    // let id = actor.id;
 
-    let webfinger = format!(
-        r#"
+    // let webfinger = format!(
+    //     r#"
 
-    {{
-        "subject": "{subject}",
+    // {{
+    //     "subject": "{subject}",
     
-        "links": [
-            {{
-                "rel": "self",
-                "type": "application/activity+json",
-                "href": "{id}"
-            }}
-        ]
-    }}
+    //     "links": [
+    //         {{
+    //             "rel": "self",
+    //             "type": "application/activity+json",
+    //             "href": "{id}"
+    //         }}
+    //     ]
+    // }}
 
-    "#
-    );
+    // "#
+    // );
 
-    Ok(HttpResponse::Ok()
-        .content_type("application/jrd+json; charset=utf-8")
-        .body(webfinger))
+    // Ok(HttpResponse::Ok()
+    //     .content_type("application/jrd+json; charset=utf-8")
+    //     .body(webfinger))
+    todo!()
 }

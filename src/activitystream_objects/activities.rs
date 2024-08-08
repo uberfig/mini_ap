@@ -12,41 +12,6 @@ use super::{
     object::Object,
 };
 
-// #[derive(Serialize, Deserialize, Debug, Clone)]
-// /// not used for deserialization, just for database storage
-// pub enum AllTypes {
-//     //intransitive types
-//     Arrive, //not used
-//     Travel, //not used
-//     Question,
-//     //normal activities
-//     Accept,
-//     TentativeAccept,
-//     Add,
-//     Create,
-//     Delete,
-//     Follow,
-//     Ignore,
-//     Join,
-//     Leave,
-//     Like,
-//     Offer,
-//     Invite,
-//     Reject,
-//     TentativeReject,
-//     Remove,
-//     Undo,
-//     Update,
-//     View,
-//     Listen,
-//     Read,
-//     Move,
-//     Announce,
-//     Block,
-//     Flag,
-//     Dislike,
-// }
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum ExtendsIntransitive {
