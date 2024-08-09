@@ -1,6 +1,6 @@
 use deadpool_postgres::Pool;
 
-use crate::activitystream_objects::actors::Actor;
+use crate::activitystream_objects::{activities::Question, actors::Actor, object::ObjectWrapper};
 
 pub struct DbConn {
     pub db: Pool,
@@ -30,6 +30,22 @@ pub enum PermissionLevel {
     /// accounts pending approval in a manual approval setup
     UntrustedUser,
 }
+
+#[derive(Debug, Clone)]
+pub enum PostType {
+    Object(ObjectWrapper),
+    Question(Question),
+}
+
+impl From<PostType> for String {
+    fn from(value: PostType) -> Self {
+        match value {
+            PostType::Object(_) => "Object".to_string(),
+            PostType::Question(_) => "Question".to_string(),
+        }
+    }
+}
+
 impl From<u16> for PermissionLevel {
     fn from(value: u16) -> Self {
         match value {
@@ -80,4 +96,6 @@ pub trait Conn {
     async fn get_local_user_db_id(&self, preferred_username: &str) -> Option<i64>;
     async fn get_local_user_actor(&self, preferred_username: &str) -> Option<Actor>;
     async fn get_local_user_actor_db_id(&self, id: i64) -> Option<Actor>;
+
+    async fn create_new_post(&self, post: PostType) -> i64;
 }
