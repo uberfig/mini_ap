@@ -34,9 +34,10 @@ CREATE TABLE public_keys (
 );
 
 CREATE TABLE internal_users (
-	uid 		BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
-	password	TEXT NOT NULL, --stored with argon2
-	preferred_username	TEXT NOT NULL UNIQUE, --basically the username/login name
-	activitypub_actor	BIGINT NOT NULL REFERENCES activitypub_users(ap_user_id) ON DELETE CASCADE,
-	private_key		TEXT NOT NULL
+	uid 				BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
+	password			TEXT NOT NULL, --stored with argon2
+	username	TEXT NOT NULL UNIQUE, --basically the username/login name
+	private_key			TEXT NOT NULL,
+	permission_level 	SMALLINT NOT NULL,
+	custom_domain		TEXT NULL
 );

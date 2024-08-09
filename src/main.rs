@@ -11,7 +11,7 @@ use actix_web::{
     Result,
 };
 
-use mini_ap::{config::Config, db::conn::DbConn};
+use mini_ap::{config::Config, db::pg_conn::PgConn};
 use refinery::Migration;
 use tokio_postgres::NoTls;
 
@@ -103,7 +103,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
-            .app_data(Data::new(DbConn { db: pool.clone() }))
+            .app_data(Data::new(PgConn { db: pool.clone() }))
             .app_data(Data::new(config.to_owned()))
             .service(hello)
     })
