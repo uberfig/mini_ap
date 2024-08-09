@@ -11,7 +11,7 @@ use actix_web::{
     Result,
 };
 
-use mini_ap::{config::Config, db::pg_conn::PgConn};
+use mini_ap::{config::Config, db::postgres::pg_conn::PgConn};
 use refinery::Migration;
 use tokio_postgres::NoTls;
 
