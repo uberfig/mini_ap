@@ -96,7 +96,10 @@ async fn main() -> std::io::Result<()> {
         }
     }
 
-    println!("starting server at http://{}:{}", &config.bind_address, &config.port);
+    println!(
+        "starting server at http://{}:{}",
+        &config.bind_address, &config.port
+    );
 
     HttpServer::new(move || {
         App::new()
