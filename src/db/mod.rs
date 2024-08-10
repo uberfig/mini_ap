@@ -6,6 +6,8 @@ pub mod postgres;
 // pub mod private_key;
 // pub mod public_key;
 
+use url::Url;
+
 use crate::activitystream_objects::{activities::Question, actors::Actor, object::ObjectWrapper};
 
 pub enum PermissionLevel {
@@ -52,8 +54,8 @@ impl From<PostType> for String {
     }
 }
 
-impl From<u16> for PermissionLevel {
-    fn from(value: u16) -> Self {
+impl From<i16> for PermissionLevel {
+    fn from(value: i16) -> Self {
         match value {
             1 => PermissionLevel::AdminOne,
             2 => PermissionLevel::AdminTwo,
@@ -65,7 +67,7 @@ impl From<u16> for PermissionLevel {
         }
     }
 }
-impl From<PermissionLevel> for u16 {
+impl From<PermissionLevel> for i16 {
     fn from(val: PermissionLevel) -> Self {
         match val {
             PermissionLevel::AdminOne => 1,
@@ -75,6 +77,30 @@ impl From<PermissionLevel> for u16 {
             PermissionLevel::TrustedUser => 5,
             PermissionLevel::UntrustedUser => 6,
         }
+    }
+}
+
+pub struct UserLinks {
+    pub id: Url,
+    pub inbox: Url,
+    pub outbox: Url,
+    pub followers: Url,
+    pub following: Url,
+    pub liked: Url,
+    pub url: Url,
+    pub pub_key_id: Url,
+}
+
+pub fn generate_links(domain: &str, uname: &str) -> UserLinks {
+    UserLinks {
+        id: Url::parse(&format!("https://{domain}/users/{uname}")).unwrap(),
+        inbox: Url::parse(&format!("https://{domain}/users/{uname}/inbox")).unwrap(),
+        outbox: Url::parse(&format!("https://{domain}/users/{uname}/outbox")).unwrap(),
+        followers: Url::parse(&format!("https://{domain}/users/{uname}/followers")).unwrap(),
+        following: Url::parse(&format!("https://{domain}/users/{uname}/following")).unwrap(),
+        liked: Url::parse(&format!("https://{domain}/users/{uname}/liked")).unwrap(),
+        url: Url::parse(&format!("https://{domain}/@{uname}")).unwrap(),
+        pub_key_id: Url::parse(&format!("https://{domain}/users/{uname}#main-key")).unwrap(),
     }
 }
 

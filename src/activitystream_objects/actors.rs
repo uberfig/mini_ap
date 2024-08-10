@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use super::{core_types::*, object::Object};
+use super::core_types::*;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
@@ -36,11 +36,27 @@ impl PartialEq for RangeLinkActor {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum ActorType {
-    Actor,
+    // Actor,
+    /// Describes a software application.
+    ///
+    /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-application
     Application,
+    /// Represents a formal or informal collective of Actors.
+    ///
+    /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-group
     Group,
+    /// Represents an organization.
+    ///
+    /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-organization
     Organization,
+    /// Represents an individual person. The most
+    /// common type of actor on the fedi
+    ///
+    /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-person
     Person,
+    /// Represents a service of any kind.
+    ///
+    /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-service
     Service,
 }
 
@@ -48,8 +64,8 @@ pub enum ActorType {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PublicKey {
-    pub id: String,    //https://my-example.com/actor#main-key
-    pub owner: String, //"https://my-example.com/actor"
+    pub id: Url,    //https://my-example.com/actor#main-key
+    pub owner: Url, //"https://my-example.com/actor"
     pub public_key_pem: String,
 }
 impl From<String> for PublicKey {
@@ -60,7 +76,16 @@ impl From<String> for PublicKey {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-/// summary, id, and name are inherited from [`Object`]
+/// Actor types are [`Object`] types that are capable of performing activities
+///
+/// core types:
+/// - [`ActorType::Application`]
+/// - [`ActorType::Group`]
+/// - [`ActorType::Organization`]
+/// - [`ActorType::Person`]
+/// - [`ActorType::Service`]
+///
+/// https://www.w3.org/TR/activitystreams-vocabulary/#actor-types
 pub struct Actor {
     #[serde(rename = "type")]
     pub type_field: ActorType,
@@ -76,17 +101,17 @@ pub struct Actor {
 
     pub public_key: PublicKey,
 
-    pub inbox: String,
-    pub outbox: String,
-    pub followers: String,
-    pub following: String,
+    pub inbox: Url,
+    pub outbox: Url,
+    pub followers: Url,
+    pub following: Url,
 
-    #[serde(skip)]
-    pub ap_user_id: Option<i64>,
+    // #[serde(skip)]
+    // pub ap_user_id: Option<i64>,
     #[serde(skip)]
     pub domain: Option<String>,
     #[serde(skip)]
-    pub liked: Option<String>,
+    pub liked: Option<Url>,
 }
 
 impl Actor {
@@ -104,9 +129,6 @@ impl Actor {
                     ContextItem::String("https://w3id.org/security/v1".to_owned()),
                     // ContextItem::Map(test)
                 ]),
-                // activity_stream: RangeLinkExtendsObject::Object(ExtendsObject::Actor(Box::new(
-                //     self,
-                // ))),
                 activity_stream: ExtendsObject::Actor(Box::new(self)),
             },
         }

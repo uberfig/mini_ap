@@ -2,7 +2,9 @@ CREATE TABLE internal_users (
 	uid 				BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
 	password			TEXT NOT NULL, --stored with argon2
 	preferred_username	TEXT NOT NULL UNIQUE, --basically the username/login name
+	display_name		TEXT NULL,
 	email				TEXT NULL,
+	summary				TEXT NULL, -- used as a user's bio
 	private_key_pem		TEXT NOT NULL,
 	public_key_pem		TEXT NOT NULL,
 	permission_level 	SMALLINT NOT NULL,

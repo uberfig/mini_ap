@@ -1,24 +1,60 @@
 use deadpool_postgres::Pool;
+use tokio_postgres::Row;
 
-use crate::{activitystream_objects::actors::Actor, db::Conn};
+use crate::{
+    activitystream_objects::actors::{Actor, ActorType, PublicKey},
+    db::{generate_links, Conn},
+};
 
 pub struct PgConn {
     pub db: Pool,
 }
 
+fn local_user_from_row(result: Row, instance_domain: &str) -> Actor {
+    let preferred_username: String = result.get("preferred_username");
+    let links = generate_links(&instance_domain, &preferred_username);
+
+    let key = PublicKey {
+        id: links.pub_key_id,
+        owner: links.id.clone(),
+        public_key_pem: result.get("public_key_pem"),
+    };
+
+    let actor = Actor {
+        type_field: ActorType::Person,
+        id: links.id,
+        preferred_username,
+        summary: result.get("summary"),
+        name: result.get("display_name"),
+        url: Some(links.url),
+        public_key: key,
+        inbox: links.inbox,
+        outbox: links.outbox,
+        followers: links.followers,
+        following: links.following,
+        domain: Some(instance_domain.to_string()),
+        liked: Some(links.liked),
+    };
+    actor
+}
+
 impl Conn for PgConn {
-    async fn create_federated_user(
-        &self,
-        actor: &Actor,
-    ) -> i64 {
+    async fn create_federated_user(&self, actor: &Actor) -> i64 {
         let client = self.db.get().await.expect("failed to get client");
         let stmt = r#"
         INSERT INTO federated_ap_users 
-        VALUES (
+        (
             id, type_field, preferred_username, domain,
             name, summary, url, public_key_pem,
             inbox, outbox, followers, following
             manual_followers, memorial, indexable, discoverable
+        )
+        VALUES
+        (
+            $1, $2, $3, $4, 
+            $5, $6, $7, $8,
+            $9, $10, $11, $12,
+            $13, $14, $15, $16
         )
         RETURNING ap_user_id;
         "#;
@@ -38,10 +74,10 @@ impl Conn for PgConn {
                     &actor.summary,
                     &url,
                     &actor.public_key.public_key_pem,
-                    &actor.inbox,
-                    &actor.outbox,
-                    &actor.followers,
-                    &actor.following,
+                    &actor.inbox.as_str(),
+                    &actor.outbox.as_str(),
+                    &actor.followers.as_str(),
+                    &actor.following.as_str(),
                 ],
             )
             .await
@@ -50,7 +86,7 @@ impl Conn for PgConn {
             .expect("did not return uid")
             .get("uid");
 
-        todo!()
+        result
     }
 
     async fn get_federated_user_db_id(&self, actor_id: &str) -> Option<i64> {
@@ -84,13 +120,20 @@ impl Conn for PgConn {
         let client = self.db.get().await.expect("failed to get client");
         let stmt = r#"
         INSERT INTO internal_users 
-        VALUES (
+        (
             password, preferred_username, email, private_key_pem,
             public_key_pem, permission_level, custom_domain
+        )
+        VALUES
+        (
+            $1, $2, $3, $4,
+            $5, $6, $7
         )
         RETURNING uid;
         "#;
         let stmt = client.prepare(&stmt).await.unwrap();
+
+        let permission: i16 = permission_level.into();
 
         let result: i64 = client
             .query(
@@ -101,6 +144,7 @@ impl Conn for PgConn {
                     &email,
                     &private_key_pem,
                     &public_key_pem,
+                    &permission,
                     &custom_domain,
                 ],
             )
@@ -142,7 +186,24 @@ impl Conn for PgConn {
         uid: i64,
         instance_domain: &str,
     ) -> Option<crate::activitystream_objects::actors::Actor> {
-        todo!()
+        let client = self.db.get().await.expect("failed to get client");
+        let stmt = r#"
+        SELECT * FROM internal_users WHERE uid = $1;
+        "#;
+        let stmt = client.prepare(&stmt).await.unwrap();
+
+        let result = client
+            .query(&stmt, &[&uid])
+            .await
+            .expect("failed to get local user")
+            .pop();
+
+        let result = match result {
+            Some(x) => x,
+            None => return None,
+        };
+
+        Some(local_user_from_row(result, &instance_domain))
     }
 
     async fn get_local_user_private_key(&self, preferred_username: &str) -> String {
