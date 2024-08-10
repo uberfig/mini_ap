@@ -9,12 +9,12 @@ pub mod postgres;
 use crate::activitystream_objects::{activities::Question, actors::Actor, object::ObjectWrapper};
 
 pub enum PermissionLevel {
-    /// intended for the main admin account(s) of the server, will be 
-    /// featured and considered the pont of contact for the instance, 
+    /// intended for the main admin account(s) of the server, will be
+    /// featured and considered the pont of contact for the instance,
     /// can be set to be auto followed by new users
-    AdminOne, 
+    AdminOne,
     /// intended for anyone who has admin access to the server
-    AdminTwo, 
+    AdminTwo,
     /// intended for mods who can take vito actoin in an emergency
     ModOne,
     /// intended for mods who need to open a proposal for mod changes
@@ -25,18 +25,18 @@ pub enum PermissionLevel {
     /// start making accounts to influence a decision. When manual approval
     /// is used, all approved users will be trusted and pending users will
     /// be untrusted. this would allow for a switching to manual approval
-    /// in the event of an emergency still allowing trusted users to 
+    /// in the event of an emergency still allowing trusted users to
     /// continue unnaffected and untrusted accounts would be preserved and
     /// prompted to send an application for approval when they log in next
     TrustedUser,
-    /// the default, what they can do is up to server policy, used for 
+    /// the default, what they can do is up to server policy, used for
     /// accounts pending approval in a manual approval setup
     UntrustedUser,
 }
 
 #[derive(Debug, Clone)]
 /// a concrete post to be stored in the database.
-/// surtype of either object or question, then subtypes of their 
+/// surtype of either object or question, then subtypes of their
 /// respective types, eg note, or for a question multi or single select
 pub enum PostType {
     Object(ObjectWrapper),
@@ -79,47 +79,48 @@ impl From<PermissionLevel> for u16 {
 }
 
 pub trait Conn {
-    
-    // async fn get_public_key(&self, owner: &str) -> String;
-    // async fn insert_public_key(
-    //     &self,
-    //     id: &str,
-    //     actor_id: &str,
-    //     public_key_pem: &str,
-    // ) -> Result<i64, ()>;
-    
-    async fn create_federated_user(&self, actor: Actor) -> i64;
+    async fn create_federated_user(&self, actor: &Actor) -> i64;
     async fn get_federated_user_db_id(&self, actor_id: &str) -> Option<i64>;
     async fn get_federated_actor(&self, actor_id: &str) -> Option<Actor>;
     async fn get_federated_actor_db_id(&self, id: i64) -> Option<Actor>;
-    
-    /// since this is intended to be a dumb implimentation, the 
-    /// "password" being passed in should be the hashed argon2 
-    /// output containing the hash and the salt. the database 
+
+    /// since this is intended to be a dumb implimentation, the
+    /// "password" being passed in should be the hashed argon2
+    /// output containing the hash and the salt. the database
     /// should not be responsible for performing this task
     async fn create_local_user(
         &self,
-        username: String,
-        password: String, 
+        username: &str,
+        password: &str,
+        email: &str,
         permission_level: PermissionLevel,
+        private_key_pem: &str,
+        public_key_pem: &str,
         custom_domain: Option<&str>,
     ) -> Result<i64, ()>;
+    async fn set_permission_level(&self, uid: i64, permission_level: PermissionLevel);
+    async fn update_password(&self, uid: i64, password: &str);
+    async fn set_manually_approves_followers(&self, uid: i64, value: bool);
 
     async fn get_local_user_db_id(&self, preferred_username: &str) -> Option<i64>;
     /// instance_domain must be provided as internal users will
-    /// need to have their links generated based on the instance 
+    /// need to have their links generated based on the instance
     /// domain. instances running in local only mode should be able
     /// to change domains without any affect for the internal users
-    /// 
+    ///
     /// in the case of users using a custom domain name, it will take
-    /// precidence over the user. how exactly this will be implimented 
-    /// is not set in stone but we are keeping the door open to it so 
-    /// that once a nice system is figured out we can impliment it 
+    /// precidence over the user. how exactly this will be implimented
+    /// is not set in stone but we are keeping the door open to it so
+    /// that once a nice system is figured out we can impliment it
     /// without too much hastle
-    async fn get_local_user_actor(&self, preferred_username: &str, instance_domain: &str) -> Option<Actor>;
-    /// see documentation for [`Conn::get_local_user_actor()`] for more 
-    /// info on instance domain 
-    async fn get_local_user_actor_db_id(&self, id: i64, instance_domain: &str) -> Option<Actor>;
+    async fn get_local_user_actor(
+        &self,
+        preferred_username: &str,
+        instance_domain: &str,
+    ) -> Option<Actor>;
+    /// see documentation for [`Conn::get_local_user_actor()`] for more
+    /// info on instance domain
+    async fn get_local_user_actor_db_id(&self, uid: i64, instance_domain: &str) -> Option<Actor>;
     async fn get_local_user_private_key(&self, preferred_username: &str) -> String;
 
     async fn create_new_post(&self, post: PostType) -> i64;
@@ -133,7 +134,6 @@ pub trait Conn {
     /// local followers
     async fn get_followers(&self, preferred_username: &str) -> Result<(), ()>;
     /// in the event we cannot view from the source domain, just show
-    /// the source instance has not made this information available 
+    /// the source instance has not made this information available
     async fn get_follower_count(&self, preferred_username: &str) -> Result<(), ()>;
 }
-

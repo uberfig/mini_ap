@@ -26,3 +26,4 @@ url = {version = "2.5.1", features = ["serde"]}
 config = { version = "0.14.0", features = ["toml"]}
 # xsd-types = "0.9.5"
 xsd-types = {version = "0.9.5", features = ["serde"]}
+chrono = "0.4.38"

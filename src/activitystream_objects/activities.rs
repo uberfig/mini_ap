@@ -4,19 +4,17 @@ use actix_web::web::Data;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::activitystream_objects::object;
-
 use super::{
     actors::RangeLinkActor,
-    core_types::{RangeLinkExtendsObject, RangeLinkObject},
-    object::Object,
+    core_types::{ExtendsObject, RangeLinkExtendsObject, RangeLinkObject},
+    object::{Object, ObjectWrapper},
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum ExtendsIntransitive {
     ExtendsActivity(Activity),
-    IntransitiveActivity(IntransitiveActivity),
+    // IntransitiveActivity(IntransitiveActivity),
     Question(Question),
 }
 
@@ -24,20 +22,21 @@ impl ExtendsIntransitive {
     pub fn get_actor(&self) -> &Url {
         match self {
             ExtendsIntransitive::ExtendsActivity(x) => &x.extends_intransitive.extends_object.id.id,
-            ExtendsIntransitive::IntransitiveActivity(x) => &x.extends_object.id.id,
+            // ExtendsIntransitive::IntransitiveActivity(x) => &x.extends_object.id.id,
             ExtendsIntransitive::Question(x) => &x.extends_intransitive.extends_object.id.id,
         }
     }
     pub fn get_id(&self) -> &Url {
         match self {
             ExtendsIntransitive::ExtendsActivity(x) => &x.extends_intransitive.extends_object.id.id,
-            ExtendsIntransitive::IntransitiveActivity(x) => &x.extends_object.id.id,
+            // ExtendsIntransitive::IntransitiveActivity(x) => &x.extends_object.id.id,
             ExtendsIntransitive::Question(x) => &x.extends_intransitive.extends_object.id.id,
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+/// we are not using these for this project
 pub enum IntransitiveType {
     IntransitiveActivity,
     /// An [`IntransitiveActivity`] that indicates that the actor has
@@ -58,21 +57,44 @@ pub enum IntransitiveType {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct IntransitiveActivity {
-    #[serde(rename = "type")]
-    pub type_field: IntransitiveType,
-
+    // #[serde(rename = "type")]
+    // pub type_field: IntransitiveType,
     #[serde(flatten)]
     pub extends_object: Object,
-    pub actor: RangeLinkActor,      //TODO
-    pub target: Option<String>,     //TODO
-    pub result: Option<String>,     //TODO
-    pub origin: Option<String>,     //TODO
+    pub actor: RangeLinkActor, //TODO
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub target: Option<String>, //TODO
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub result: Option<String>, //TODO
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub origin: Option<String>, //TODO
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub instrument: Option<String>, //TODO
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum QuestionType {
     Question,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub enum ChoiceType {
+    AnyOf(Vec<QuestionOption>),
+    OneOf(Vec<QuestionOption>),
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum QuestionOptionType {
+    Note,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct QuestionOption {
+    pub name: String,
+    #[serde(rename = "type")]
+    pub type_field: QuestionOptionType,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -93,8 +115,12 @@ pub struct Question {
     pub type_field: QuestionType,
     #[serde(flatten)]
     pub extends_intransitive: IntransitiveActivity,
-    pub one_of: Option<String>, //TODO
-    pub any_of: Option<String>, //TODO
+    #[serde(flatten)]
+    pub options: ChoiceType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// indicates that a poll can only be voted on by local users
+    pub local_only: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub closed: Option<String>, //TODO
 }
 
@@ -110,51 +136,74 @@ pub struct Activity {
     pub extends_intransitive: IntransitiveActivity,
 }
 
-// impl Activity {
-//     pub async fn verify_attribution(&self, cache: &Cache, conn: &Data<DbConn>) -> Result<(), ()> {
-//         match self.type_field {
-//             ActivityType::Create => {
-//                 let object = self.object.get_concrete(cache, conn).await;
-//                 let object = match object {
-//                     Ok(x) => x,
-//                     Err(x) => {
-//                         dbg!(x);
-//                         return Err(());
-//                     }
-//                 };
-//                 let object = match object.get_object() {
-//                     Some(x) => x,
-//                     None => {
-//                         return Err(());
-//                     }
-//                 };
+impl Activity {
+    pub fn new_create(object: ObjectWrapper) -> Self {
+        let intransitive = IntransitiveActivity {
+            extends_object: Object::new(
+                Url::parse(&format!("{}/activity", object.object.id.id.as_str())).unwrap(),
+            ),
+            actor: RangeLinkActor::Link(
+                object
+                    .object
+                    .get_attributed_to()
+                    .expect("trying to make a create for an object without attribution")
+                    .clone(),
+            ),
+            target: None,
+            result: None,
+            origin: None,
+            instrument: None,
+        };
+        Activity {
+            type_field: ActivityType::Create,
+            object: RangeLinkExtendsObject::Object(ExtendsObject::Object(Box::new(object))),
+            extends_intransitive: intransitive,
+        }
+    }
+    // pub async fn verify_attribution(&self, cache: &Cache, conn: &Data<DbConn>) -> Result<(), ()> {
+    //     match self.type_field {
+    //         ActivityType::Create => {
+    //             let object = self.object.get_concrete(cache, conn).await;
+    //             let object = match object {
+    //                 Ok(x) => x,
+    //                 Err(x) => {
+    //                     dbg!(x);
+    //                     return Err(());
+    //                 }
+    //             };
+    //             let object = match object.get_as_object() {
+    //                 Some(x) => x,
+    //                 None => {
+    //                     return Err(());
+    //                 }
+    //             };
 
-//                 if let Some(x) = &object.attributed_to {
-//                     if self.extends_intransitive.actor.get_id() == x.get_id() {
-//                         return Ok(());
-//                     }
-//                 };
+    //             if let Some(x) = &object.attributed_to {
+    //                 if self.extends_intransitive.actor.get_id() == x.get_id() {
+    //                     return Ok(());
+    //                 }
+    //             };
 
-//                 return Err(());
-//             }
-//             // ActivityType::Add |
-//             // ActivityType::Remove |
-//             ActivityType::Undo | ActivityType::Update | ActivityType::Delete => {
-//                 let Some(actor_domain) = self.extends_intransitive.actor.get_id().domain() else {
-//                     return Err(());
-//                 };
-//                 let Some(obj_domain) = self.object.get_id().domain() else {
-//                     return Err(());
-//                 };
-//                 if actor_domain == obj_domain {
-//                     return Ok(());
-//                 }
-//                 return Err(());
-//             }
-//             _ => return Ok(()),
-//         };
-//     }
-// }
+    //             return Err(());
+    //         }
+    //         // ActivityType::Add |
+    //         // ActivityType::Remove |
+    //         ActivityType::Undo | ActivityType::Update | ActivityType::Delete => {
+    //             let Some(actor_domain) = self.extends_intransitive.actor.get_id().domain() else {
+    //                 return Err(());
+    //             };
+    //             let Some(obj_domain) = self.object.get_id().domain() else {
+    //                 return Err(());
+    //             };
+    //             if actor_domain == obj_domain {
+    //                 return Ok(());
+    //             }
+    //             return Err(());
+    //         }
+    //         _ => return Ok(()),
+    //     };
+    // }
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum ActivityType {

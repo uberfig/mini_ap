@@ -1,12 +1,14 @@
+use chrono::{DateTime, NaiveDateTime, SecondsFormat};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
 use super::{
+    activities::{Activity, ExtendsIntransitive},
     actors::RangeLinkActor,
     collections::ExtendsCollection,
     core_types::{
         ActivityStream, Context, ContextWrap, ExtendsObject, LinkOrArray, RangeLinkExtendsObject,
-        RangeLinkObjOrArray,
+        RangeLinkObjOrArray, SimpleLinkOrArray,
     },
 };
 
@@ -39,7 +41,7 @@ impl From<ID> for Url {
 impl Default for ID {
     fn default() -> Self {
         Self {
-            id: Url::parse("invalid").unwrap(),
+            id: Url::parse("https://invalid.com").unwrap(),
         }
     }
 }
@@ -88,6 +90,35 @@ pub struct ObjectWrapper {
     pub object: Object,
 }
 
+impl ObjectWrapper {
+    pub fn to_activitystream(self) -> ActivityStream {
+        ActivityStream {
+            content: ContextWrap {
+                context: Context::Single("https://www.w3.org/ns/activitystreams".to_string()),
+                // activity_stream: RangeLinkExtendsObject::Object(ExtendsObject::Object(Box::new(
+                //     self,
+                // ))),
+                activity_stream: ExtendsObject::Object(Box::new(self)),
+            },
+        }
+    }
+    pub fn to_create_activitystream(self) -> ActivityStream {
+        ActivityStream {
+            content: ContextWrap {
+                context: Context::Single("https://www.w3.org/ns/activitystreams".to_string()),
+                // activity_stream: RangeLinkExtendsObject::Object(
+                //     ExtendsObject::ExtendsIntransitive(Box::new(
+                //         ExtendsIntransitive::ExtendsActivity(Activity::new_create(self)),
+                //     )),
+                // ),
+                activity_stream: ExtendsObject::ExtendsIntransitive(Box::new(
+                    ExtendsIntransitive::ExtendsActivity(Activity::new_create(self)),
+                )),
+            },
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Object {
@@ -96,9 +127,7 @@ pub struct Object {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    //TODO
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub attachment: Option<String>,
+
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attributed_to: Option<RangeLinkActor>,
     // #[serde(skip_serializing_if = "Option::is_none")]
@@ -114,52 +143,50 @@ pub struct Object {
     pub generator: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub in_reply_to: Option<RangeLinkExtendsObject>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub replies: Option<Box<ExtendsCollection>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub published: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub to: Option<SimpleLinkOrArray>,
+
+    //TODO
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attachment: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub start_time: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub end_time: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub updated: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub summary: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tag: Option<SimpleLinkOrArray>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url: Option<LinkOrArray>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub icon: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub in_reply_to: Option<RangeLinkExtendsObject>,
-
-    // #[serde(skip_serializing_if = "Option::is_none")]
-    // pub location: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub preview: Option<RangeLinkExtendsObject>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub published: Option<xsd_types::DateTime>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub replies: Option<Box<ExtendsCollection>>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub start_time: Option<xsd_types::DateTime>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub end_time: Option<String>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub summary: Option<String>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tag: Option<RangeLinkObjOrArray>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub updated: Option<xsd_types::DateTime>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<LinkOrArray>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub to: Option<RangeLinkObjOrArray>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
     /// Identifies an Object that is part of the private primary audience of this Object.
-    pub bto: Option<RangeLinkObjOrArray>,
+    pub bto: Option<SimpleLinkOrArray>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     /// Identifies an Object that is part of the public secondary audience of this Object.
-    pub cc: Option<RangeLinkObjOrArray>,
+    pub cc: Option<SimpleLinkOrArray>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     /// Identifies one or more Objects that are part of the private secondary audience of this Object.
@@ -167,6 +194,11 @@ pub struct Object {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub duration: Option<String>,
+
+    // #[serde(skip_serializing_if = "Option::is_none")]
+    // pub location: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub preview: Option<RangeLinkExtendsObject>,
 }
 
 impl Object {
@@ -175,6 +207,15 @@ impl Object {
             id: ID { id },
             attributed_to: None,
             ..Default::default()
+        }
+    }
+    pub fn get_attributed_to(&self) -> Option<&Url> {
+        match &self.attributed_to {
+            Some(x) => match x {
+                RangeLinkActor::Actor(x) => Some(x.get_id()),
+                RangeLinkActor::Link(x) => Some(x),
+            },
+            None => None,
         }
     }
     pub fn attributed_to_link(mut self, attributed_to: Option<Url>) -> Self {
@@ -193,16 +234,51 @@ impl Object {
         self.name = name;
         self
     }
-    pub fn to_activitystream(self) -> ActivityStream {
+    pub fn content(mut self, content: Option<String>) -> Self {
+        self.content = content;
+        self
+    }
+    pub fn set_id(mut self, id: Url) -> Self {
+        self.id.id = id;
+        self
+    }
+    pub fn in_reply_to(mut self, in_reply_to: Option<RangeLinkExtendsObject>) -> Self {
+        self.in_reply_to = in_reply_to;
+        self
+    }
+    pub fn published_milis(mut self, published: i64) -> Self {
+        let test = DateTime::from_timestamp_millis(published).unwrap();
+        let time = test.to_rfc3339_opts(SecondsFormat::Secs, true);
+        self.published = Some(time);
+        self
+    }
+    pub fn to_public(mut self) -> Self {
+        self.to = Some(SimpleLinkOrArray::Multiple(vec![Url::parse(
+            "https://www.w3.org/ns/activitystreams#Public",
+        )
+        .unwrap()]));
+        self
+    }
+    pub fn wrap(self, obj_type: ObjectType) -> ObjectWrapper {
+        ObjectWrapper {
+            type_field: obj_type,
+            object: self.to_public(),
+        }
+    }
+    pub fn to_activitystream(self, obj_type: ObjectType) -> ActivityStream {
         ActivityStream {
             content: ContextWrap {
-                context: Context::Array(vec!["test1".to_string(), "test2".to_string()]),
-                activity_stream: RangeLinkExtendsObject::Object(ExtendsObject::Object(Box::new(
-                    ObjectWrapper {
-                        type_field: ObjectType::Object,
-                        object: self,
-                    },
-                ))),
+                context: Context::Single("https://www.w3.org/ns/activitystreams".to_string()),
+                // activity_stream: RangeLinkExtendsObject::Object(ExtendsObject::Object(Box::new(
+                //     ObjectWrapper {
+                //         type_field: obj_type,
+                //         object: self,
+                //     },
+                // ))),
+                activity_stream: ExtendsObject::Object(Box::new(ObjectWrapper {
+                    type_field: obj_type,
+                    object: self,
+                })),
             },
         }
     }

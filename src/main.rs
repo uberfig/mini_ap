@@ -12,7 +12,7 @@ use actix_web::{
 };
 
 use mini_ap::{config::Config, db::postgres::pg_conn::PgConn};
-use refinery::Migration;
+// use refinery::Migration;
 use tokio_postgres::NoTls;
 
 mod embedded {
