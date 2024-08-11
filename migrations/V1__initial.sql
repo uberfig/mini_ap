@@ -17,11 +17,21 @@ CREATE TABLE ap_instance_actor (
 	public_key_pem		TEXT NOT NULL
 );
 
-CREATE TABLE follow_requests (
+CREATE TABLE following (
 	follow_type			SMALLINT NOT NULL, -- local to local, local to federated, federated to local
 	creator				BIGINT NOT NULL, -- the person trying to follow
 	target_user			BIGINT NOT NULL, -- the person to be followed
+	pending				BOOLEAN NOT NULL DEFAULT true,
 	PRIMARY KEY(follow_type, creator, target_user)
+);
+
+CREATE TABLE federated_instances (
+	instance_id			BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
+	domain				TEXT NOT NULL UNIQUE,
+	blocked				BOOLEAN NOT NULL DEFAULT false,
+	allowlisted			BOOLEAN NOT NULL DEFAULT false,
+	software			TEXT NULL,
+	favicon				BYTEA NULL
 );
 
 -- federated activitypub users, doesn't include internal
@@ -62,10 +72,14 @@ CREATE TABLE posts (
 	id			TEXT NULL UNIQUE,	--not used for internal posts
 	surtype		TEXT NOT NULL,
 	subtype		TEXT NULL,
-	local_post	BOOLEAN NOT NULL,
-	local_only	BOOLEAN NULL,
+	local_post	BOOLEAN NOT NULL, -- created by a local user
+	local_only	BOOLEAN NOT NULL DEFAULT false,
 	published	BIGINT NOT NULL,
 	in_reply_to	BIGINT NOT NULL REFERENCES posts(obj_id),
+	
+	block_replies BOOLEAN NOT NULL DEFAULT false,
+	restrict_replies BOOLEAN NOT NULL DEFAULT false, --only those followed by or mentoned by the creator can comment
+	local_only_replies BOOLEAN NOT NULL DEFAULT false,
 
 	content		TEXT NULL,
 
