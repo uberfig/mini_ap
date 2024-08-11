@@ -17,6 +17,13 @@ CREATE TABLE ap_instance_actor (
 	public_key_pem		TEXT NOT NULL
 );
 
+CREATE TABLE follow_requests (
+	follow_type			SMALLINT NOT NULL, -- local to local, local to federated, federated to local
+	creator				BIGINT NOT NULL, -- the person trying to follow
+	target_user			BIGINT NOT NULL, -- the person to be followed
+	PRIMARY KEY(follow_type, creator, target_user)
+);
+
 -- federated activitypub users, doesn't include internal
 CREATE TABLE federated_ap_users (
 	ap_user_id			BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
@@ -50,4 +57,24 @@ CREATE TABLE public_keys (
 	public_key_pem		TEXT NOT NULL
 );
 
+CREATE TABLE posts (
+	obj_id		BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
+	id			TEXT NULL UNIQUE,	--not used for internal posts
+	surtype		TEXT NOT NULL,
+	subtype		TEXT NULL,
+	local_post	BOOLEAN NOT NULL,
+	local_only	BOOLEAN NULL,
+	published	BIGINT NOT NULL,
+	in_reply_to	BIGINT NOT NULL REFERENCES posts(obj_id),
 
+	content		TEXT NULL,
+
+	-- used for questions
+	multi_select 		BOOLEAN NULL,
+	options				TEXT NULL, -- the array of json options in text
+	closed				BIGINT NULL,
+	local_only_voting 	BOOLEAN NULL,
+
+	fedi_actor	BIGINT NULL REFERENCES federated_ap_users(ap_user_id) ON DELETE CASCADE,
+	local_actor	BIGINT NULL REFERENCES internal_users(uid) ON DELETE CASCADE
+);

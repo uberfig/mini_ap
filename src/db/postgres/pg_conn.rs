@@ -178,7 +178,24 @@ impl Conn for PgConn {
         preferred_username: &str,
         instance_domain: &str,
     ) -> Option<crate::activitystream_objects::actors::Actor> {
-        todo!()
+        let client = self.db.get().await.expect("failed to get client");
+        let stmt = r#"
+        SELECT * FROM internal_users WHERE preferred_username = $1;
+        "#;
+        let stmt = client.prepare(&stmt).await.unwrap();
+
+        let result = client
+            .query(&stmt, &[&preferred_username])
+            .await
+            .expect("failed to get local user")
+            .pop();
+
+        let result = match result {
+            Some(x) => x,
+            None => return None,
+        };
+
+        Some(local_user_from_row(result, &instance_domain))
     }
 
     async fn get_local_user_actor_db_id(
@@ -207,11 +224,28 @@ impl Conn for PgConn {
     }
 
     async fn get_local_user_private_key(&self, preferred_username: &str) -> String {
-        todo!()
+        let client = self.db.get().await.expect("failed to get client");
+        let stmt = r#"
+        SELECT * FROM internal_users WHERE preferred_username = $1;
+        "#;
+        let stmt = client.prepare(&stmt).await.unwrap();
+
+        let result = client
+            .query(&stmt, &[&preferred_username])
+            .await
+            .expect("failed to get local user")
+            .pop();
+        let result = result.expect("could not get private key");
+
+        let private_key_pem: String = result.get("private_key_pem");
+        private_key_pem
     }
 
     async fn create_new_post(&self, post: crate::db::PostType) -> i64 {
-        todo!()
+        match post {
+            crate::db::PostType::Object(x) => todo!(),
+            crate::db::PostType::Question(x) => todo!(),
+        }
     }
 
     async fn create_follow_request(&self, from_id: &str, to_id: &str) -> Result<(), ()> {
