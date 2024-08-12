@@ -68,7 +68,7 @@ mod tests {
 }
         "#;
         let deserialized: Result<ActivityStream, serde_json::Error> =
-            serde_json::from_str(&index_page);
+            serde_json::from_str(index_page);
         match deserialized {
             Ok(_) => Ok(()),
             Err(x) => Err(format!(
@@ -105,7 +105,7 @@ mod tests {
 }
         "#;
         let deserialized: Result<ActivityStream, serde_json::Error> =
-            serde_json::from_str(&index_page);
+            serde_json::from_str(index_page);
         match deserialized {
             Ok(_) => Ok(()),
             Err(x) => Err(format!(

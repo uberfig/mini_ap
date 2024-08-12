@@ -53,7 +53,7 @@ impl ActivityStream {
         //     RangeLinkExtendsObject::Object(x) => Some(x),
         //     _ => None,
         // }
-        return self.content.activity_stream;
+        self.content.activity_stream
     }
     pub fn is_activity(&self) -> bool {
         // matches!(
