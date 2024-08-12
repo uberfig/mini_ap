@@ -485,10 +485,14 @@ mod tests {
 	}
 }
         "##;
-        let deserialized: Result<ActivityStream, serde_json::Error> = serde_json::from_str(&test_create);
+        let deserialized: Result<ActivityStream, serde_json::Error> =
+            serde_json::from_str(&test_create);
         match deserialized {
             Ok(_) => Ok(()),
-            Err(x) => Err(format!("create activity deserialize failed with response: {}", x)),
+            Err(x) => Err(format!(
+                "create activity deserialize failed with response: {}",
+                x
+            )),
         }
     }
 }

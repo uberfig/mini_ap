@@ -12,7 +12,7 @@ pub struct PgConn {
 
 fn local_user_from_row(result: Row, instance_domain: &str) -> Actor {
     let preferred_username: String = result.get("preferred_username");
-    let links = generate_links(&instance_domain, &preferred_username);
+    let links = generate_links(instance_domain, &preferred_username);
 
     let key = PublicKey {
         id: links.pub_key_id,
@@ -20,7 +20,7 @@ fn local_user_from_row(result: Row, instance_domain: &str) -> Actor {
         public_key_pem: result.get("public_key_pem"),
     };
 
-    let actor = Actor {
+    Actor {
         type_field: ActorType::Person,
         id: links.id,
         preferred_username,
@@ -34,10 +34,10 @@ fn local_user_from_row(result: Row, instance_domain: &str) -> Actor {
         following: links.following,
         domain: Some(instance_domain.to_string()),
         liked: Some(links.liked),
-    };
-    actor
+    }
 }
 
+#[allow(unused_variables)]
 impl Conn for PgConn {
     async fn create_federated_user(&self, actor: &Actor) -> i64 {
         let client = self.db.get().await.expect("failed to get client");
@@ -58,7 +58,7 @@ impl Conn for PgConn {
         )
         RETURNING ap_user_id;
         "#;
-        let stmt = client.prepare(&stmt).await.unwrap();
+        let stmt = client.prepare(stmt).await.unwrap();
 
         let domain = actor.id.domain().unwrap();
         let url = actor.url.as_ref().map(|url| url.as_str());
@@ -107,16 +107,7 @@ impl Conn for PgConn {
         todo!()
     }
 
-    async fn create_local_user(
-        &self,
-        username: &str,
-        password: &str,
-        email: &str,
-        permission_level: crate::db::PermissionLevel,
-        private_key_pem: &str,
-        public_key_pem: &str,
-        custom_domain: Option<&str>,
-    ) -> Result<i64, ()> {
+    async fn create_local_user(&self, user: crate::db::NewLocal) -> Result<i64, ()> {
         let client = self.db.get().await.expect("failed to get client");
         let stmt = r#"
         INSERT INTO internal_users 
@@ -131,21 +122,21 @@ impl Conn for PgConn {
         )
         RETURNING uid;
         "#;
-        let stmt = client.prepare(&stmt).await.unwrap();
+        let stmt = client.prepare(stmt).await.unwrap();
 
-        let permission: i16 = permission_level.into();
+        let permission: i16 = user.permission_level.into();
 
         let result: i64 = client
             .query(
                 &stmt,
                 &[
-                    &password,
-                    &username,
-                    &email,
-                    &private_key_pem,
-                    &public_key_pem,
+                    &user.password,
+                    &user.username,
+                    &user.email,
+                    &user.private_key_pem,
+                    &user.public_key_pem,
                     &permission,
-                    &custom_domain,
+                    &user.custom_domain,
                 ],
             )
             .await
@@ -182,7 +173,7 @@ impl Conn for PgConn {
         let stmt = r#"
         SELECT * FROM internal_users WHERE preferred_username = $1;
         "#;
-        let stmt = client.prepare(&stmt).await.unwrap();
+        let stmt = client.prepare(stmt).await.unwrap();
 
         let result = client
             .query(&stmt, &[&preferred_username])
@@ -195,7 +186,7 @@ impl Conn for PgConn {
             None => return None,
         };
 
-        Some(local_user_from_row(result, &instance_domain))
+        Some(local_user_from_row(result, instance_domain))
     }
 
     async fn get_local_user_actor_db_id(
@@ -207,7 +198,7 @@ impl Conn for PgConn {
         let stmt = r#"
         SELECT * FROM internal_users WHERE uid = $1;
         "#;
-        let stmt = client.prepare(&stmt).await.unwrap();
+        let stmt = client.prepare(stmt).await.unwrap();
 
         let result = client
             .query(&stmt, &[&uid])
@@ -220,7 +211,7 @@ impl Conn for PgConn {
             None => return None,
         };
 
-        Some(local_user_from_row(result, &instance_domain))
+        Some(local_user_from_row(result, instance_domain))
     }
 
     async fn get_local_user_private_key(&self, preferred_username: &str) -> String {
@@ -228,7 +219,7 @@ impl Conn for PgConn {
         let stmt = r#"
         SELECT * FROM internal_users WHERE preferred_username = $1;
         "#;
-        let stmt = client.prepare(&stmt).await.unwrap();
+        let stmt = client.prepare(stmt).await.unwrap();
 
         let result = client
             .query(&stmt, &[&preferred_username])

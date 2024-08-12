@@ -67,10 +67,14 @@ mod tests {
 	"first": "https://mastodon.social/users/Mastodon/followers?page=1"
 }
         "#;
-        let deserialized: Result<ActivityStream, serde_json::Error> = serde_json::from_str(&index_page);
+        let deserialized: Result<ActivityStream, serde_json::Error> =
+            serde_json::from_str(&index_page);
         match deserialized {
             Ok(_) => Ok(()),
-            Err(x) => Err(format!("collection index deserialize failed with response: {}", x)),
+            Err(x) => Err(format!(
+                "collection index deserialize failed with response: {}",
+                x
+            )),
         }
     }
     #[test]
@@ -100,11 +104,14 @@ mod tests {
 	]
 }
         "#;
-        let deserialized: Result<ActivityStream, serde_json::Error> = serde_json::from_str(&index_page);
+        let deserialized: Result<ActivityStream, serde_json::Error> =
+            serde_json::from_str(&index_page);
         match deserialized {
             Ok(_) => Ok(()),
-            Err(x) => Err(format!("collection index deserialize failed with response: {}", x)),
+            Err(x) => Err(format!(
+                "collection index deserialize failed with response: {}",
+                x
+            )),
         }
     }
 }
-

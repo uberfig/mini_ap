@@ -283,7 +283,8 @@ mod tests {
 	}
 }
         "#;
-        let deserialized: Result<ActivityStream, serde_json::Error> = serde_json::from_str(&mastodon_account);
+        let deserialized: Result<ActivityStream, serde_json::Error> =
+            serde_json::from_str(&mastodon_account);
         match deserialized {
             Ok(_) => Ok(()),
             Err(x) => Err(format!("actor deserialize failed with response: {}", x)),

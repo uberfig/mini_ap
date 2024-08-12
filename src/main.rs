@@ -3,12 +3,11 @@ use std::ops::DerefMut;
 use actix_web::{
     // error::ErrorBadRequest,
     get,
-    web::{self, Data},
+    web::Data,
     App,
     HttpResponse,
     HttpServer,
     Responder,
-    Result,
 };
 
 use mini_ap::{config::Config, db::postgres::pg_conn::PgConn};
