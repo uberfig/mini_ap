@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use actix_web::web::Data;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -8,7 +7,7 @@ use super::{
     activities::*,
     actors::Actor,
     collections::ExtendsCollection,
-    link::{Link, LinkSimpleOrExpanded},
+    link::LinkSimpleOrExpanded,
     object::{Object, ObjectWrapper},
 };
 
@@ -166,7 +165,7 @@ impl ExtendsObject {
         match self {
             ExtendsObject::Object(x) => &x.object.id.id,
             ExtendsObject::ExtendsIntransitive(x) => x.get_id(),
-            ExtendsObject::ExtendsCollection(x) => todo!(),
+            ExtendsObject::ExtendsCollection(_x) => todo!(),
             ExtendsObject::Actor(x) => &x.id,
         }
     }
