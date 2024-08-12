@@ -17,6 +17,8 @@ CREATE TABLE ap_instance_actor (
 	public_key_pem		TEXT NOT NULL
 );
 
+----------------------------------------------------------------
+
 CREATE TABLE following (
 	follow_type			SMALLINT NOT NULL, -- local to local, local to federated, federated to local
 	creator				BIGINT NOT NULL, -- the person trying to follow
@@ -52,19 +54,12 @@ CREATE TABLE federated_ap_users (
 	followers			TEXT NOT NULL,
 	following			TEXT NOT NULL,
 
-	manual_followers	BOOLEAN NOT NOT DEFAULT false,
-	memorial			BOOLEAN NOT NOT DEFAULT false,
-	indexable			BOOLEAN NOT NOT DEFAULT false,
-	discoverable		BOOLEAN NOT NOT DEFAULT false
+	manual_followers	BOOLEAN NOT NULL DEFAULT false,
+	memorial			BOOLEAN NOT NULL DEFAULT false,
+	indexable			BOOLEAN NOT NULL DEFAULT false,
+	discoverable		BOOLEAN NOT NULL DEFAULT false
 	-- featured			TEXT,
 	-- featuredTags		TEXT,
-);
-
-CREATE TABLE public_keys (
-	pub_key_id			BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
-	id					TEXT NOT NULL UNIQUE,
-	owner				TEXT NOT NULL UNIQUE REFERENCES activitypub_users(id) ON DELETE CASCADE,
-	public_key_pem		TEXT NOT NULL
 );
 
 CREATE TABLE posts (
