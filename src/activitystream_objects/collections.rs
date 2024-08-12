@@ -1,8 +1,7 @@
 // --------------collections----------------
 
 use serde::{Deserialize, Serialize};
-
-use super::object::Object;
+use url::Url;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
@@ -12,7 +11,6 @@ pub enum ExtendsCollection {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
 pub enum CollectionType {
     Collection,
     OrderedCollection,
@@ -23,13 +21,13 @@ pub enum CollectionType {
 pub struct Collection {
     #[serde(rename = "type")]
     pub type_field: CollectionType,
-    #[serde(flatten)]
-    pub extends_object: Object,
+    pub id: Url,
+
     pub total_items: u32,
-    pub current: Option<String>, //TODO
-    pub first: Option<String>,   //TODO
-    pub last: Option<String>,    //TODO
-    pub items: Option<String>,   //TODO
+    pub current: Option<String>,    //TODO
+    pub first: Option<String>,      //TODO
+    pub last: Option<String>,       //TODO
+    pub items: Option<Vec<String>>, //TODO
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -43,12 +41,15 @@ pub enum PageType {
 pub struct CollectionPage {
     #[serde(rename = "type")]
     pub type_field: PageType,
-
-    #[serde(flatten)]
-    pub extends_collection: Collection,
-    pub part_of: Option<String>, //TODO
-    pub next: Option<String>,    //TODO
-    pub prev: Option<String>,    //TODO
+    pub id: Url,
+    pub total_items: u32,
+    pub part_of: Option<String>,    //TODO
+    pub next: Option<String>,       //TODO
+    pub prev: Option<String>,       //TODO
+    pub current: Option<String>,    //TODO
+    pub first: Option<String>,      //TODO
+    pub last: Option<String>,       //TODO
+    pub items: Option<Vec<String>>, //TODO
 }
 
 #[cfg(test)]

@@ -41,3 +41,11 @@ impl LinkSimpleOrExpanded {
         }
     }
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(untagged)]
+/// represents a field that could be an item of type T or a link
+pub enum RangeLinkItem<T> {
+    Item(T),
+    Link(LinkSimpleOrExpanded),
+}

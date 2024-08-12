@@ -1,35 +1,15 @@
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use super::core_types::*;
+use super::{core_types::*, link::RangeLinkItem};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(untagged)]
-/// represents a field that could be an actor or a link
-pub enum RangeLinkActor {
-    Actor(Box<Actor>),
-    Link(Url),
-}
-
-impl Default for RangeLinkActor {
-    fn default() -> Self {
-        RangeLinkActor::Link(Url::parse("invalid").unwrap())
-    }
-}
-
-impl RangeLinkActor {
-    pub fn get_id(&self) -> &Url {
-        match self {
-            RangeLinkActor::Actor(x) => &x.id,
-            RangeLinkActor::Link(x) => x,
-        }
-    }
-}
-
-impl PartialEq for RangeLinkActor {
-    fn eq(&self, other: &Self) -> bool {
-        self.get_id() == other.get_id()
-    }
+impl RangeLinkItem<Actor> {
+	pub fn get_id(&self) -> &Url {
+		match self {
+			RangeLinkItem::Item(x) => x.get_id(),
+			RangeLinkItem::Link(x) => x.get_id(),
+		}
+	}
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

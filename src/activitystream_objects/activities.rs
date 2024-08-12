@@ -3,8 +3,9 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 use super::{
-    actors::RangeLinkActor,
-    core_types::{ExtendsObject, RangeLinkExtendsObject},
+    actors::Actor,
+    core_types::ExtendsObject,
+    link::{LinkSimpleOrExpanded, RangeLinkItem},
     object::{Object, ObjectWrapper},
 };
 
@@ -59,7 +60,7 @@ pub struct IntransitiveActivity {
     // pub type_field: IntransitiveType,
     #[serde(flatten)]
     pub extends_object: Object,
-    pub actor: RangeLinkActor, //TODO
+    pub actor: RangeLinkItem<Actor>, //TODO
     #[serde(skip_serializing_if = "Option::is_none")]
     pub target: Option<String>, //TODO
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -128,7 +129,7 @@ pub struct Activity {
     #[serde(rename = "type")]
     pub type_field: ActivityType,
 
-    pub object: RangeLinkExtendsObject,
+    pub object: RangeLinkItem<ExtendsObject>,
 
     #[serde(flatten)]
     pub extends_intransitive: IntransitiveActivity,
@@ -140,13 +141,13 @@ impl Activity {
             extends_object: Object::new(
                 Url::parse(&format!("{}/activity", object.object.id.id.as_str())).unwrap(),
             ),
-            actor: RangeLinkActor::Link(
+            actor: RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(
                 object
                     .object
                     .get_attributed_to()
                     .expect("trying to make a create for an object without attribution")
                     .clone(),
-            ),
+            )),
             target: None,
             result: None,
             origin: None,
@@ -154,7 +155,7 @@ impl Activity {
         };
         Activity {
             type_field: ActivityType::Create,
-            object: RangeLinkExtendsObject::Object(ExtendsObject::Object(Box::new(object))),
+            object: RangeLinkItem::Item(ExtendsObject::Object(Box::new(object))),
             extends_intransitive: intransitive,
         }
     }
