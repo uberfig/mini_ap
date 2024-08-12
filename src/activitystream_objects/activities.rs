@@ -159,49 +159,6 @@ impl Activity {
             extends_intransitive: intransitive,
         }
     }
-    // pub async fn verify_attribution(&self, cache: &Cache, conn: &Data<DbConn>) -> Result<(), ()> {
-    //     match self.type_field {
-    //         ActivityType::Create => {
-    //             let object = self.object.get_concrete(cache, conn).await;
-    //             let object = match object {
-    //                 Ok(x) => x,
-    //                 Err(x) => {
-    //                     dbg!(x);
-    //                     return Err(());
-    //                 }
-    //             };
-    //             let object = match object.get_as_object() {
-    //                 Some(x) => x,
-    //                 None => {
-    //                     return Err(());
-    //                 }
-    //             };
-
-    //             if let Some(x) = &object.attributed_to {
-    //                 if self.extends_intransitive.actor.get_id() == x.get_id() {
-    //                     return Ok(());
-    //                 }
-    //             };
-
-    //             return Err(());
-    //         }
-    //         // ActivityType::Add |
-    //         // ActivityType::Remove |
-    //         ActivityType::Undo | ActivityType::Update | ActivityType::Delete => {
-    //             let Some(actor_domain) = self.extends_intransitive.actor.get_id().domain() else {
-    //                 return Err(());
-    //             };
-    //             let Some(obj_domain) = self.object.get_id().domain() else {
-    //                 return Err(());
-    //             };
-    //             if actor_domain == obj_domain {
-    //                 return Ok(());
-    //             }
-    //             return Err(());
-    //         }
-    //         _ => return Ok(()),
-    //     };
-    // }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
