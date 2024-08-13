@@ -26,45 +26,45 @@ pub async fn inspect_inbox(inbox: Data<Inbox>) -> String {
     format!("inbox: \n{}", data.join("\n\n"))
 }
 
-#[post("/inbox")]
-pub async fn shared_inbox(
-    request: HttpRequest,
-    // conn: Data<DbConn>,
-    inbox: Data<Inbox>,
-    body: web::Bytes,
-    cache: Data<Cache>,
-    conn: Data<DbConn>,
-) -> Result<HttpResponse, Error> {
-    dbg!(&request);
+// #[post("/inbox")]
+// pub async fn shared_inbox(
+//     request: HttpRequest,
+//     // conn: Data<DbConn>,
+//     inbox: Data<Inbox>,
+//     body: web::Bytes,
+//     cache: Data<Cache>,
+//     conn: Data<DbConn>,
+// ) -> Result<HttpResponse, Error> {
+//     dbg!(&request);
 
-    let x = verify_incoming(
-        &cache,
-        &conn,
-        request,
-        body,
-        "/users/test/inbox",
-        "place.ivytime.gay",
-    )
-    .await;
+//     let x = verify_incoming(
+//         &cache,
+//         &conn,
+//         request,
+//         body,
+//         "/users/test/inbox",
+//         "place.ivytime.gay",
+//     )
+//     .await;
 
-    match x {
-        Ok(x) => {
-            println!("{}", &x);
+//     match x {
+//         Ok(x) => {
+//             println!("{}", &x);
 
-            let mut guard = inbox.inbox.lock().unwrap();
-            let data = &mut *guard;
-            data.push(x);
+//             let mut guard = inbox.inbox.lock().unwrap();
+//             let data = &mut *guard;
+//             data.push(x);
 
-            return Ok(HttpResponse::Ok()
-                .status(StatusCode::OK)
-                .body("OK".to_string()));
-        }
-        Err(x) => {
-            dbg!(&x);
-            Ok(HttpResponse::Unauthorized().body(serde_json::to_string(&x).unwrap()))
-        }
-    }
-}
+//             return Ok(HttpResponse::Ok()
+//                 .status(StatusCode::OK)
+//                 .body("OK".to_string()));
+//         }
+//         Err(x) => {
+//             dbg!(&x);
+//             Ok(HttpResponse::Unauthorized().body(serde_json::to_string(&x).unwrap()))
+//         }
+//     }
+// }
 
 #[post("/users/{preferred_username}/inbox")]
 pub async fn private_inbox(

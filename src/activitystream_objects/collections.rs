@@ -26,10 +26,10 @@ pub struct Collection {
     pub id: Url,
 
     pub total_items: Option<u32>,
-    pub current: Option<String>,    //TODO
-    pub first: Option<RangeLinkItem<CollectionPage>>,      //TODO
-    pub last: Option<String>,       //TODO
-    pub items: Option<Vec<String>>, //TODO
+    pub current: Option<String>,                      //TODO
+    pub first: Option<RangeLinkItem<CollectionPage>>, //TODO
+    pub last: Option<String>,                         //TODO
+    pub items: Option<Vec<String>>,                   //TODO
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

@@ -60,6 +60,21 @@ impl WebfingerQuery {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct WebfingerResult {
+    subject: String,
+    aliases: Option<Vec<String>>,
+    links: Vec<WebfingerLink>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct WebfingerLink {
+    rel: String,
+    #[serde(rename = "type")]
+    type_field: String,
+    href: String,
+}
+
 #[derive(Deserialize, Debug)]
 struct Info {
     resource: String,
@@ -84,8 +99,9 @@ async fn webfinger(
         None => return Err(ErrorBadRequest("no preferred username provided")),
     };
 
-    let actor = conn.get_local_user_actor(&preferred_username, &state.instance_domain).await;
-
+    let actor = conn
+        .get_local_user_actor(&preferred_username, &state.instance_domain)
+        .await;
     let actor = match actor {
         Some(x) => x,
         None => {
@@ -94,25 +110,27 @@ async fn webfinger(
     };
 
     let subject = format!("acct:{}@{}", &preferred_username, &state.instance_domain);
+    let profile_page = format!("https://{}/@{}", &state.instance_domain, &preferred_username);
+
     let id = actor.id.as_str();
 
-    let webfinger = format!(
-        r#"
-
-    {{
-        "subject": "{subject}",
-    
-        "links": [
-            {{
-                "rel": "self",
-                "type": "application/activity+json",
-                "href": "{id}"
-            }}
-        ]
-    }}
-
-    "#
-    );
+    let webfinger = WebfingerResult {
+        subject,
+        aliases: Some(vec![id.to_string(), profile_page.clone()]),
+        links: vec![
+            WebfingerLink {
+                rel: "self".to_string(),
+                type_field: "application/activity+json".to_string(),
+                href: id.to_string(),
+            },
+            WebfingerLink {
+                rel: "http://webfinger.net/rel/profile-page".to_string(),
+                type_field: "text/html".to_string(),
+                href: profile_page,
+            },
+        ],
+    };
+    let webfinger = serde_json::to_string(&webfinger).unwrap();
 
     Ok(HttpResponse::Ok()
         .content_type("application/jrd+json; charset=utf-8")

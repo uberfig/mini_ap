@@ -3,7 +3,11 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 use super::{
-    activities::{Activity, ExtendsIntransitive, Question}, actors::Actor, collections::ExtendsCollection, core_types::{ActivityStream, Context, ContextWrap, ExtendsObject, OptionalArray}, link::{LinkSimpleOrExpanded, RangeLinkItem}
+    activities::{Activity, ExtendsIntransitive, Question},
+    actors::Actor,
+    collections::ExtendsCollection,
+    core_types::{ActivityStream, Context, ContextWrap, ExtendsObject, OptionalArray},
+    link::{LinkSimpleOrExpanded, RangeLinkItem},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -200,7 +204,7 @@ pub struct Object {
     pub preview: Option<RangeLinkItem<ExtendsObject>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub replies: Option<ExtendsCollection>
+    pub replies: Option<ExtendsCollection>,
 }
 
 impl Object {
@@ -419,12 +423,14 @@ mod tests {
         "##;
         let deserialized: Result<ActivityStream, serde_json::Error> =
             serde_json::from_str(test_note);
-        let deserialized =  match deserialized {
+        let deserialized = match deserialized {
             Ok(x) => x,
-            Err(x) => return Err(format!(
-                "create activity deserialize failed with response: {}",
-                x
-            )),
+            Err(x) => {
+                return Err(format!(
+                    "create activity deserialize failed with response: {}",
+                    x
+                ))
+            }
         };
 
         let deserialized = match deserialized.content.activity_stream {
@@ -433,7 +439,10 @@ mod tests {
         };
 
         if !matches!(deserialized.type_field, ObjectType::Note) {
-            return Err(format!("incorrect object type, givent type: {}", serde_json::to_string(&deserialized.type_field).unwrap()));
+            return Err(format!(
+                "incorrect object type, givent type: {}",
+                serde_json::to_string(&deserialized.type_field).unwrap()
+            ));
         }
 
         // dbg!(&deserialized.object.replies);

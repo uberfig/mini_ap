@@ -10,7 +10,11 @@ use actix_web::{
     Responder,
 };
 
-use mini_ap::{api::webfinger::webfinger, config::Config, db::{postgres::pg_conn::PgConn, Conn}};
+use mini_ap::{
+    api::webfinger::webfinger,
+    config::Config,
+    db::{postgres::pg_conn::PgConn, Conn},
+};
 // use refinery::Migration;
 use tokio_postgres::NoTls;
 
@@ -102,7 +106,9 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
-            .app_data(Data::new(Box::new(PgConn { db: pool.clone() }) as Box<dyn Conn>))
+            .app_data(Data::new(
+                Box::new(PgConn { db: pool.clone() }) as Box<dyn Conn>
+            ))
             .app_data(Data::new(config.to_owned()))
             .service(hello)
             .service(webfinger)

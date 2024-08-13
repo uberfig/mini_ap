@@ -4,12 +4,12 @@ use url::Url;
 use super::{core_types::*, link::RangeLinkItem};
 
 impl RangeLinkItem<Actor> {
-	pub fn get_id(&self) -> &Url {
-		match self {
-			RangeLinkItem::Item(x) => x.get_id(),
-			RangeLinkItem::Link(x) => x.get_id(),
-		}
-	}
+    pub fn get_id(&self) -> &Url {
+        match self {
+            RangeLinkItem::Item(x) => x.get_id(),
+            RangeLinkItem::Link(x) => x.get_id(),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
