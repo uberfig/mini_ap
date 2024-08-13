@@ -3,6 +3,8 @@
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+use super::link::RangeLinkItem;
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum ExtendsCollection {
@@ -23,9 +25,9 @@ pub struct Collection {
     pub type_field: CollectionType,
     pub id: Url,
 
-    pub total_items: u32,
+    pub total_items: Option<u32>,
     pub current: Option<String>,    //TODO
-    pub first: Option<String>,      //TODO
+    pub first: Option<RangeLinkItem<CollectionPage>>,      //TODO
     pub last: Option<String>,       //TODO
     pub items: Option<Vec<String>>, //TODO
 }
@@ -41,8 +43,10 @@ pub enum PageType {
 pub struct CollectionPage {
     #[serde(rename = "type")]
     pub type_field: PageType,
-    pub id: Url,
-    pub total_items: u32,
+    /// id may be null if the collection page is within a collection
+    /// as seen with replies in [`super::object::tests::test_deserialize_note()`]
+    pub id: Option<Url>,
+    pub total_items: Option<u32>,
     pub part_of: Option<String>,    //TODO
     pub next: Option<String>,       //TODO
     pub prev: Option<String>,       //TODO

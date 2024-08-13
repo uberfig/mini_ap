@@ -3,10 +3,7 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 use super::{
-    activities::{Activity, ExtendsIntransitive, Question},
-    actors::Actor,
-    core_types::{ActivityStream, Context, ContextWrap, ExtendsObject, OptionalArray},
-    link::{LinkSimpleOrExpanded, RangeLinkItem},
+    activities::{Activity, ExtendsIntransitive, Question}, actors::Actor, collections::ExtendsCollection, core_types::{ActivityStream, Context, ContextWrap, ExtendsObject, OptionalArray}, link::{LinkSimpleOrExpanded, RangeLinkItem}
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -201,6 +198,9 @@ pub struct Object {
     // pub location: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub preview: Option<RangeLinkItem<ExtendsObject>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub replies: Option<ExtendsCollection>
 }
 
 impl Object {
@@ -289,7 +289,7 @@ impl Object {
 
 #[cfg(test)]
 mod tests {
-    use crate::activitystream_objects::core_types::ActivityStream;
+    use crate::activitystream_objects::{core_types::ActivityStream, object::ObjectType};
 
     #[test]
     fn test_deserialize_note() -> Result<(), String> {
@@ -419,12 +419,25 @@ mod tests {
         "##;
         let deserialized: Result<ActivityStream, serde_json::Error> =
             serde_json::from_str(test_note);
-        match deserialized {
-            Ok(_) => Ok(()),
-            Err(x) => Err(format!(
+        let deserialized =  match deserialized {
+            Ok(x) => x,
+            Err(x) => return Err(format!(
                 "create activity deserialize failed with response: {}",
                 x
             )),
+        };
+
+        let deserialized = match deserialized.content.activity_stream {
+            crate::activitystream_objects::core_types::ExtendsObject::Object(x) => x,
+            _ => return Err(format!("not of type object")),
+        };
+
+        if !matches!(deserialized.type_field, ObjectType::Note) {
+            return Err(format!("incorrect object type, givent type: {}", serde_json::to_string(&deserialized.type_field).unwrap()));
         }
+
+        // dbg!(&deserialized.object.replies);
+
+        Ok(())
     }
 }
