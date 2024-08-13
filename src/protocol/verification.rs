@@ -7,11 +7,7 @@ use actix_web::{
 use openssl::hash::MessageDigest;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    activitystream_objects::{core_types::ActivityStream, VerificationActor},
-    cache_and_fetch::Cache,
-    db::conn::DbConn,
-};
+use crate::activitystream_objects::{actors::Actor, core_types::ActivityStream};
 
 pub fn generate_digest(body: &[u8]) -> String {
     let mut hasher = openssl::hash::Hasher::new(MessageDigest::sha256()).unwrap();
@@ -47,10 +43,9 @@ pub enum RequestVerificationError {
 
 ///verifys a request and returns the message body if its valid
 pub async fn verify_incoming(
-    cache: &Cache,
-    conn: &Data<DbConn>,
+    // conn: &Data<DbConn>,
     request: HttpRequest,
-    body: web::Bytes,
+    body: String,
     path: &str,
     instance_domain: &str,
 ) -> Result<String, RequestVerificationError> {
@@ -66,20 +61,20 @@ pub async fn verify_incoming(
         return Err(RequestVerificationError::BadMessageDigest);
     };
 
-    let Ok(body) = String::from_utf8(body.to_vec()) else {
-        return Err(RequestVerificationError::BadMessageBody);
-    };
+    // let Ok(body) = String::from_utf8(body.to_vec()) else {
+    //     return Err(RequestVerificationError::BadMessageBody);
+    // };
 
     let object: Result<ActivityStream, _> = serde_json::from_str(&body);
     let Ok(object) = object else {
         return Err(RequestVerificationError::BodyDeserializeErr);
     };
 
-    if object.is_activity() {
-        let Ok(_) = object.verify_attribution(cache, conn).await else {
-            return Err(RequestVerificationError::ForgedAttribution);
-        };
-    }
+    // if object.is_activity() {
+    //     let Ok(_) = object.verify_attribution(cache, conn).await else {
+    //         return Err(RequestVerificationError::ForgedAttribution);
+    //     };
+    // }
 
     let generated_digest = "SHA-256=".to_owned() + &generate_digest(body.as_bytes());
 
@@ -135,9 +130,12 @@ pub async fn verify_incoming(
         return Err(RequestVerificationError::ActorFetchBodyFailed);
     };
 
-    let actor: Result<VerificationActor, _> = serde_json::from_slice(&actor);
+    let actor: Result<ActivityStream, _> = serde_json::from_slice(&actor);
     let Ok(actor) = actor else {
         dbg!(&actor);
+        return Err(RequestVerificationError::ActorDeserializeFailed);
+    };
+    let Some(actor) = actor.get_actor() else {
         return Err(RequestVerificationError::ActorDeserializeFailed);
     };
 

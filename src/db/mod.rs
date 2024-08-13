@@ -106,6 +106,19 @@ pub fn generate_links(domain: &str, uname: &str) -> UserLinks {
     }
 }
 
+fn instance_actor_links(domain: &str) -> UserLinks {
+    UserLinks {
+        id: Url::parse(&format!("https://{domain}/actor")).unwrap(),
+        inbox: Url::parse(&format!("https://{domain}/actor/inbox")).unwrap(),
+        outbox: Url::parse(&format!("https://{domain}/actor/outbox")).unwrap(),
+        followers: Url::parse(&format!("https://{domain}/actor/followers")).unwrap(),
+        following: Url::parse(&format!("https://{domain}/actor/following")).unwrap(),
+        liked: Url::parse(&format!("https://{domain}/actor/liked")).unwrap(),
+        url: Url::parse(&format!("https://{domain}:")).unwrap(),
+        pub_key_id: Url::parse(&format!("https://{domain}/actor#main-key")).unwrap(),
+    }
+}
+
 pub struct NewLocal {
     pub username: String,
     pub password: String,

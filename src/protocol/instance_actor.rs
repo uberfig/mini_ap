@@ -1,29 +1,10 @@
 use openssl::{pkey::Private, rsa::Rsa};
 use url::Url;
 
-use crate::{
-    activitystream_objects::{
-        actors::{Actor, ActorType, PublicKey},
-        object::Object,
-    },
-    db::account_creation::UserLinks,
-};
-
 pub struct InstanceActor {
     pub actor: Actor,
     pub key_id: String,
     pub private_key: Rsa<Private>,
-}
-
-fn instance_actor_links(domain: &str) -> UserLinks {
-    UserLinks {
-        id: format!("https://{domain}/actor"),
-        inbox: format!("https://{domain}/actor/inbox"),
-        outbox: format!("https://{domain}/actor/outbox"),
-        followers: format!("https://{domain}/actor/followers"),
-        following: format!("https://{domain}/actor/following"),
-        liked: format!("https://{domain}/actor/liked"),
-    }
 }
 
 impl InstanceActor {
