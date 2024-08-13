@@ -6,10 +6,12 @@ pub mod postgres;
 // pub mod private_key;
 // pub mod public_key;
 
+use async_trait::async_trait;
 use url::Url;
 
 use crate::activitystream_objects::{activities::Question, actors::Actor, object::ObjectWrapper};
 
+#[derive(Debug, Clone, Copy)]
 pub enum PermissionLevel {
     /// intended for the main admin account(s) of the server, will be
     /// featured and considered the pont of contact for the instance,
@@ -114,51 +116,52 @@ pub struct NewLocal {
     pub custom_domain: Option<String>,
 }
 
+#[async_trait]
 pub trait Conn {
-    fn create_federated_user(&self, actor: &Actor)
-        -> impl std::future::Future<Output = i64> + Send;
-    fn get_federated_user_db_id(
+    async fn create_federated_user(&self, actor: &Actor)
+        -> i64;
+    async fn get_federated_user_db_id(
         &self,
         actor_id: &str,
-    ) -> impl std::future::Future<Output = Option<i64>> + Send;
-    fn get_federated_actor(
+    ) -> Option<i64>;
+    async fn get_federated_actor(
         &self,
         actor_id: &str,
-    ) -> impl std::future::Future<Output = Option<Actor>> + Send;
-    fn get_federated_actor_db_id(
+    ) -> Option<Actor>;
+    async fn get_federated_actor_db_id(
         &self,
         id: i64,
-    ) -> impl std::future::Future<Output = Option<Actor>> + Send;
+    ) -> Option<Actor>;
 
     /// since this is intended to be a dumb implimentation, the
     /// "password" being passed in should be the hashed argon2
     /// output containing the hash and the salt. the database
     /// should not be responsible for performing this task
-    fn create_local_user(
+    async fn create_local_user(
         &self,
-        user: NewLocal,
-    ) -> impl std::future::Future<Output = Result<i64, ()>> + Send;
+        user: &NewLocal,
+    ) -> Result<i64, ()>;
 
-    fn set_permission_level(
+    async fn set_permission_level(
         &self,
         uid: i64,
         permission_level: PermissionLevel,
-    ) -> impl std::future::Future<Output = ()> + Send;
-    fn update_password(
+    );
+    async fn update_password(
         &self,
         uid: i64,
         password: &str,
-    ) -> impl std::future::Future<Output = ()> + Send;
-    fn set_manually_approves_followers(
+    );
+    async fn set_manually_approves_followers(
         &self,
         uid: i64,
         value: bool,
-    ) -> impl std::future::Future<Output = ()> + Send;
+    );
 
-    fn get_local_user_db_id(
+    async fn get_local_user_db_id(
         &self,
         preferred_username: &str,
-    ) -> impl std::future::Future<Output = Option<i64>> + Send;
+    ) -> Option<i64>;
 
     /// instance_domain must be provided as internal users will
     /// need to have their links generated based on the instance
@@ -175,52 +178,52 @@ pub trait Conn {
     //     preferred_username: &str,
     //     instance_domain: &str,
     // ) -> Option<Actor>;
-    fn get_local_user_actor(
+    async fn get_local_user_actor(
         &self,
         preferred_username: &str,
         instance_domain: &str,
-    ) -> impl std::future::Future<Output = Option<Actor>> + Send;
+    ) -> Option<Actor>;
 
     /// see documentation for [`Conn::get_local_user_actor()`] for more
     /// info on instance domain
-    fn get_local_user_actor_db_id(
+    async fn get_local_user_actor_db_id(
         &self,
         uid: i64,
         instance_domain: &str,
-    ) -> impl std::future::Future<Output = Option<Actor>> + Send;
+    ) -> Option<Actor>;
     // async fn get_local_user_private_key(&self, preferred_username: &str) -> String;
-    fn get_local_user_private_key(
+    async fn get_local_user_private_key(
         &self,
         preferred_username: &str,
-    ) -> impl std::future::Future<Output = String> + Send;
+    ) -> String;
 
-    fn create_new_post(&self, post: PostType) -> impl std::future::Future<Output = i64> + Send;
+    async fn create_new_post(&self, post: PostType) -> i64;
 
-    fn create_follow_request(
+    async fn create_follow_request(
         &self,
         from_id: &str,
         to_id: &str,
-    ) -> impl std::future::Future<Output = Result<(), ()>> + Send;
+    ) -> Result<(), ()>;
 
     /// approves an existing follow request and creates the record in
     /// the followers
-    fn approve_follow_request(
+    async fn approve_follow_request(
         &self,
         from_id: &str,
         to_id: &str,
-    ) -> impl std::future::Future<Output = Result<(), ()>> + Send;
+    ) -> Result<(), ()>;
 
     /// in the event that we cannot view from the source instance, just show
     /// local followers
-    fn get_followers(
+    async fn get_followers(
         &self,
         preferred_username: &str,
-    ) -> impl std::future::Future<Output = Result<(), ()>> + Send;
+    ) -> Result<(), ()>;
 
     /// in the event we cannot view from the source domain, just show
     /// the source instance has not made this information available
-    fn get_follower_count(
+    async fn get_follower_count(
         &self,
         preferred_username: &str,
-    ) -> impl std::future::Future<Output = Result<(), ()>> + Send;
+    ) -> Result<(), ()>;
 }

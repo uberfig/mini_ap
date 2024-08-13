@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use deadpool_postgres::Pool;
 use tokio_postgres::Row;
 
@@ -38,6 +39,7 @@ fn local_user_from_row(result: Row, instance_domain: &str) -> Actor {
 }
 
 #[allow(unused_variables)]
+#[async_trait]
 impl Conn for PgConn {
     async fn create_federated_user(&self, actor: &Actor) -> i64 {
         let client = self.db.get().await.expect("failed to get client");
@@ -107,7 +109,7 @@ impl Conn for PgConn {
         todo!()
     }
 
-    async fn create_local_user(&self, user: crate::db::NewLocal) -> Result<i64, ()> {
+    async fn create_local_user(&self, user: &crate::db::NewLocal) -> Result<i64, ()> {
         let client = self.db.get().await.expect("failed to get client");
         let stmt = r#"
         INSERT INTO internal_users 
