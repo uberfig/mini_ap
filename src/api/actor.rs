@@ -27,7 +27,7 @@ pub async fn get_actor(
         .get_local_user_actor(&preferred_username, &state.instance_domain)
         .await;
 
-    let actor = match actor {
+    let (actor, _) = match actor {
         Some(x) => x,
         None => {
             return Err(ErrorNotFound(r#"{"error":"Not Found"}"#));

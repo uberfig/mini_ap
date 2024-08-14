@@ -64,10 +64,11 @@ CREATE TABLE federated_ap_users (
 
 CREATE TABLE posts (
 	obj_id		BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
-	id			TEXT NOT NULL UNIQUE,	--not used for internal posts
+	is_local	BOOLEAN NOT NULL,
+	id			TEXT NULL UNIQUE,	--not used for internal posts
 	surtype		TEXT NOT NULL,
 	subtype		TEXT NULL,
-	local_post	BOOLEAN NOT NULL, -- created by a local user
+	-- local_post	BOOLEAN NOT NULL, -- created by a local user
 	local_only	BOOLEAN NOT NULL DEFAULT false,
 	published	BIGINT NOT NULL,
 	in_reply_to	BIGINT NOT NULL REFERENCES posts(obj_id),

@@ -1,11 +1,14 @@
 pub mod postgres;
 
+use std::time::{SystemTime, UNIX_EPOCH};
+
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
     Argon2,
 };
 use async_trait::async_trait;
-use openssl::rsa::Rsa;
+use chrono::DateTime;
+use openssl::{pkey::Private, rsa::Rsa};
 use url::Url;
 
 use crate::activitystream_objects::{
@@ -57,6 +60,30 @@ impl PostType {
             PostType::Question(_) => todo!(),
         }
     }
+    pub fn get_surtype(&self) -> String {
+        match self {
+            PostType::Object(_) => "Object".to_string(),
+            PostType::Question(_) => "Question".to_string(),
+        }
+    }
+    pub fn get_subtype(&self) -> String {
+        match self {
+            PostType::Object(x) => serde_json::to_string(&x.type_field).unwrap(),
+            PostType::Question(x) => serde_json::to_string(&x.type_field).unwrap(),
+        }
+    }
+    pub fn get_published(&self) -> &Option<String> {
+        match self {
+            PostType::Object(x) => &x.object.published,
+            PostType::Question(_) => todo!(),
+        }
+    }
+    pub fn get_id(&self) -> &str {
+        match self {
+            PostType::Object(x) => &x.get_id().as_str(),
+            PostType::Question(_) => todo!(),
+        }
+    }
 }
 
 impl From<PostType> for ActivityStream {
@@ -73,6 +100,41 @@ impl From<PostType> for String {
         match value {
             PostType::Object(_) => "Object".to_string(),
             PostType::Question(_) => "Question".to_string(),
+        }
+    }
+}
+
+pub fn get_post_id_and_published(
+    is_local: bool,
+    post: &PostType,
+) -> (std::option::Option<String>, i64) {
+    match is_local {
+        true => (
+            None,
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_millis() as i64,
+        ),
+        false => {
+            let time = match post.get_published() {
+                Some(x) => {
+                    let parsed = DateTime::parse_from_rfc3339(x);
+                    match parsed {
+                        Ok(x) => x.timestamp_millis(),
+                        Err(_) => SystemTime::now()
+                            .duration_since(UNIX_EPOCH)
+                            .unwrap()
+                            .as_millis() as i64,
+                    }
+                }
+                None => SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .as_millis() as i64,
+            };
+
+            (Some(post.get_id().to_string()), time)
         }
     }
 }
@@ -146,6 +208,9 @@ pub struct InstanceActor {
 }
 
 impl InstanceActor {
+    pub fn get_rsa(&self) -> Rsa<Private> {
+        openssl::rsa::Rsa::private_key_from_pem(self.private_key_pem.as_bytes()).unwrap()
+    }
     pub fn to_actor(&self, domain: &str) -> Actor {
         let links = instance_actor_links(domain);
         Actor {
@@ -254,7 +319,7 @@ pub trait Conn {
         &self,
         preferred_username: &str,
         instance_domain: &str,
-    ) -> Option<Actor>;
+    ) -> Option<(Actor, i64)>;
 
     /// see documentation for [`Conn::get_local_user_actor()`] for more
     /// info on instance domain
@@ -262,7 +327,13 @@ pub trait Conn {
     // async fn get_local_user_private_key(&self, preferred_username: &str) -> String;
     async fn get_local_user_private_key(&self, preferred_username: &str) -> String;
 
-    async fn create_new_post(&self, post: PostType, instance_domain: &str) -> i64;
+    async fn create_new_post(
+        &self,
+        post: &PostType,
+        instance_domain: &str,
+        is_local: bool,
+        uid: i64,
+    ) -> i64;
 
     async fn create_follow_request(&self, from_id: &str, to_id: &str) -> Result<(), ()>;
 

@@ -16,7 +16,6 @@ use crate::{
     activitystream_objects::core_types::ActivityStream, protocol::fetch::authorized_fetch,
 };
 
-
 pub fn generate_digest(body: &[u8]) -> String {
     let mut hasher = openssl::hash::Hasher::new(MessageDigest::sha256()).unwrap();
     hasher.update(body).unwrap();
@@ -109,7 +108,7 @@ pub async fn post_to_inbox(
 ///verifys a request and returns the message body if its valid
 pub async fn verify_incoming(
     request: HttpRequest,
-    body: web::Bytes,
+    body: &str,
     path: &str,
     instance_domain: &str,
     // instance_public_key_pem: String,
@@ -126,10 +125,6 @@ pub async fn verify_incoming(
 
     let Ok(digest) = String::from_utf8(digest.as_bytes().to_vec()) else {
         return Err(RequestVerificationError::BadMessageDigest);
-    };
-
-    let Ok(body) = String::from_utf8(body.to_vec()) else {
-        return Err(RequestVerificationError::BadMessageBody);
     };
 
     let object: Result<ActivityStream, _> = serde_json::from_str(&body);

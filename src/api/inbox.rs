@@ -1,19 +1,18 @@
 use std::sync::Mutex;
 
 use actix_web::{
-    // body,
-    // cookie::{time::convert::Second, Cookie},
     error::Error,
     get,
     http::StatusCode,
     post,
     web::{self, Data},
-    HttpRequest,
-    HttpResponse,
-    Result,
+    HttpRequest, HttpResponse, Result,
 };
 
-use crate::{cache_and_fetch::Cache, db::conn::DbConn, protocol::verification::verify_incoming};
+use crate::{
+    db::Conn,
+    protocol::verification::{verify_incoming, RequestVerificationError},
+};
 pub struct Inbox {
     pub inbox: Mutex<Vec<String>>,
 }
@@ -29,39 +28,50 @@ pub async fn inspect_inbox(inbox: Data<Inbox>) -> String {
 #[post("/inbox")]
 pub async fn shared_inbox(
     request: HttpRequest,
-    // conn: Data<DbConn>,
     inbox: Data<Inbox>,
     body: web::Bytes,
-    cache: Data<Cache>,
-    conn: Data<DbConn>,
+    conn: Data<Box<dyn Conn>>,
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse, Error> {
     dbg!(&request);
+    let instance_actor_key = conn.get_instance_actor().await.unwrap().get_rsa();
+
+    let Ok(body) = String::from_utf8(body.to_vec()) else {
+        return Ok(HttpResponse::Unauthorized()
+            .body(serde_json::to_string(&RequestVerificationError::BadMessageBody).unwrap()));
+    };
 
     let x = verify_incoming(
-        &cache,
-        &conn,
         request,
-        body,
+        &body,
         "/inbox",
         &state.instance_domain,
+        &format!("https://{}/actor#main-key", &state.instance_domain),
+        &instance_actor_key,
     )
     .await;
 
     match x {
         Ok(x) => {
-            println!("{}", &x);
-
-            let mut guard = inbox.inbox.lock().unwrap();
-            let data = &mut *guard;
-            data.push(x);
+            {
+                let mut guard = inbox.inbox.lock().unwrap();
+                let data = &mut *guard;
+                let deserialized = serde_json::to_string(&x).unwrap();
+                data.push(format!("Success:\n{}", deserialized));
+            }
 
             return Ok(HttpResponse::Ok()
                 .status(StatusCode::OK)
                 .body("OK".to_string()));
         }
         Err(x) => {
-            dbg!(&x);
+            // dbg!(&x);
+            {
+                let mut guard = inbox.inbox.lock().unwrap();
+                let data = &mut *guard;
+                let deserialized = serde_json::to_string(&x).unwrap();
+                data.push(format!("failure:{}\n{}", deserialized, body));
+            }
             Ok(HttpResponse::Unauthorized().body(serde_json::to_string(&x).unwrap()))
         }
     }
@@ -71,47 +81,54 @@ pub async fn shared_inbox(
 pub async fn private_inbox(
     request: HttpRequest,
     path: web::Path<String>,
-    // conn: Data<DbConn>,
     inbox: Data<Inbox>,
     body: web::Bytes,
-    cache: Data<Cache>,
-    conn: Data<DbConn>,
+    conn: Data<Box<dyn Conn>>,
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse, Error> {
     let preferred_username = path.into_inner();
     let path = format!("/users/{}/inbox", &preferred_username);
-    // let mut guard = inbox.inbox.lock().unwrap();
-    // let data = &mut *guard;
 
-    // let val = String::from_utf8(body.to_vec());
+    let instance_actor_key = conn.get_instance_actor().await.unwrap().get_rsa();
 
-    // if let Ok(val) = val {
-    //     data.push(val);
-    // }
-    // let path = "/users/test/inbox";
-    // let x = request.cookie("example");
+    let Ok(body) = String::from_utf8(body.to_vec()) else {
+        return Ok(HttpResponse::Unauthorized()
+            .body(serde_json::to_string(&RequestVerificationError::BadMessageBody).unwrap()));
+    };
 
-    // dbg!(&request);
-    
-
-    let x = verify_incoming(&cache, &conn, request, body, &path, &state.instance_domain).await;
-
-    dbg!(&x);
+    let x = verify_incoming(
+        request,
+        &body,
+        &path,
+        &state.instance_domain,
+        &format!("https://{}/actor#main-key", &state.instance_domain),
+        &instance_actor_key,
+    )
+    .await;
 
     match x {
         Ok(x) => {
-            println!("{}", &x);
+            // println!("{}", &x);
 
-            let mut guard = inbox.inbox.lock().unwrap();
-            let data = &mut *guard;
-            data.push(x);
+            {
+                let mut guard = inbox.inbox.lock().unwrap();
+                let data = &mut *guard;
+                let deserialized = serde_json::to_string(&x).unwrap();
+                data.push(format!("Success:\n{}", deserialized));
+            }
 
             return Ok(HttpResponse::Ok()
                 .status(StatusCode::OK)
                 .body("OK".to_string()));
         }
         Err(x) => {
-            dbg!(&x);
+            // dbg!(&x);
+            {
+                let mut guard = inbox.inbox.lock().unwrap();
+                let data = &mut *guard;
+                let deserialized = serde_json::to_string(&x).unwrap();
+                data.push(format!("failure:{}\n{}", deserialized, body));
+            }
             Ok(HttpResponse::Unauthorized().body(serde_json::to_string(&x).unwrap()))
         }
     }

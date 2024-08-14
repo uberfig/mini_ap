@@ -1,4 +1,4 @@
-use std::ops::DerefMut;
+use std::{ops::DerefMut, sync::Mutex};
 
 use actix_web::{
     // error::ErrorBadRequest,
@@ -11,7 +11,13 @@ use actix_web::{
 };
 
 use mini_ap::{
-    api::{actor::{create_test, get_actor}, object::{get_object, get_object_create}, outbox::create_post, webfinger::webfinger},
+    api::{
+        actor::{create_test, get_actor},
+        inbox::{inspect_inbox, private_inbox, shared_inbox, Inbox},
+        object::{get_object, get_object_create},
+        outbox::create_post,
+        webfinger::webfinger,
+    },
     config::Config,
     db::{postgres::pg_conn::PgConn, Conn},
 };
@@ -99,6 +105,10 @@ async fn main() -> std::io::Result<()> {
         }
     }
 
+    let inbox = Data::new(Inbox {
+        inbox: Mutex::new(Vec::new()),
+    });
+
     println!(
         "starting server at http://{}:{}",
         &config.bind_address, &config.port
@@ -109,6 +119,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(Data::new(
                 Box::new(PgConn { db: pool.clone() }) as Box<dyn Conn>
             ))
+            .app_data(inbox.clone())
             .app_data(Data::new(config.to_owned()))
             .service(hello)
             .service(webfinger)
@@ -117,6 +128,9 @@ async fn main() -> std::io::Result<()> {
             .service(get_object_create)
             .service(get_actor)
             .service(create_test)
+            .service(private_inbox)
+            .service(shared_inbox)
+            .service(inspect_inbox)
     })
     .bind((bind, port))?
     .run()

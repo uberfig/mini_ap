@@ -89,6 +89,15 @@ pub struct ObjectWrapper {
 }
 
 impl ObjectWrapper {
+    pub fn get_id(&self) -> &Url {
+        &self.object.id.id
+    }
+    pub fn get_reply_to(&self) -> Option<&Url> {
+        match &self.object.in_reply_to {
+            Some(x) => Some(x.get_id()),
+            None => None,
+        }
+    }
     pub fn to_activitystream(self) -> ActivityStream {
         ActivityStream {
             content: ContextWrap {
@@ -113,6 +122,15 @@ impl ObjectWrapper {
                     ExtendsIntransitive::ExtendsActivity(Activity::new_create(self)),
                 )),
             },
+        }
+    }
+}
+
+impl RangeLinkItem<ExtendsObject> {
+    pub fn get_id(&self) -> &Url {
+        match self {
+            RangeLinkItem::Item(x) => x.get_id(),
+            RangeLinkItem::Link(x) => x.get_id(),
         }
     }
 }

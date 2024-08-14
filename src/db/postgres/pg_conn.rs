@@ -4,7 +4,7 @@ use tokio_postgres::Row;
 
 use crate::{
     activitystream_objects::actors::{Actor, ActorType, PublicKey},
-    db::{generate_links, Conn},
+    db::{generate_links, get_post_id_and_published, Conn},
 };
 
 pub struct PgConn {
@@ -170,7 +170,7 @@ impl Conn for PgConn {
         &self,
         preferred_username: &str,
         instance_domain: &str,
-    ) -> Option<crate::activitystream_objects::actors::Actor> {
+    ) -> Option<(Actor, i64)> {
         let client = self.db.get().await.expect("failed to get client");
         let stmt = r#"
         SELECT * FROM internal_users WHERE preferred_username = $1;
@@ -187,8 +187,9 @@ impl Conn for PgConn {
             Some(x) => x,
             None => return None,
         };
+        let id: i64 = result.get("uid");
 
-        Some(local_user_from_row(result, instance_domain))
+        Some((local_user_from_row(result, instance_domain), id))
     }
 
     async fn get_local_user_actor_db_id(
@@ -234,9 +235,64 @@ impl Conn for PgConn {
         private_key_pem
     }
 
-    async fn create_new_post(&self, post: crate::db::PostType, instance_domain: &str) -> i64 {
-        match post {
-            crate::db::PostType::Object(x) => todo!(),
+    async fn create_new_post(
+        &self,
+        post: &crate::db::PostType,
+        instance_domain: &str,
+        is_local: bool,
+        uid: i64,
+    ) -> i64 {
+        let (post_id, published) = get_post_id_and_published(is_local, &post);
+        let (fedi_actor, local_actor) = match is_local {
+            true => (None, Some(uid)),
+            false => (Some(uid), None),
+        };
+        match &post {
+            crate::db::PostType::Object(x) => {
+                let client = self.db.get().await.expect("failed to get client");
+
+                let stmt = r#"
+INSERT INTO posts 
+(
+    is_local, id, surtype, subtype,
+    local_only, published, in_reply_to,
+    content,
+    fedi_actor, local_actor
+)
+VALUES
+(
+    $1, $2, $3, $4,
+    $5, $6, $7,
+    $8,
+    $9, $10
+)
+RETURNING uid;
+        "#;
+                let stmt = client.prepare(stmt).await.unwrap();
+
+                let result: i64 = client
+                    .query(
+                        &stmt,
+                        &[
+                            &is_local,
+                            &post_id,
+                            &post.get_surtype(),
+                            &post.get_subtype(),
+                            &false,
+                            &published,
+                            &x.get_reply_to().map(|x| x.as_str()),
+                            &x.object.content,
+                            &fedi_actor,
+                            &local_actor,
+                        ],
+                    )
+                    .await
+                    .expect("failed to insert post")
+                    .pop()
+                    .expect("did not return obj_id")
+                    .get("obj_id");
+                result
+            }
             crate::db::PostType::Question(x) => todo!(),
         }
     }

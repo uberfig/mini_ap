@@ -16,6 +16,13 @@ pub struct ActivityStream {
     pub content: ContextWrap,
 }
 
+impl std::fmt::Display for ActivityStream {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let deserialized = serde_json::to_string(self).unwrap();
+        write!(f, "{}", deserialized)
+    }
+}
+
 impl ActivityStream {
     pub fn get_actor(self) -> Option<Box<Actor>> {
         match self.content.activity_stream {

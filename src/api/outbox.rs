@@ -21,23 +21,32 @@ pub async fn create_post(
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse, Error> {
     let preferred_username = path.into_inner();
-    let user_id = format!(
-        "https://{}/users/{}",
-        &state.instance_domain, &preferred_username
-    );
+    let (actor, uid) = conn
+        .get_local_user_actor(&preferred_username, &state.instance_domain)
+        .await
+        .unwrap();
+    // let user_id = format!(
+    //     "https://{}/users/{}",
+    //     &state.instance_domain, &preferred_username
+    // );
 
     let Ok(body) = String::from_utf8(body.to_vec()) else {
         return Ok(HttpResponse::BadRequest().body("invalid body"));
     };
 
-    dbg!(&user_id);
+    // dbg!(&user_id);
 
     let object = Object::new(Url::parse("https://temp.com").unwrap())
         .content(Some(body))
-        .attributed_to_link(Some(Url::parse(&user_id).unwrap()))
+        .attributed_to_link(Some(Url::parse(actor.get_id().as_str()).unwrap()))
         .wrap(ObjectType::Note);
     let obj_id = conn
-        .create_new_post(crate::db::PostType::Object(object), &state.instance_domain)
+        .create_new_post(
+            &crate::db::PostType::Object(object),
+            &state.instance_domain,
+            true,
+            uid,
+        )
         .await;
 
     // let id_link = format!(
@@ -57,7 +66,7 @@ pub async fn create_post(
 
     post_to_inbox(
         &activity_str,
-        &user_id,
+        actor.get_id().as_str(),
         "mastodon.social",
         "https://mastodon.social/inbox",
         &key,
@@ -65,7 +74,7 @@ pub async fn create_post(
     .await;
     post_to_inbox(
         &activity_str,
-        &user_id,
+        actor.get_id().as_str(),
         "cutie.city",
         "https://cutie.city/inbox",
         &key,
