@@ -13,7 +13,7 @@ CREATE TABLE internal_users (
 );
 
 CREATE TABLE ap_instance_actor (
-	private_key			TEXT NOT NULL,
+	private_key_pem		TEXT NOT NULL,
 	public_key_pem		TEXT NOT NULL
 );
 
@@ -67,17 +67,19 @@ CREATE TABLE posts (
 	is_local	BOOLEAN NOT NULL,
 	id			TEXT NULL UNIQUE,	--not used for internal posts
 	surtype		TEXT NOT NULL,
-	subtype		TEXT NULL,
+	subtype		TEXT NOT NULL,
 	-- local_post	BOOLEAN NOT NULL, -- created by a local user
 	local_only	BOOLEAN NOT NULL DEFAULT false,
 	published	BIGINT NOT NULL,
-	in_reply_to	BIGINT NOT NULL REFERENCES posts(obj_id),
+	in_reply_to	BIGINT NULL REFERENCES posts(obj_id) ON DELETE SET NULL,
 	
 	block_replies BOOLEAN NOT NULL DEFAULT false,
 	restrict_replies BOOLEAN NOT NULL DEFAULT false, --only those followed by or mentoned by the creator can comment
 	local_only_replies BOOLEAN NOT NULL DEFAULT false,
 
 	content		TEXT NULL,
+	domain		TEXT NOT NULL,
+	-- REFERENCES federated_instances(domain) ON DELETE CASCADE,
 
 	-- used for questions
 	multi_select 		BOOLEAN NULL,

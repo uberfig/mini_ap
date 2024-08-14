@@ -12,14 +12,14 @@ use actix_web::{
 
 use mini_ap::{
     api::{
-        actor::{create_test, get_actor},
+        actor::{create_test, get_actor, get_instance_actor},
         inbox::{inspect_inbox, private_inbox, shared_inbox, Inbox},
         object::{get_object, get_object_create},
         outbox::create_post,
         webfinger::webfinger,
     },
     config::Config,
-    db::{postgres::pg_conn::PgConn, Conn},
+    db::{postgres::pg_conn::PgConn, Conn, InstanceActor},
 };
 // use refinery::Migration;
 use tokio_postgres::NoTls;
@@ -109,6 +109,11 @@ async fn main() -> std::io::Result<()> {
         inbox: Mutex::new(Vec::new()),
     });
 
+    {
+        let conn = Box::new(PgConn { db: pool.clone() }) as Box<dyn Conn>;
+        InstanceActor::init_instance_actor(&conn).await;
+    }
+
     println!(
         "starting server at http://{}:{}",
         &config.bind_address, &config.port
@@ -127,6 +132,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_object)
             .service(get_object_create)
             .service(get_actor)
+            .service(get_instance_actor)
             .service(create_test)
             .service(private_inbox)
             .service(shared_inbox)

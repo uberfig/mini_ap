@@ -1,10 +1,14 @@
 use async_trait::async_trait;
 use deadpool_postgres::Pool;
 use tokio_postgres::Row;
+use url::Url;
 
 use crate::{
-    activitystream_objects::actors::{Actor, ActorType, PublicKey},
-    db::{generate_links, get_post_id_and_published, Conn},
+    activitystream_objects::{
+        actors::{Actor, ActorType, PublicKey},
+        object::{Object, ObjectType},
+    },
+    db::{generate_links, get_post_id_and_published, Conn, InstanceActor, PostSupertype},
 };
 
 pub struct PgConn {
@@ -256,15 +260,15 @@ INSERT INTO posts
 (
     is_local, id, surtype, subtype,
     local_only, published, in_reply_to,
-    content,
+    content, domain,
     fedi_actor, local_actor
 )
 VALUES
 (
     $1, $2, $3, $4,
     $5, $6, $7,
-    $8,
-    $9, $10
+    $8, $9,
+    $10, $11
 )
 RETURNING uid;
         "#;
@@ -282,6 +286,7 @@ RETURNING uid;
                             &published,
                             &x.get_reply_to().map(|x| x.as_str()),
                             &x.object.content,
+                            &instance_domain,
                             &fedi_actor,
                             &local_actor,
                         ],
@@ -312,10 +317,101 @@ RETURNING uid;
     async fn get_follower_count(&self, preferred_username: &str) -> Result<(), ()> {
         todo!()
     }
-    async fn get_local_post(&self, object_id: i64) -> Option<crate::db::PostType> {
-        todo!()
+    async fn get_post(&self, object_id: i64) -> Option<crate::db::PostType> {
+        let client = self.db.get().await.expect("failed to get client");
+        let stmt = r#"
+        SELECT * FROM posts JOIN internal_users ON local_actor = uid WHERE obj_id = $1;
+        "#;
+        let stmt = client.prepare(stmt).await.unwrap();
+
+        let result = client
+            .query(&stmt, &[&object_id])
+            .await
+            .expect("failed to get post")
+            .pop();
+        let Some(result) = result else {
+            return None;
+        };
+
+        let supertype: String = result.get("surtype");
+        let supertype = PostSupertype::from_str(&supertype).expect("unkown supertype in posts");
+        match supertype {
+            PostSupertype::Object => {
+                let is_local: bool = result.get("is_local");
+                let (id, attributed_to) = match is_local {
+                    true => {
+                        let preferred_username: String = result.get("preferred_username");
+                        (
+                            format!(
+                                "/users/{}/statuses/{}/activity",
+                                &preferred_username, object_id
+                            ),
+                            format!("/users/{}", &preferred_username),
+                        )
+                    }
+                    false => {
+                        // (result.get("posts.id"), )
+                        todo!()
+                    }
+                };
+                let subtype: String = result.get("subtype");
+                let subtype: ObjectType =
+                    serde_json::from_str(&subtype).expect("unkown object type stored in db");
+                let attributed_to = Url::parse(&attributed_to).expect("invalid attributed to");
+
+                let replied_obj: Option<i64> = result.get("in_reply_to");
+                let replied_obj: Option<String> = match replied_obj {
+                    Some(x) => {
+                        todo!()
+                    }
+                    None => None,
+                };
+
+                let object = Object::new(Url::parse(&id).unwrap(), attributed_to)
+                    .content(result.get("content"))
+                    .in_reply_to(replied_obj)
+                    .published_milis(result.get("published"))
+                    .to_public()
+                    .wrap(subtype);
+
+                Some(crate::db::PostType::Object(object))
+            }
+            PostSupertype::Question => todo!(),
+        }
     }
     async fn get_instance_actor(&self) -> Option<crate::db::InstanceActor> {
-        todo!()
+        let client = self.db.get().await.expect("failed to get client");
+        let stmt = r#"
+        SELECT * FROM ap_instance_actor;
+        "#;
+        let stmt = client.prepare(stmt).await.unwrap();
+
+        let result = client
+            .query(&stmt, &[])
+            .await
+            .expect("failed to get instance actor")
+            .pop();
+        match result {
+            Some(result) => Some(InstanceActor {
+                private_key_pem: result.get("private_key"),
+                public_key_pem: result.get("public_key_pem"),
+            }),
+            None => None,
+        }
+    }
+    async fn create_instance_actor(&self, private_key_pem: String, public_key_pem: String) {
+        let client = self.db.get().await.expect("failed to get client");
+        let stmt = r#"
+        INSERT INTO ap_instance_actor 
+        (private_key_pem, public_key_pem)
+        VALUES
+        ($1, $2);
+        "#;
+        let stmt = client.prepare(stmt).await.unwrap();
+
+        let result = client
+            .query(&stmt, &[&private_key_pem, &public_key_pem])
+            .await;
+        result.unwrap();
     }
 }

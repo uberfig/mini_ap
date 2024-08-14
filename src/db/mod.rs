@@ -9,6 +9,7 @@ use argon2::{
 use async_trait::async_trait;
 use chrono::DateTime;
 use openssl::{pkey::Private, rsa::Rsa};
+use serde::{Deserialize, Serialize};
 use url::Url;
 
 use crate::activitystream_objects::{
@@ -45,6 +46,17 @@ pub enum PermissionLevel {
     UntrustedUser,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum PostSupertype {
+    Object,
+    Question,
+}
+impl PostSupertype {
+    pub fn from_str(value: &str) -> Result<Self, serde_json::Error> {
+        serde_json::from_str(value)
+    }
+}
+
 #[derive(Debug, Clone)]
 /// a concrete post to be stored in the database.
 /// surtype of either object or question, then subtypes of their
@@ -62,8 +74,8 @@ impl PostType {
     }
     pub fn get_surtype(&self) -> String {
         match self {
-            PostType::Object(_) => "Object".to_string(),
-            PostType::Question(_) => "Question".to_string(),
+            PostType::Object(_) => serde_json::to_string(&PostSupertype::Object).unwrap(),
+            PostType::Question(_) => serde_json::to_string(&PostSupertype::Question).unwrap(),
         }
     }
     pub fn get_subtype(&self) -> String {
@@ -208,6 +220,15 @@ pub struct InstanceActor {
 }
 
 impl InstanceActor {
+    pub async fn init_instance_actor(conn: &Box<dyn Conn>) {
+        if conn.get_instance_actor().await.is_none() {
+            let rsa = Rsa::generate(2048).unwrap();
+            let private_key_pem = String::from_utf8(rsa.private_key_to_pem().unwrap()).unwrap();
+            let public_key_pem = String::from_utf8(rsa.public_key_to_pem().unwrap()).unwrap();
+            conn.create_instance_actor(private_key_pem, public_key_pem)
+                .await;
+        }
+    }
     pub fn get_rsa(&self) -> Rsa<Private> {
         openssl::rsa::Rsa::private_key_from_pem(self.private_key_pem.as_bytes()).unwrap()
     }
@@ -349,7 +370,8 @@ pub trait Conn {
     /// the source instance has not made this information available
     async fn get_follower_count(&self, preferred_username: &str) -> Result<(), ()>;
 
-    async fn get_local_post(&self, object_id: i64) -> Option<PostType>;
+    async fn get_post(&self, object_id: i64) -> Option<PostType>;
 
     async fn get_instance_actor(&self) -> Option<InstanceActor>;
+    async fn create_instance_actor(&self, private_key_pem: String, public_key_pem: String);
 }

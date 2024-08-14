@@ -22,7 +22,7 @@ pub async fn get_object(
 
     let (_preferred_username, object_id) = path.into_inner();
 
-    let object = conn.get_local_post(object_id).await;
+    let object = conn.get_post(object_id).await;
 
     let object = match object {
         Some(x) => x,
@@ -51,7 +51,7 @@ pub async fn get_object_create(
 
     let (_preferred_username, object_id) = path.into_inner();
 
-    let object = conn.get_local_post(object_id).await;
+    let object = conn.get_post(object_id).await;
 
     let object = match object {
         Some(x) => x,

@@ -140,13 +140,10 @@ impl Activity {
         let intransitive = IntransitiveActivity {
             extends_object: Object::new(
                 Url::parse(&format!("{}/activity", object.object.id.id.as_str())).unwrap(),
+                object.object.get_attributed_to().to_owned(),
             ),
             actor: RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(
-                object
-                    .object
-                    .get_attributed_to()
-                    .expect("trying to make a create for an object without attribution")
-                    .clone(),
+                object.object.get_attributed_to().clone(),
             )),
             target: None,
             result: None,

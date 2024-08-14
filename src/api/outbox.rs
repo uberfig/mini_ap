@@ -36,10 +36,13 @@ pub async fn create_post(
 
     // dbg!(&user_id);
 
-    let object = Object::new(Url::parse("https://temp.com").unwrap())
-        .content(Some(body))
-        .attributed_to_link(Some(Url::parse(actor.get_id().as_str()).unwrap()))
-        .wrap(ObjectType::Note);
+    let object = Object::new(
+        Url::parse("https://temp.com").unwrap(),
+        Url::parse("https://temp.com").unwrap(),
+    )
+    .content(Some(body))
+    .set_attributed_to(Url::parse(actor.get_id().as_str()).unwrap())
+    .wrap(ObjectType::Note);
     let obj_id = conn
         .create_new_post(
             &crate::db::PostType::Object(object),
@@ -54,7 +57,7 @@ pub async fn create_post(
     //     &state.instance_domain, preferred_username, obj_id
     // );
 
-    let object = conn.get_local_post(obj_id).await;
+    let object = conn.get_post(obj_id).await;
 
     let key = conn.get_local_user_private_key(&preferred_username).await;
 

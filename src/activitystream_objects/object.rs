@@ -142,6 +142,14 @@ pub enum PostType {
     Question(RangeLinkItem<Question>),
 }
 
+impl Default for RangeLinkItem<Actor> {
+    fn default() -> Self {
+        RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(
+            Url::parse("invalid.com").unwrap(),
+        ))
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Object {
@@ -151,8 +159,8 @@ pub struct Object {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub attributed_to: Option<RangeLinkItem<Actor>>,
+    // #[serde(skip_serializing_if = "Option::is_none")]
+    pub attributed_to: RangeLinkItem<Actor>,
     // #[serde(skip_serializing_if = "Option::is_none")]
     // pub audience: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -226,33 +234,22 @@ pub struct Object {
 }
 
 impl Object {
-    pub fn new(id: Url) -> Object {
+    pub fn new(id: Url, attributed_to: Url) -> Object {
         Object {
             id: ID { id },
-            attributed_to: None,
+            attributed_to: RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(attributed_to)),
             ..Default::default()
         }
     }
-    pub fn get_attributed_to(&self) -> Option<&Url> {
+    pub fn get_attributed_to(&self) -> &Url {
         match &self.attributed_to {
-            Some(x) => match x {
-                RangeLinkItem::Item(x) => Some(x.get_id()),
-                RangeLinkItem::Link(x) => Some(x.get_id()),
-            },
-            None => None,
+            RangeLinkItem::Item(x) => x.get_id(),
+            RangeLinkItem::Link(x) => x.get_id(),
         }
     }
-    pub fn attributed_to_link(mut self, attributed_to: Option<Url>) -> Self {
-        match attributed_to {
-            Some(x) => {
-                self.attributed_to = Some(RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(x)));
-                self
-            }
-            None => {
-                self.attributed_to = None;
-                self
-            }
-        }
+    pub fn set_attributed_to(mut self, attributed_to: Url) -> Self {
+        self.attributed_to = RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(attributed_to));
+        self
     }
     pub fn name(mut self, name: Option<String>) -> Self {
         self.name = name;
@@ -266,7 +263,17 @@ impl Object {
         self.id.id = id;
         self
     }
-    pub fn in_reply_to(mut self, in_reply_to: Option<RangeLinkItem<ExtendsObject>>) -> Self {
+    // pub fn in_reply_to(mut self, in_reply_to: Option<RangeLinkItem<ExtendsObject>>) -> Self {
+    //     self.in_reply_to = in_reply_to;
+    //     self
+    // }
+    pub fn in_reply_to(mut self, in_reply_to: Option<String>) -> Self {
+        let in_reply_to = match in_reply_to {
+            Some(x) => Some(RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(
+                Url::parse(&x).unwrap(),
+            ))),
+            None => None,
+        };
         self.in_reply_to = in_reply_to;
         self
     }

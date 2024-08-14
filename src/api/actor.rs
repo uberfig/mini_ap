@@ -60,3 +60,24 @@ pub async fn create_test(
 
     Ok(HttpResponse::Ok().body(format!("{x}")))
 }
+
+#[get("/actor")]
+pub async fn get_instance_actor(
+    conn: Data<Box<dyn Conn>>,
+    state: Data<crate::config::Config>,
+) -> Result<HttpResponse> {
+    println!("getting the instance actor");
+    Ok(HttpResponse::Ok()
+        .content_type("application/activity+json; charset=utf-8")
+        .body(
+            serde_json::to_string(
+                &conn
+                    .get_instance_actor()
+                    .await
+                    .unwrap()
+                    .to_actor(&state.instance_domain)
+                    .to_activitystream(),
+            )
+            .unwrap(),
+        ))
+}
