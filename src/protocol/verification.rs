@@ -1,9 +1,6 @@
 use std::{collections::HashMap, time::SystemTime};
 
-use actix_web::{
-    web::{self},
-    HttpRequest,
-};
+use actix_web::HttpRequest;
 use openssl::{
     hash::MessageDigest,
     pkey::{PKey, Private},
