@@ -110,7 +110,10 @@ async fn webfinger(
     };
 
     let subject = format!("acct:{}@{}", &preferred_username, &state.instance_domain);
-    let profile_page = format!("https://{}/@{}", &state.instance_domain, &preferred_username);
+    let profile_page = format!(
+        "https://{}/@{}",
+        &state.instance_domain, &preferred_username
+    );
 
     let id = actor.id.as_str();
 

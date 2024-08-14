@@ -26,55 +26,60 @@ pub async fn inspect_inbox(inbox: Data<Inbox>) -> String {
     format!("inbox: \n{}", data.join("\n\n"))
 }
 
-// #[post("/inbox")]
-// pub async fn shared_inbox(
-//     request: HttpRequest,
-//     // conn: Data<DbConn>,
-//     inbox: Data<Inbox>,
-//     body: web::Bytes,
-//     cache: Data<Cache>,
-//     conn: Data<DbConn>,
-// ) -> Result<HttpResponse, Error> {
-//     dbg!(&request);
-
-//     let x = verify_incoming(
-//         &cache,
-//         &conn,
-//         request,
-//         body,
-//         "/users/test/inbox",
-//         "place.ivytime.gay",
-//     )
-//     .await;
-
-//     match x {
-//         Ok(x) => {
-//             println!("{}", &x);
-
-//             let mut guard = inbox.inbox.lock().unwrap();
-//             let data = &mut *guard;
-//             data.push(x);
-
-//             return Ok(HttpResponse::Ok()
-//                 .status(StatusCode::OK)
-//                 .body("OK".to_string()));
-//         }
-//         Err(x) => {
-//             dbg!(&x);
-//             Ok(HttpResponse::Unauthorized().body(serde_json::to_string(&x).unwrap()))
-//         }
-//     }
-// }
-
-#[post("/users/{preferred_username}/inbox")]
-pub async fn private_inbox(
+#[post("/inbox")]
+pub async fn shared_inbox(
     request: HttpRequest,
     // conn: Data<DbConn>,
     inbox: Data<Inbox>,
     body: web::Bytes,
     cache: Data<Cache>,
     conn: Data<DbConn>,
+    state: Data<crate::config::Config>,
 ) -> Result<HttpResponse, Error> {
+    dbg!(&request);
+
+    let x = verify_incoming(
+        &cache,
+        &conn,
+        request,
+        body,
+        "/inbox",
+        &state.instance_domain,
+    )
+    .await;
+
+    match x {
+        Ok(x) => {
+            println!("{}", &x);
+
+            let mut guard = inbox.inbox.lock().unwrap();
+            let data = &mut *guard;
+            data.push(x);
+
+            return Ok(HttpResponse::Ok()
+                .status(StatusCode::OK)
+                .body("OK".to_string()));
+        }
+        Err(x) => {
+            dbg!(&x);
+            Ok(HttpResponse::Unauthorized().body(serde_json::to_string(&x).unwrap()))
+        }
+    }
+}
+
+#[post("/users/{preferred_username}/inbox")]
+pub async fn private_inbox(
+    request: HttpRequest,
+    path: web::Path<String>,
+    // conn: Data<DbConn>,
+    inbox: Data<Inbox>,
+    body: web::Bytes,
+    cache: Data<Cache>,
+    conn: Data<DbConn>,
+    state: Data<crate::config::Config>,
+) -> Result<HttpResponse, Error> {
+    let preferred_username = path.into_inner();
+    let path = format!("/users/{}/inbox", &preferred_username);
     // let mut guard = inbox.inbox.lock().unwrap();
     // let data = &mut *guard;
 
@@ -86,17 +91,12 @@ pub async fn private_inbox(
     // let path = "/users/test/inbox";
     // let x = request.cookie("example");
 
-    dbg!(&request);
+    // dbg!(&request);
+    
 
-    let x = verify_incoming(
-        &cache,
-        &conn,
-        request,
-        body,
-        "/users/test/inbox",
-        "place.ivytime.gay",
-    )
-    .await;
+    let x = verify_incoming(&cache, &conn, request, body, &path, &state.instance_domain).await;
+
+    dbg!(&x);
 
     match x {
         Ok(x) => {

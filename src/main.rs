@@ -11,7 +11,7 @@ use actix_web::{
 };
 
 use mini_ap::{
-    api::webfinger::webfinger,
+    api::{actor::{create_test, get_actor}, object::{get_object, get_object_create}, outbox::create_post, webfinger::webfinger},
     config::Config,
     db::{postgres::pg_conn::PgConn, Conn},
 };
@@ -112,6 +112,11 @@ async fn main() -> std::io::Result<()> {
             .app_data(Data::new(config.to_owned()))
             .service(hello)
             .service(webfinger)
+            .service(create_post)
+            .service(get_object)
+            .service(get_object_create)
+            .service(get_actor)
+            .service(create_test)
     })
     .bind((bind, port))?
     .run()

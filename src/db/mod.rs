@@ -6,10 +6,20 @@ pub mod postgres;
 // pub mod private_key;
 // pub mod public_key;
 
+use argon2::{
+    password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
+    Argon2,
+};
 use async_trait::async_trait;
+use openssl::rsa::Rsa;
 use url::Url;
 
-use crate::activitystream_objects::{activities::Question, actors::Actor, object::ObjectWrapper};
+use crate::activitystream_objects::{
+    activities::Question,
+    actors::{Actor, PublicKey},
+    core_types::ActivityStream,
+    object::ObjectWrapper,
+};
 
 #[derive(Debug, Clone, Copy)]
 pub enum PermissionLevel {
@@ -45,6 +55,23 @@ pub enum PermissionLevel {
 pub enum PostType {
     Object(ObjectWrapper),
     Question(Question),
+}
+impl PostType {
+    pub fn to_create_activitystream(self) -> ActivityStream {
+        match self {
+            PostType::Object(x) => x.to_create_activitystream(),
+            PostType::Question(_) => todo!(),
+        }
+    }
+}
+
+impl From<PostType> for ActivityStream {
+    fn from(value: PostType) -> Self {
+        match value {
+            PostType::Object(x) => x.to_activitystream(),
+            PostType::Question(_x) => todo!(),
+        }
+    }
 }
 
 impl From<PostType> for String {
@@ -106,7 +133,7 @@ pub fn generate_links(domain: &str, uname: &str) -> UserLinks {
     }
 }
 
-fn instance_actor_links(domain: &str) -> UserLinks {
+pub fn instance_actor_links(domain: &str) -> UserLinks {
     UserLinks {
         id: Url::parse(&format!("https://{domain}/actor")).unwrap(),
         inbox: Url::parse(&format!("https://{domain}/actor/inbox")).unwrap(),
@@ -119,14 +146,80 @@ fn instance_actor_links(domain: &str) -> UserLinks {
     }
 }
 
+pub struct InstanceActor {
+    pub private_key_pem: String,
+    pub public_key_pem: String,
+}
+
+impl InstanceActor {
+    pub fn to_actor(&self, domain: &str) -> Actor {
+        let links = instance_actor_links(domain);
+        Actor {
+            type_field: crate::activitystream_objects::actors::ActorType::Application,
+            id: links.id.clone(),
+            preferred_username: domain.to_string(),
+            summary: None,
+            name: None,
+            url: Some(
+                Url::parse(&format!("https://{domain}/about/more?instance_actor=true")).unwrap(),
+            ),
+            public_key: PublicKey {
+                id: links.pub_key_id,
+                owner: links.id,
+                public_key_pem: self.public_key_pem.clone(),
+            },
+            inbox: links.inbox,
+            outbox: links.outbox,
+            followers: links.followers,
+            following: links.following,
+            domain: Some(domain.to_string()),
+            liked: Some(links.liked),
+        }
+    }
+}
+
 pub struct NewLocal {
     pub username: String,
     pub password: String,
-    pub email: String,
+    pub email: Option<String>,
     pub permission_level: PermissionLevel,
     pub private_key_pem: String,
     pub public_key_pem: String,
     pub custom_domain: Option<String>,
+}
+
+impl NewLocal {
+    pub fn new(
+        username: String,
+        password: String,
+        email: Option<String>,
+        custom_domain: Option<String>,
+        permission_level: Option<PermissionLevel>,
+    ) -> Self {
+        let permission_level = match permission_level {
+            Some(x) => x,
+            None => PermissionLevel::UntrustedUser,
+        };
+        let rsa = Rsa::generate(2048).unwrap();
+        let private_key_pem = String::from_utf8(rsa.private_key_to_pem().unwrap()).unwrap();
+        let public_key_pem = String::from_utf8(rsa.public_key_to_pem().unwrap()).unwrap();
+
+        let salt = SaltString::generate(&mut OsRng);
+        let argon2 = Argon2::default();
+        let password_hash = argon2
+            .hash_password(password.as_bytes(), &salt)
+            .unwrap()
+            .to_string();
+        NewLocal {
+            username,
+            password: password_hash,
+            email,
+            permission_level,
+            private_key_pem,
+            public_key_pem,
+            custom_domain,
+        }
+    }
 }
 
 #[async_trait]
@@ -175,7 +268,7 @@ pub trait Conn {
     // async fn get_local_user_private_key(&self, preferred_username: &str) -> String;
     async fn get_local_user_private_key(&self, preferred_username: &str) -> String;
 
-    async fn create_new_post(&self, post: PostType) -> i64;
+    async fn create_new_post(&self, post: PostType, instance_domain: &str) -> i64;
 
     async fn create_follow_request(&self, from_id: &str, to_id: &str) -> Result<(), ()>;
 
@@ -190,4 +283,8 @@ pub trait Conn {
     /// in the event we cannot view from the source domain, just show
     /// the source instance has not made this information available
     async fn get_follower_count(&self, preferred_username: &str) -> Result<(), ()>;
+
+    async fn get_local_post(&self, object_id: i64) -> Option<PostType>;
+
+    async fn get_instance_actor(&self) -> Option<InstanceActor>;
 }

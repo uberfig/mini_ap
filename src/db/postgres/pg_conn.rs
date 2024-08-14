@@ -234,7 +234,7 @@ impl Conn for PgConn {
         private_key_pem
     }
 
-    async fn create_new_post(&self, post: crate::db::PostType) -> i64 {
+    async fn create_new_post(&self, post: crate::db::PostType, instance_domain: &str) -> i64 {
         match post {
             crate::db::PostType::Object(x) => todo!(),
             crate::db::PostType::Question(x) => todo!(),
@@ -254,6 +254,12 @@ impl Conn for PgConn {
     }
 
     async fn get_follower_count(&self, preferred_username: &str) -> Result<(), ()> {
+        todo!()
+    }
+    async fn get_local_post(&self, object_id: i64) -> Option<crate::db::PostType> {
+        todo!()
+    }
+    async fn get_instance_actor(&self) -> Option<crate::db::InstanceActor> {
         todo!()
     }
 }

@@ -1,13 +1,21 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, time::SystemTime};
 
 use actix_web::{
-    web::{self, Data},
+    web::{self},
     HttpRequest,
 };
-use openssl::hash::MessageDigest;
+use openssl::{
+    hash::MessageDigest,
+    pkey::{PKey, Private},
+    rsa::Rsa,
+};
 use serde::{Deserialize, Serialize};
+use url::Url;
 
-use crate::activitystream_objects::{actors::Actor, core_types::ActivityStream};
+use crate::{
+    activitystream_objects::core_types::ActivityStream, protocol::fetch::authorized_fetch,
+};
+
 
 pub fn generate_digest(body: &[u8]) -> String {
     let mut hasher = openssl::hash::Hasher::new(MessageDigest::sha256()).unwrap();
@@ -29,7 +37,7 @@ pub enum RequestVerificationError {
     NoSignatureKey,
     NoSignature,
     SignatureIncorrectBase64,
-    ActorFetchFailed,
+    ActorFetchFailed(String),
     ActorFetchBodyFailed,
     ActorDeserializeFailed,
     NoSignatureHeaders,
@@ -39,16 +47,75 @@ pub enum RequestVerificationError {
     BodyDeserializeErr,
     ForgedAttribution,
     KeyOwnerDoesNotMatch,
+    KeyLinkNotActor,
+}
+
+pub async fn post_to_inbox(
+    // activity: &ActivityStream,
+    activity: &str,
+    from_id: &str,
+    to_domain: &str,
+    to_inbox: &str,
+    keypair: &PKey<Private>,
+) {
+    // let keypair: PKey<Private> = PKey::from_rsa(private_key).unwrap();
+
+    // let document = serde_json::to_string(activity).unwrap();
+
+    let date = httpdate::fmt_http_date(SystemTime::now());
+
+    let digest_base64 = &generate_digest(activity.as_bytes());
+
+    //string to be signed
+    let signed_string = format!("(request-target): post /inbox\nhost: {to_domain}\ndate: {date}\ndigest: SHA-256={digest_base64}");
+    let mut signer = openssl::sign::Signer::new(MessageDigest::sha256(), &keypair).unwrap();
+    signer.update(signed_string.as_bytes()).unwrap();
+    let signature = openssl::base64::encode_block(&signer.sign_to_vec().unwrap());
+
+    // dbg!(&from_id);
+
+    // let header: String = r#"keyId=""#.to_string()
+    //     + from_id
+    //     + r#"#main-key",headers="(request-target) host date digest",signature=""#
+    //     + &signature
+    //     + r#"""#;
+    let header = format!(
+        r#"keyId="{from_id}#main-key",headers="(request-target) host date digest",signature="{signature}""#
+    );
+
+    let client = reqwest::Client::new();
+    let client = client
+        .post(to_inbox)
+        .header("Host", to_domain)
+        .header("Date", date)
+        .header("Signature", header)
+        .header("Digest", "SHA-256=".to_owned() + digest_base64)
+        .body(activity.to_string());
+
+    dbg!(&client);
+
+    let res = client.send().await;
+    dbg!(&res);
+
+    let response = res.unwrap().text().await;
+
+    dbg!(&response);
+
+    if let Ok(x) = response {
+        println!("{}", x);
+    }
 }
 
 ///verifys a request and returns the message body if its valid
 pub async fn verify_incoming(
-    // conn: &Data<DbConn>,
     request: HttpRequest,
-    body: String,
+    body: web::Bytes,
     path: &str,
     instance_domain: &str,
-) -> Result<String, RequestVerificationError> {
+    // instance_public_key_pem: String,
+    instance_key_id: &str,
+    instance_private_key: &Rsa<Private>,
+) -> Result<ActivityStream, RequestVerificationError> {
     let request_headers = request.headers();
 
     //check digest matches
@@ -61,12 +128,13 @@ pub async fn verify_incoming(
         return Err(RequestVerificationError::BadMessageDigest);
     };
 
-    // let Ok(body) = String::from_utf8(body.to_vec()) else {
-    //     return Err(RequestVerificationError::BadMessageBody);
-    // };
+    let Ok(body) = String::from_utf8(body.to_vec()) else {
+        return Err(RequestVerificationError::BadMessageBody);
+    };
 
     let object: Result<ActivityStream, _> = serde_json::from_str(&body);
     let Ok(object) = object else {
+        println!("bad message body:\n{}", body);
         return Err(RequestVerificationError::BodyDeserializeErr);
     };
 
@@ -108,39 +176,60 @@ pub async fn verify_incoming(
         return Err(RequestVerificationError::NoSignatureKey);
     };
     let key_id = key_id.replace('"', "");
-    println!("key id: \n{}\n\n", &key_id);
+    // println!("key id: \n{}\n\n", &key_id);
 
     let Some(signature) = signature_header.get("signature") else {
         return Err(RequestVerificationError::NoSignature);
     };
     let signature = signature.replace('"', "");
 
-    dbg!(&signature);
+    // dbg!(&signature);
 
-    let client = reqwest::Client::new();
-    let client = client
-        .get(key_id)
-        .header("accept", "application/activity+json");
+    let fetched = authorized_fetch(
+        &Url::parse(&key_id).unwrap(),
+        &instance_key_id,
+        instance_private_key,
+    )
+    .await;
 
-    let Ok(res) = client.send().await else {
-        return Err(RequestVerificationError::ActorFetchFailed);
+    // dbg!(&fetched);
+
+    let fetched = match fetched {
+        Ok(x) => x,
+        Err(x) => return Err(RequestVerificationError::ActorFetchFailed(x.to_string())),
     };
 
-    let Ok(actor) = res.bytes().await else {
-        return Err(RequestVerificationError::ActorFetchBodyFailed);
+    let Some(actor) = fetched.get_actor() else {
+        return Err(RequestVerificationError::KeyLinkNotActor);
     };
 
-    let actor: Result<ActivityStream, _> = serde_json::from_slice(&actor);
-    let Ok(actor) = actor else {
-        dbg!(&actor);
-        return Err(RequestVerificationError::ActorDeserializeFailed);
-    };
-    let Some(actor) = actor.get_actor() else {
-        return Err(RequestVerificationError::ActorDeserializeFailed);
-    };
+    // let client = reqwest::Client::new();
+    // let client = client
+    //     .get(key_id)
+    //     .header("accept", "application/activity+json");
+
+    // let Ok(res) = client.send().await else {
+    //     return Err(RequestVerificationError::ActorFetchFailed);
+    // };
+
+    // let Ok(actor) = res.bytes().await else {
+    //     return Err(RequestVerificationError::ActorFetchBodyFailed);
+    // };
+
+    // println!("actor:\n{}", String::from_utf8((&actor).to_vec()).unwrap());
+    // let actor: Result<Actor, _> = serde_json::from_slice(&actor);
+    // let Ok(actor) = actor else {
+    //     dbg!(&actor);
+    //     return Err(RequestVerificationError::ActorDeserializeFailed);
+    // };
 
     if let Some(x) = object.get_owner() {
-        if actor.id.ne(x) {
+        if actor.get_id().domain().ne(&x.domain()) {
+            println!(
+                "KeyOwnerDoesNotMatch, \nobject owner: {} \nactor: {}",
+                x.as_str(),
+                actor.get_id()
+            );
             return Err(RequestVerificationError::KeyOwnerDoesNotMatch);
         }
     }
@@ -192,5 +281,5 @@ pub async fn verify_incoming(
         return Err(RequestVerificationError::SignatureVerifyFailed);
     }
 
-    Ok(body)
+    Ok(object)
 }

@@ -1,4 +1,4 @@
-use std::time::SystemTime;
+use std::{fmt::Display, time::SystemTime};
 
 use openssl::{
     hash::MessageDigest,
@@ -9,9 +9,21 @@ use url::Url;
 
 use crate::activitystream_objects::core_types::ActivityStream;
 
+#[derive(Debug)]
 pub enum FetchErr {
+    IsTombstone(String),
     RequestErr(reqwest::Error),
     DeserializationErr(serde_json::Error),
+}
+
+impl Display for FetchErr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FetchErr::IsTombstone(x) => write!(f, "IsTombstone: {}", x),
+            FetchErr::RequestErr(x) => write!(f, "RequestErr: {}", x),
+            FetchErr::DeserializationErr(x) => write!(f, "DeserializationErr: {}", x),
+        }
+    }
 }
 
 pub async fn authorized_fetch(
@@ -56,11 +68,16 @@ pub async fn authorized_fetch(
     };
 
     let response = res.text().await;
-    dbg!(&response);
+    // dbg!(&response);
     let response = match response {
         Ok(x) => x,
         Err(x) => return Err(FetchErr::RequestErr(x)),
     };
+
+    if response.eq(r#"{"error":"Gone"}"#) {
+        return Err(FetchErr::IsTombstone(object_id.to_string()));
+    }
+    println!("auth fetch got:\n{}", &response);
 
     let object: Result<ActivityStream, serde_json::Error> = serde_json::from_str(&response);
     let object = match object {
