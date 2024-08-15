@@ -128,6 +128,15 @@ pub async fn private_inbox(
                 let data = &mut *guard;
                 let deserialized = serde_json::to_string(&x).unwrap();
                 data.push(format!("failure:{}\n{}", deserialized, body));
+                // let _hi = "IsTombstone".to_string();
+                if matches!(&x, RequestVerificationError::ActorFetchFailed(body)) {
+                    if body.starts_with("IsTombstone") {
+                        dbg!("another tombstone");
+                        return Ok(HttpResponse::Ok()
+                            .status(StatusCode::OK)
+                            .body("OK".to_string()));
+                    }
+                }
             }
             Ok(HttpResponse::Unauthorized().body(serde_json::to_string(&x).unwrap()))
         }

@@ -319,8 +319,7 @@ mod tests {
 }
         "##;
 
-        let deserialized: Result<ActivityStream, serde_json::Error> =
-            serde_json::from_str(example);
+        let deserialized: Result<ActivityStream, serde_json::Error> = serde_json::from_str(example);
         match deserialized {
             Ok(_) => Ok(()),
             Err(x) => Err(format!(

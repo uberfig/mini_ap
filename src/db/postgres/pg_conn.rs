@@ -346,8 +346,7 @@ RETURNING obj_id;
                         (
                             format!(
                                 "https://{}/users/{}/statuses/{}",
-                                &domain,
-                                &preferred_username, object_id
+                                &domain, &preferred_username, object_id
                             ),
                             format!("https://{}/users/{}", &domain, &preferred_username),
                         )
@@ -360,7 +359,7 @@ RETURNING obj_id;
                 let subtype: String = result.get("subtype");
                 let subtype: ObjectType =
                     serde_json::from_str(&subtype).expect("unkown object type stored in db");
-                    dbg!(&attributed_to);
+                dbg!(&attributed_to);
                 let attributed_to = Url::parse(&attributed_to).expect("invalid attributed to");
 
                 let replied_obj: Option<i64> = result.get("in_reply_to");

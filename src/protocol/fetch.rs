@@ -57,10 +57,10 @@ pub async fn authorized_fetch(
         .header("accept", "application/activity+json")
         .body("");
 
-    dbg!(&client);
+    // dbg!(&client);
 
     let res = client.send().await;
-    dbg!(&res);
+    // dbg!(&res);
 
     let res = match res {
         Ok(x) => x,
