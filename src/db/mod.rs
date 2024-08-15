@@ -354,6 +354,7 @@ pub trait Conn {
         instance_domain: &str,
         is_local: bool,
         uid: i64,
+        in_reply_to: Option<i64>,
     ) -> i64;
 
     async fn create_follow_request(&self, from_id: &str, to_id: &str) -> Result<(), ()>;

@@ -145,7 +145,7 @@ pub enum PostType {
 impl Default for RangeLinkItem<Actor> {
     fn default() -> Self {
         RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(
-            Url::parse("invalid.com").unwrap(),
+            Url::parse("https://invalid.com").unwrap(),
         ))
     }
 }

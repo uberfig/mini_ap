@@ -126,7 +126,7 @@ pub async fn verify_incoming(
 
     let object: Result<ActivityStream, _> = serde_json::from_str(&body);
     let Ok(object) = object else {
-        println!("bad message body:\n{}", body);
+        println!("deserialize failure\n{}", body);
         return Err(RequestVerificationError::BodyDeserializeErr);
     };
 

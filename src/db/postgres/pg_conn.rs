@@ -245,6 +245,7 @@ impl Conn for PgConn {
         instance_domain: &str,
         is_local: bool,
         uid: i64,
+        in_reply_to: Option<i64>,
     ) -> i64 {
         let (post_id, published) = get_post_id_and_published(is_local, &post);
         let (fedi_actor, local_actor) = match is_local {
@@ -258,7 +259,7 @@ impl Conn for PgConn {
                 let stmt = r#"
 INSERT INTO posts 
 (
-    is_local, id, surtype, subtype,
+    is_local, fedi_id, surtype, subtype,
     local_only, published, in_reply_to,
     content, domain,
     fedi_actor, local_actor
@@ -270,7 +271,7 @@ VALUES
     $8, $9,
     $10, $11
 )
-RETURNING uid;
+RETURNING obj_id;
         "#;
                 let stmt = client.prepare(stmt).await.unwrap();
 
@@ -284,7 +285,7 @@ RETURNING uid;
                             &post.get_subtype(),
                             &false,
                             &published,
-                            &x.get_reply_to().map(|x| x.as_str()),
+                            &in_reply_to,
                             &x.object.content,
                             &instance_domain,
                             &fedi_actor,
@@ -341,22 +342,25 @@ RETURNING uid;
                 let (id, attributed_to) = match is_local {
                     true => {
                         let preferred_username: String = result.get("preferred_username");
+                        let domain: String = result.get("domain");
                         (
                             format!(
-                                "/users/{}/statuses/{}/activity",
+                                "https://{}/users/{}/statuses/{}",
+                                &domain,
                                 &preferred_username, object_id
                             ),
-                            format!("/users/{}", &preferred_username),
+                            format!("https://{}/users/{}", &domain, &preferred_username),
                         )
                     }
                     false => {
-                        // (result.get("posts.id"), )
+                        // (result.get("posts.fedi_id"), )
                         todo!()
                     }
                 };
                 let subtype: String = result.get("subtype");
                 let subtype: ObjectType =
                     serde_json::from_str(&subtype).expect("unkown object type stored in db");
+                    dbg!(&attributed_to);
                 let attributed_to = Url::parse(&attributed_to).expect("invalid attributed to");
 
                 let replied_obj: Option<i64> = result.get("in_reply_to");
@@ -393,7 +397,7 @@ RETURNING uid;
             .pop();
         match result {
             Some(result) => Some(InstanceActor {
-                private_key_pem: result.get("private_key"),
+                private_key_pem: result.get("private_key_pem"),
                 public_key_pem: result.get("public_key_pem"),
             }),
             None => None,

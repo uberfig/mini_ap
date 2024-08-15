@@ -20,16 +20,16 @@ pub enum ExtendsIntransitive {
 impl ExtendsIntransitive {
     pub fn get_actor(&self) -> &Url {
         match self {
-            ExtendsIntransitive::ExtendsActivity(x) => &x.extends_intransitive.extends_object.id.id,
+            ExtendsIntransitive::ExtendsActivity(x) => &x.extends_intransitive.id,
             // ExtendsIntransitive::IntransitiveActivity(x) => &x.extends_object.id.id,
-            ExtendsIntransitive::Question(x) => &x.extends_intransitive.extends_object.id.id,
+            ExtendsIntransitive::Question(x) => &x.extends_intransitive.id,
         }
     }
     pub fn get_id(&self) -> &Url {
         match self {
-            ExtendsIntransitive::ExtendsActivity(x) => &x.extends_intransitive.extends_object.id.id,
+            ExtendsIntransitive::ExtendsActivity(x) => &x.extends_intransitive.id,
             // ExtendsIntransitive::IntransitiveActivity(x) => &x.extends_object.id.id,
-            ExtendsIntransitive::Question(x) => &x.extends_intransitive.extends_object.id.id,
+            ExtendsIntransitive::Question(x) => &x.extends_intransitive.id,
         }
     }
 }
@@ -56,10 +56,11 @@ pub enum IntransitiveType {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct IntransitiveActivity {
+    pub id: Url,
     // #[serde(rename = "type")]
     // pub type_field: IntransitiveType,
-    #[serde(flatten)]
-    pub extends_object: Object,
+    // #[serde(flatten)]
+    // pub extends_object: Object,
     pub actor: RangeLinkItem<Actor>, //TODO
     #[serde(skip_serializing_if = "Option::is_none")]
     pub target: Option<String>, //TODO
@@ -138,10 +139,7 @@ pub struct Activity {
 impl Activity {
     pub fn new_create(object: ObjectWrapper) -> Self {
         let intransitive = IntransitiveActivity {
-            extends_object: Object::new(
-                Url::parse(&format!("{}/activity", object.object.id.id.as_str())).unwrap(),
-                object.object.get_attributed_to().to_owned(),
-            ),
+            id: Url::parse(&format!("{}/activity", object.object.id.id.as_str())).unwrap(),
             actor: RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(
                 object.object.get_attributed_to().clone(),
             )),
@@ -299,6 +297,38 @@ pub enum ActivityType {
 #[cfg(test)]
 mod tests {
     use crate::activitystream_objects::core_types::ActivityStream;
+
+    #[test]
+    fn deserialize_delete() -> Result<(), String> {
+        let example = r##"
+{
+  "@context": "https://www.w3.org/ns/activitystreams",
+  "id": "https://mastodon.social/users/Hibur#delete",
+  "type": "Delete",
+  "actor": "https://mastodon.social/users/Hibur",
+  "to": [
+    "https://www.w3.org/ns/activitystreams#Public"
+  ],
+  "object": "https://mastodon.social/users/Hibur",
+  "signature": {
+    "type": "RsaSignature2017",
+    "creator": "https://mastodon.social/users/Hibur#main-key",
+    "created": "2024-08-15T00:55:36Z",
+    "signatureValue": "r9mo33vwMJND1gBqULuMQkwq2bXPGn8ZguiCDAASMNTBuJUjfch+pqx4KtibaEw5gRFrIRfCeQesOL+MzPJB2toMS1OOmuJjUcNibDJWb9EmYgQ+Mcmc5K+eVwviV7u/3t2v7LAwSNtLZVRzoo2R770p45TRRvZUxFWK//l3KcnfQMTqr19dap+6krRr6pzuI2UQC+htHvkIK2bqMh+ddtXUCCndVv01VQM01R+BKPvzP3iGXd6wTbGpXKLPeRWDDyLG2U3vjs/ixEHej4ycJXG2iljbxOZbaj6TjlAKpJBnkuy0ZTEf91CPpCytFRsqtCmb5KcmYdw2wlBLfVc0FQ=="
+  }
+}
+        "##;
+
+        let deserialized: Result<ActivityStream, serde_json::Error> =
+            serde_json::from_str(example);
+        match deserialized {
+            Ok(_) => Ok(()),
+            Err(x) => Err(format!(
+                "Delete activity deserialize failed with response: {}",
+                x
+            )),
+        }
+    }
 
     #[test]
     fn test_deserialize_create() -> Result<(), String> {

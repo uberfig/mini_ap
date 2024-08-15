@@ -49,6 +49,7 @@ pub async fn create_post(
             &state.instance_domain,
             true,
             uid,
+            None,
         )
         .await;
 
