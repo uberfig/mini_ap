@@ -5,7 +5,7 @@ use actix_web::{
     HttpRequest, HttpResponse, Result,
 };
 
-use crate::db::{Conn, NewLocal};
+use crate::db::{conn::Conn, NewLocal};
 
 #[get("/users/{preferred_username}")]
 pub async fn get_actor(

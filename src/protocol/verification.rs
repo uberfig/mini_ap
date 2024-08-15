@@ -13,6 +13,8 @@ use crate::{
     activitystream_objects::core_types::ActivityStream, protocol::fetch::authorized_fetch,
 };
 
+use super::fetch::FetchErr;
+
 pub fn generate_digest(body: &[u8]) -> String {
     let mut hasher = openssl::hash::Hasher::new(MessageDigest::sha256()).unwrap();
     hasher.update(body).unwrap();
@@ -33,7 +35,7 @@ pub enum RequestVerificationError {
     NoSignatureKey,
     NoSignature,
     SignatureIncorrectBase64,
-    ActorFetchFailed(String),
+    ActorFetchFailed(FetchErr),
     ActorFetchBodyFailed,
     ActorDeserializeFailed,
     NoSignatureHeaders,
@@ -91,7 +93,7 @@ pub async fn post_to_inbox(
     dbg!(&client);
 
     let res = client.send().await;
-    dbg!(&res);
+    // dbg!(&res);
 
     let response = res.unwrap().text().await;
 
@@ -188,7 +190,7 @@ pub async fn verify_incoming(
 
     let fetched = match fetched {
         Ok(x) => x,
-        Err(x) => return Err(RequestVerificationError::ActorFetchFailed(x.to_string())),
+        Err(x) => return Err(RequestVerificationError::ActorFetchFailed(x)),
     };
 
     let Some(actor) = fetched.get_actor() else {

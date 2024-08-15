@@ -8,7 +8,7 @@ use crate::{
         actors::{Actor, ActorType, PublicKey},
         object::{Object, ObjectType},
     },
-    db::{generate_links, get_post_id_and_published, Conn, InstanceActor, PostSupertype},
+    db::{conn::Conn, generate_links, get_post_id_and_published, InstanceActor, PostSupertype},
 };
 
 pub struct PgConn {

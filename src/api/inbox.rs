@@ -10,8 +10,11 @@ use actix_web::{
 };
 
 use crate::{
-    db::Conn,
-    protocol::verification::{verify_incoming, RequestVerificationError},
+    db::conn::Conn,
+    protocol::{
+        fetch::FetchErr,
+        verification::{verify_incoming, RequestVerificationError},
+    },
 };
 pub struct Inbox {
     pub inbox: Mutex<Vec<String>>,
@@ -33,6 +36,7 @@ pub async fn shared_inbox(
     conn: Data<Box<dyn Conn>>,
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse, Error> {
+
     dbg!(&request);
     let instance_actor_key = conn.get_instance_actor().await.unwrap().get_rsa();
 
@@ -86,6 +90,7 @@ pub async fn private_inbox(
     conn: Data<Box<dyn Conn>>,
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse, Error> {
+    println!("private inbox");
     let preferred_username = path.into_inner();
     let path = format!("/users/{}/inbox", &preferred_username);
 
@@ -122,6 +127,15 @@ pub async fn private_inbox(
                 .body("OK".to_string()));
         }
         Err(x) => {
+            if matches!(
+                &x,
+                RequestVerificationError::ActorFetchFailed(FetchErr::IsTombstone(_))
+            ) {
+                dbg!("another tombstone");
+                return Ok(HttpResponse::Ok()
+                    .status(StatusCode::OK)
+                    .body("OK".to_string()));
+            }
             // dbg!(&x);
             {
                 let mut guard = inbox.inbox.lock().unwrap();
@@ -129,14 +143,6 @@ pub async fn private_inbox(
                 let deserialized = serde_json::to_string(&x).unwrap();
                 data.push(format!("failure:{}\n{}", deserialized, body));
                 // let _hi = "IsTombstone".to_string();
-                if matches!(&x, RequestVerificationError::ActorFetchFailed(body)) {
-                    if body.starts_with("IsTombstone") {
-                        dbg!("another tombstone");
-                        return Ok(HttpResponse::Ok()
-                            .status(StatusCode::OK)
-                            .body("OK".to_string()));
-                    }
-                }
             }
             Ok(HttpResponse::Unauthorized().body(serde_json::to_string(&x).unwrap()))
         }

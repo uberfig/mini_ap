@@ -19,7 +19,7 @@ use mini_ap::{
         webfinger::webfinger,
     },
     config::Config,
-    db::{postgres::pg_conn::PgConn, Conn, InstanceActor},
+    db::{conn::Conn, postgres::pg_conn::PgConn, InstanceActor},
 };
 // use refinery::Migration;
 use tokio_postgres::NoTls;

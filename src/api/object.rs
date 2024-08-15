@@ -5,7 +5,7 @@ use actix_web::{
     HttpRequest, HttpResponse, Result,
 };
 
-use crate::{activitystream_objects::core_types::ActivityStream, db::Conn};
+use crate::{activitystream_objects::core_types::ActivityStream, db::conn::Conn};
 
 #[get("/users/{preferred_username}/statuses/{id}")]
 pub async fn get_object(

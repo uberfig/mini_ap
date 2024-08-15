@@ -5,15 +5,16 @@ use openssl::{
     pkey::{PKey, Private},
     rsa::Rsa,
 };
+use serde::{Deserialize, Serialize};
 use url::Url;
 
 use crate::activitystream_objects::core_types::ActivityStream;
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum FetchErr {
     IsTombstone(String),
-    RequestErr(reqwest::Error),
-    DeserializationErr(serde_json::Error),
+    RequestErr(String),
+    DeserializationErr(String),
 }
 
 impl Display for FetchErr {
@@ -64,25 +65,25 @@ pub async fn authorized_fetch(
 
     let res = match res {
         Ok(x) => x,
-        Err(x) => return Err(FetchErr::RequestErr(x)),
+        Err(x) => return Err(FetchErr::RequestErr(x.to_string())),
     };
 
     let response = res.text().await;
     // dbg!(&response);
     let response = match response {
         Ok(x) => x,
-        Err(x) => return Err(FetchErr::RequestErr(x)),
+        Err(x) => return Err(FetchErr::RequestErr(x.to_string())),
     };
 
     if response.eq(r#"{"error":"Gone"}"#) {
         return Err(FetchErr::IsTombstone(object_id.to_string()));
     }
-    println!("auth fetch got:\n{}", &response);
+    // println!("auth fetch got:\n{}", &response);
 
     let object: Result<ActivityStream, serde_json::Error> = serde_json::from_str(&response);
     let object = match object {
         Ok(x) => x,
-        Err(x) => return Err(FetchErr::DeserializationErr(x)),
+        Err(x) => return Err(FetchErr::DeserializationErr(x.to_string())),
     };
 
     Ok(object)

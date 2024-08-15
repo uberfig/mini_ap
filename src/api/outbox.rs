@@ -9,7 +9,7 @@ use url::Url;
 
 use crate::{
     activitystream_objects::object::{Object, ObjectType},
-    db::Conn,
+    db::conn::Conn,
     protocol::verification::post_to_inbox,
 };
 

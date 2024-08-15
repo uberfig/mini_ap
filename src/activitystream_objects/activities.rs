@@ -6,7 +6,7 @@ use super::{
     actors::Actor,
     core_types::ExtendsObject,
     link::{LinkSimpleOrExpanded, RangeLinkItem},
-    object::{Object, ObjectWrapper},
+    object::ObjectWrapper,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
