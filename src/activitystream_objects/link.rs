@@ -8,6 +8,10 @@ pub enum LinkType {
     ///
     /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-mention
     Mention,
+    /// A specialized Link that represents a topic such as #topic
+    /// 
+    /// https://www.w3.org/TR/activitystreams-vocabulary/#h-microsyntaxes
+    Hashtag,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -17,13 +21,16 @@ pub struct Link {
     pub type_field: LinkType,
 
     pub href: Url,
-    pub hreflang: Option<String>,
-    pub media_type: String,
-    pub name: String,
-    pub height: Option<u32>,
-    pub width: Option<u32>,
-    pub preview: Option<String>, //TODO
-    pub rel: Option<String>,     //TODO
+    pub name: Option<String>,
+
+
+    // pub hreflang: Option<String>,
+    // pub media_type: Option<String>,
+    
+    // pub height: Option<u32>,
+    // pub width: Option<u32>,
+    // pub preview: Option<String>, //TODO
+    // pub rel: Option<String>,     //TODO
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -48,4 +55,106 @@ impl LinkSimpleOrExpanded {
 pub enum RangeLinkItem<T> {
     Item(T),
     Link(LinkSimpleOrExpanded),
+}
+
+#[cfg(test)]
+mod tests {
+
+    use crate::activitystream_objects::{core_types::*, link::*};
+
+
+    #[test]
+    fn test_tags() -> Result<(), String> {
+        let tags = r##"
+
+    [
+		{
+			"type": "Mention",
+			"href": "https://mastodon.social/users/mellifluousbox",
+			"name": "@mellifluousbox"
+		},
+		{
+			"type": "Mention",
+			"href": "https://mastodon.social/users/Gargron",
+			"name": "@Gargron"
+		},
+		{
+			"type": "Hashtag",
+			"href": "https://mastodon.social/tags/finance",
+			"name": "#finance"
+		},
+		{
+			"type": "Hashtag",
+			"href": "https://mastodon.social/tags/ops",
+			"name": "#ops"
+		},
+		{
+			"type": "Hashtag",
+			"href": "https://mastodon.social/tags/remote",
+			"name": "#remote"
+		},
+		{
+			"type": "Hashtag",
+			"href": "https://mastodon.social/tags/german",
+			"name": "#german"
+		},
+		{
+			"type": "Hashtag",
+			"href": "https://mastodon.social/tags/accounting",
+			"name": "#accounting"
+		},
+		{
+			"type": "Hashtag",
+			"href": "https://mastodon.social/tags/bookkeeping",
+			"name": "#bookkeeping"
+		},
+		{
+			"type": "Hashtag",
+			"href": "https://mastodon.social/tags/legal",
+			"name": "#legal"
+		},
+		{
+			"type": "Hashtag",
+			"href": "https://mastodon.social/tags/excel",
+			"name": "#excel"
+		},
+		{
+			"type": "Hashtag",
+			"href": "https://mastodon.social/tags/internship",
+			"name": "#internship"
+		},
+		{
+			"type": "Hashtag",
+			"href": "https://mastodon.social/tags/FediHire",
+			"name": "#FediHire"
+		},
+		{
+			"type": "Hashtag",
+			"href": "https://mastodon.social/tags/getfedihired",
+			"name": "#getfedihired"
+		},
+		{
+			"type": "Hashtag",
+			"href": "https://mastodon.social/tags/hiring",
+			"name": "#hiring"
+		}
+	]
+
+        "##;
+
+        let deserialized: Result<OptionalArray<Link>, serde_json::Error> =
+            serde_json::from_str(&tags);
+        let _deserialized = match deserialized {
+            Ok(x) => x,
+            Err(x) => {
+                return Err(format!(
+                    "tag array failed to deserialize: {}",
+                    x
+                ))
+            }
+        };
+
+
+        Ok(())
+    }
 }

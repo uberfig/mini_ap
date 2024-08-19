@@ -159,7 +159,6 @@ pub struct Object {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
 
-    // #[serde(skip_serializing_if = "Option::is_none")]
     pub attributed_to: RangeLinkItem<Actor>,
     // #[serde(skip_serializing_if = "Option::is_none")]
     // pub audience: Option<String>,
@@ -176,8 +175,6 @@ pub struct Object {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub in_reply_to: Option<RangeLinkItem<ExtendsObject>>,
 
-    // #[serde(skip_serializing_if = "Option::is_none")]
-    // pub replies: Option<Box<ExtendsCollection>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub published: Option<String>,
 
@@ -198,8 +195,9 @@ pub struct Object {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub summary: Option<String>,
 
-    // #[serde(skip_serializing_if = "Option::is_none")]
-    // pub tag: Option<SimpleLinkOrArray>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tag: Option<OptionalArray<LinkSimpleOrExpanded>>,
+    
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<OptionalArray<LinkSimpleOrExpanded>>,
 
