@@ -111,7 +111,6 @@ pub enum PostType {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Object {
-    #[serde(flatten)]
     pub id: Url,
 
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -192,7 +191,7 @@ pub struct Object {
 impl Object {
     pub fn new(id: Url, attributed_to: Url) -> Object {
         Object {
-            id: id,
+            id,
             attributed_to: RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(attributed_to)),
             name: None,
             content: None,
