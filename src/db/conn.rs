@@ -69,8 +69,8 @@ pub trait Conn {
     /// local followers
     async fn get_followers(&self, user: UserRef) -> Result<Vec<UserRef>, ()>;
 
-    /// really just for local users, if used for a federated user it 
-    /// will only show the amout of local users following them 
+    /// really just for local users, if used for a federated user it
+    /// will only show the amout of local users following them
     async fn get_follower_count(&self, user: UserRef) -> Result<i64, ()>;
 
     async fn get_post(&self, object_id: i64) -> Option<PostType>;

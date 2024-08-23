@@ -3,13 +3,11 @@ use deadpool_postgres::Pool;
 use tokio_postgres::Row;
 
 use crate::{
-    activitystream_objects::
-        actors::{Actor, ActorType, PublicKey}
-    ,
-    db::{conn::Conn, generate_links, InstanceActor, UserRef},
+    activitystream_objects::actors::{Actor, ActorType, PublicKey},
+    db::{conn::Conn, generate_links, UserRef},
 };
 
-use super::{follows, posts};
+use super::{follows, instance_actor, posts};
 
 pub struct PgConn {
     pub db: Pool,
@@ -269,38 +267,9 @@ impl Conn for PgConn {
         posts::get_post(self, object_id).await
     }
     async fn get_instance_actor(&self) -> Option<crate::db::InstanceActor> {
-        let client = self.db.get().await.expect("failed to get client");
-        let stmt = r#"
-        SELECT * FROM ap_instance_actor;
-        "#;
-        let stmt = client.prepare(stmt).await.unwrap();
-
-        let result = client
-            .query(&stmt, &[])
-            .await
-            .expect("failed to get instance actor")
-            .pop();
-        match result {
-            Some(result) => Some(InstanceActor {
-                private_key_pem: result.get("private_key_pem"),
-                public_key_pem: result.get("public_key_pem"),
-            }),
-            None => None,
-        }
+        instance_actor::get_instance_actor(self).await
     }
     async fn create_instance_actor(&self, private_key_pem: String, public_key_pem: String) {
-        let client = self.db.get().await.expect("failed to get client");
-        let stmt = r#"
-        INSERT INTO ap_instance_actor 
-        (private_key_pem, public_key_pem)
-        VALUES
-        ($1, $2);
-        "#;
-        let stmt = client.prepare(stmt).await.unwrap();
-
-        let result = client
-            .query(&stmt, &[&private_key_pem, &public_key_pem])
-            .await;
-        result.unwrap();
+        instance_actor::create_instance_actor(self, private_key_pem, public_key_pem).await
     }
 }
