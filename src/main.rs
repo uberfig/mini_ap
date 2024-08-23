@@ -18,7 +18,7 @@ use mini_ap::{
         outbox::create_post,
         webfinger::webfinger,
     },
-    config::Config,
+    config::get_config,
     db::{conn::Conn, postgres::pg_conn::PgConn, InstanceActor},
 };
 // use refinery::Migration;
@@ -38,28 +38,10 @@ async fn hello() -> impl Responder {
 async fn main() -> std::io::Result<()> {
     // env::set_var("RUST_BACKTRACE", "1");
 
-    //----------------config file settings----------------
-
-    let settings = config::Config::builder()
-        // Add in `./Settings.toml`
-        .add_source(config::File::with_name("ap_config"))
-        // Add in settings from the environment (with a prefix of APP)
-        // Eg.. `APP_DEBUG=1 ./target/app` would set the `debug` key
-        .add_source(config::Environment::default())
-        .build();
-
-    let settings = match settings {
+    let config = match get_config() {
         Ok(x) => x,
         Err(x) => {
             eprintln!("{:#?}", x);
-            return Ok(());
-        }
-    };
-
-    let config = match settings.try_deserialize::<Config>() {
-        Ok(config) => config,
-        Err(error) => {
-            eprintln!("{:#?}", error);
             return Ok(());
         }
     };
