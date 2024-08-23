@@ -27,6 +27,16 @@ pub enum UserRef {
     Activitypub(i64),
 }
 
+impl UserRef {
+    /// outputs (fedi, local)
+    pub fn parts(self) -> (Option<i64>, Option<i64>) {
+        match self {
+            UserRef::Local(x) => (None, Some(x)),
+            UserRef::Activitypub(x) => (Some(x), None),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum FollowType {
     LocalToLocal,

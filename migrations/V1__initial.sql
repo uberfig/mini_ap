@@ -20,11 +20,16 @@ CREATE TABLE ap_instance_actor (
 ----------------------------------------------------------------
 
 CREATE TABLE following (
-	follow_type			SMALLINT NOT NULL, -- local to local, local to federated, federated to local
-	creator				BIGINT NOT NULL, -- the person trying to follow
-	target_user			BIGINT NOT NULL, -- the person to be followed
+	-- the user that is following
+	fedi_from		BIGINT NULL REFERENCES federated_ap_users(ap_user_id) ON DELETE CASCADE,
+	local_from		BIGINT NULL REFERENCES internal_users(uid) ON DELETE CASCADE,
+
+	-- the user that is being followed
+	target_fedi		BIGINT NULL REFERENCES federated_ap_users(ap_user_id) ON DELETE CASCADE,
+	target_local	BIGINT NULL REFERENCES internal_users(uid) ON DELETE CASCADE,
+
 	pending				BOOLEAN NOT NULL DEFAULT true,
-	PRIMARY KEY(follow_type, creator, target_user)
+	PRIMARY KEY(fedi_from, local_from, target_fedi, target_local)
 );
 
 CREATE TABLE federated_instances (

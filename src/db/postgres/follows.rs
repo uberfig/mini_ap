@@ -1,19 +1,136 @@
+use tokio_postgres::Row;
+
 use crate::db::UserRef;
 
 use super::pg_conn::PgConn;
 
-pub async fn create_follow_request(conn: &PgConn, from_id: UserRef, to_id: UserRef) -> Result<(), ()> {
+fn to_follower(row: Row) -> UserRef {
     todo!()
+}
+
+pub async fn create_follow_request(conn: &PgConn, from_id: UserRef, to_id: UserRef) -> Result<(), ()> {
+    let client = conn.db.get().await.expect("failed to get client");
+        let stmt = r#"
+        INSERT INTO following 
+        (
+            fedi_from, local_from,
+            target_fedi, target_local,
+            pending
+        )
+        VALUES
+        (
+            $1, $2, 
+            $3, $4,
+            $5
+        );
+        "#;
+        let stmt = client.prepare(stmt).await.unwrap();
+
+        let (fedi_from, local_from) = from_id.parts();
+        let (target_fedi, target_local) = to_id.parts();
+
+        let _result = client
+            .query(
+                &stmt,
+                &[
+                    &fedi_from,
+                    &local_from,
+                    &target_fedi,
+                    &target_local,
+                    &false,
+                ],
+            )
+            .await
+            .expect("failed to create follow");
+
+        Ok(())
 }
 
 pub async fn approve_follow_request(conn: &PgConn, from_id: UserRef, to_id: UserRef) -> Result<(), ()> {
-    todo!()
+    let client = conn.db.get().await.expect("failed to get client");
+        let stmt = r#"
+        UPDATE following 
+        SET pending = false
+        WHERE
+        fedi_from = $1
+        local_from = $2
+        target_fedi = $3
+        target_local = $4;
+        "#;
+        let stmt = client.prepare(stmt).await.unwrap();
+
+        let (fedi_from, local_from) = from_id.parts();
+        let (target_fedi, target_local) = to_id.parts();
+
+        let _result = client
+            .query(
+                &stmt,
+                &[
+                    &fedi_from,
+                    &local_from,
+                    &target_fedi,
+                    &target_local,
+                ],
+            )
+            .await
+            .expect("failed to approve follow");
+
+        Ok(())
 }
 
-pub async fn get_followers(conn: &PgConn, preferred_username: UserRef) -> Result<(), ()> {
-    todo!()
+pub async fn get_followers(conn: &PgConn, user: UserRef) -> Result<Vec<UserRef>, ()> {
+    let client = conn.db.get().await.expect("failed to get client");
+        let stmt = r#"
+        SELECT * FROM following 
+        WHERE
+        target_fedi = $1
+        target_local = $1;
+        "#;
+        let stmt = client.prepare(stmt).await.unwrap();
+
+        let (target_fedi, target_local) = user.parts();
+
+        let result = client
+            .query(
+                &stmt,
+                &[
+                    &target_fedi,
+                    &target_local,
+                ],
+            )
+            .await
+            .expect("failed to get followers");
+
+        let x = result.into_iter().map(|x| to_follower(x));
+
+        Ok(x.collect())
 }
 
-pub async fn get_follower_count(conn: &PgConn, preferred_username: UserRef) -> Result<(), ()> {
-    todo!()
+pub async fn get_follower_count(conn: &PgConn, user: UserRef) -> Result<i64, ()> {
+    let client = conn.db.get().await.expect("failed to get client");
+        let stmt = r#"
+        SELECT COUNT(*) FROM following 
+        WHERE
+        target_fedi = $1
+        target_local = $1;
+        "#;
+        let stmt = client.prepare(stmt).await.unwrap();
+
+        let (target_fedi, target_local) = user.parts();
+
+        let result: i64 = client
+            .query(
+                &stmt,
+                &[
+                    &target_fedi,
+                    &target_local,
+                ],
+            )
+            .await
+            .expect("failed to get follow count")
+            .pop()
+            .expect("did not return row for follow count")
+            .get("count");
+
+    Ok(result)
 }

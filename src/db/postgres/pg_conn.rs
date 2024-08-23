@@ -258,11 +258,11 @@ impl Conn for PgConn {
         follows::approve_follow_request(self, from, to).await
     }
 
-    async fn get_followers(&self, user: UserRef) -> Result<(), ()> {
+    async fn get_followers(&self, user: UserRef) -> Result<Vec<UserRef>, ()> {
         follows::get_followers(self, user).await
     }
 
-    async fn get_follower_count(&self, user: UserRef) -> Result<(), ()> {
+    async fn get_follower_count(&self, user: UserRef) -> Result<i64, ()> {
         follows::get_follower_count(self, user).await
     }
     async fn get_post(&self, object_id: i64) -> Option<crate::db::PostType> {

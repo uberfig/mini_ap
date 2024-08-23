@@ -67,11 +67,11 @@ pub trait Conn {
 
     /// in the event that we cannot view from the source instance, just show
     /// local followers
-    async fn get_followers(&self, user: UserRef) -> Result<(), ()>;
+    async fn get_followers(&self, user: UserRef) -> Result<Vec<UserRef>, ()>;
 
-    /// in the event we cannot view from the source domain, just show
-    /// the source instance has not made this information available
-    async fn get_follower_count(&self, user: UserRef) -> Result<(), ()>;
+    /// really just for local users, if used for a federated user it 
+    /// will only show the amout of local users following them 
+    async fn get_follower_count(&self, user: UserRef) -> Result<i64, ()>;
 
     async fn get_post(&self, object_id: i64) -> Option<PostType>;
 
