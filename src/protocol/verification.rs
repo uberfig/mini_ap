@@ -78,7 +78,9 @@ pub async fn post_to_inbox(
     //     + &signature
     //     + r#"""#;
     let header = format!(
-        r#"keyId="{from_id}#main-key",headers="(request-target) host date digest",signature="{signature}""#
+        r#"keyId="{}#main-key",headers="(request-target) host date digest",signature="{}""#, 
+        from_id,
+        &signature,
     );
 
     let client = reqwest::Client::new();
