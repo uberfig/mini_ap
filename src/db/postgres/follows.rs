@@ -5,7 +5,14 @@ use crate::db::UserRef;
 use super::pg_conn::PgConn;
 
 fn to_follower(row: Row) -> UserRef {
-    todo!()
+    let fedi_from: Option<i64> = row.get("fedi_from");
+    match fedi_from {
+        Some(x) => UserRef::Activitypub(x),
+        None => {
+            let local_from: Option<i64> = row.get("local_from");
+            UserRef::Local(local_from.unwrap())
+        },
+    }
 }
 
 pub async fn create_follow_request(conn: &PgConn, from_id: UserRef, to_id: UserRef) -> Result<(), ()> {
