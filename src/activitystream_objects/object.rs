@@ -10,40 +10,6 @@ use super::{
     link::{LinkSimpleOrExpanded, RangeLinkItem},
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ID {
-    pub id: Url,
-}
-
-impl From<Url> for ID {
-    fn from(value: Url) -> Self {
-        ID { id: value }
-    }
-}
-
-impl ID {
-    pub fn as_str(&self) -> &str {
-        self.id.as_str()
-    }
-    pub fn domain(&self) -> Option<&str> {
-        self.id.domain()
-    }
-}
-
-impl From<ID> for Url {
-    fn from(val: ID) -> Self {
-        val.id
-    }
-}
-
-impl Default for ID {
-    fn default() -> Self {
-        Self {
-            id: Url::parse("https://invalid.com").unwrap(),
-        }
-    }
-}
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum MediaType {
     #[serde(rename = "text/html")]
@@ -79,7 +45,7 @@ pub enum ObjectType {
     Tombstone, // adds formerType | deleted
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ObjectWrapper {
     #[serde(rename = "type")]
@@ -90,7 +56,7 @@ pub struct ObjectWrapper {
 
 impl ObjectWrapper {
     pub fn get_id(&self) -> &Url {
-        &self.object.id.id
+        &self.object.id
     }
     pub fn get_reply_to(&self) -> Option<&Url> {
         match &self.object.in_reply_to {
@@ -142,19 +108,11 @@ pub enum PostType {
     Question(RangeLinkItem<Question>),
 }
 
-impl Default for RangeLinkItem<Actor> {
-    fn default() -> Self {
-        RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(
-            Url::parse("https://invalid.com").unwrap(),
-        ))
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Object {
     #[serde(flatten)]
-    pub id: ID,
+    pub id: Url,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
@@ -234,9 +192,27 @@ pub struct Object {
 impl Object {
     pub fn new(id: Url, attributed_to: Url) -> Object {
         Object {
-            id: ID { id },
+            id: id,
             attributed_to: RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(attributed_to)),
-            ..Default::default()
+            name: None,
+            content: None,
+            media_type: None,
+            generator: None,
+            in_reply_to: None,
+            published: None,
+            to: None,
+            updated: None,
+            summary: None,
+            tag: None,
+            url: None,
+            icon: None,
+            image: None,
+            bto: None,
+            cc: None,
+            bcc: None,
+            duration: None,
+            preview: None,
+            replies: None,
         }
     }
     pub fn get_attributed_to(&self) -> &Url {
@@ -258,7 +234,7 @@ impl Object {
         self
     }
     pub fn set_id(mut self, id: Url) -> Self {
-        self.id.id = id;
+        self.id = id;
         self
     }
     // pub fn in_reply_to(mut self, in_reply_to: Option<RangeLinkItem<ExtendsObject>>) -> Self {

@@ -139,7 +139,7 @@ pub struct Activity {
 impl Activity {
     pub fn new_create(object: ObjectWrapper) -> Self {
         let intransitive = IntransitiveActivity {
-            id: Url::parse(&format!("{}/activity", object.object.id.id.as_str())).unwrap(),
+            id: Url::parse(&format!("{}/activity", object.object.id.as_str())).unwrap(),
             actor: RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(
                 object.object.get_attributed_to().clone(),
             )),

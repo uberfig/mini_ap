@@ -118,7 +118,7 @@ impl ExtendsObject {
     }
     pub fn get_id(&self) -> &Url {
         match self {
-            ExtendsObject::Object(x) => &x.object.id.id,
+            ExtendsObject::Object(x) => &x.object.id,
             ExtendsObject::ExtendsIntransitive(x) => x.get_id(),
             ExtendsObject::ExtendsCollection(_x) => todo!(),
             ExtendsObject::Actor(x) => &x.id,
