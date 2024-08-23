@@ -9,7 +9,7 @@ pub enum LinkType {
     /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-mention
     Mention,
     /// A specialized Link that represents a topic such as #topic
-    /// 
+    ///
     /// https://www.w3.org/TR/activitystreams-vocabulary/#h-microsyntaxes
     Hashtag,
 }
@@ -22,11 +22,9 @@ pub struct Link {
 
     pub href: Url,
     pub name: Option<String>,
-
-
     // pub hreflang: Option<String>,
     // pub media_type: Option<String>,
-    
+
     // pub height: Option<u32>,
     // pub width: Option<u32>,
     // pub preview: Option<String>, //TODO
@@ -61,7 +59,6 @@ pub enum RangeLinkItem<T> {
 mod tests {
 
     use crate::activitystream_objects::{core_types::*, link::*};
-
 
     #[test]
     fn test_tags() -> Result<(), String> {
@@ -146,14 +143,8 @@ mod tests {
             serde_json::from_str(&tags);
         let _deserialized = match deserialized {
             Ok(x) => x,
-            Err(x) => {
-                return Err(format!(
-                    "tag array failed to deserialize: {}",
-                    x
-                ))
-            }
+            Err(x) => return Err(format!("tag array failed to deserialize: {}", x)),
         };
-
 
         Ok(())
     }

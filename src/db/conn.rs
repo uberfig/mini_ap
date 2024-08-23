@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 use crate::activitystream_objects::actors::Actor;
 
-use super::{InstanceActor, NewLocal, PermissionLevel, PostType};
+use super::{InstanceActor, NewLocal, PermissionLevel, PostType, UserRef};
 
 #[async_trait]
 pub trait Conn {
@@ -59,19 +59,19 @@ pub trait Conn {
         in_reply_to: Option<i64>,
     ) -> i64;
 
-    async fn create_follow_request(&self, from_id: &str, to_id: &str) -> Result<(), ()>;
+    async fn create_follow_request(&self, from: UserRef, to: UserRef) -> Result<(), ()>;
 
     /// approves an existing follow request and creates the record in
     /// the followers
-    async fn approve_follow_request(&self, from_id: &str, to_id: &str) -> Result<(), ()>;
+    async fn approve_follow_request(&self, from: UserRef, to: UserRef) -> Result<(), ()>;
 
     /// in the event that we cannot view from the source instance, just show
     /// local followers
-    async fn get_followers(&self, preferred_username: &str) -> Result<(), ()>;
+    async fn get_followers(&self, user: UserRef) -> Result<(), ()>;
 
     /// in the event we cannot view from the source domain, just show
     /// the source instance has not made this information available
-    async fn get_follower_count(&self, preferred_username: &str) -> Result<(), ()>;
+    async fn get_follower_count(&self, user: UserRef) -> Result<(), ()>;
 
     async fn get_post(&self, object_id: i64) -> Option<PostType>;
 

@@ -22,6 +22,19 @@ use crate::activitystream_objects::{
 };
 
 #[derive(Debug, Clone, Copy)]
+pub enum UserRef {
+    Local(i64),
+    Activitypub(i64),
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum FollowType {
+    LocalToLocal,
+    LocalToFedi,
+    FediToLocal,
+}
+
+#[derive(Debug, Clone, Copy)]
 pub enum PermissionLevel {
     /// intended for the main admin account(s) of the server, will be
     /// featured and considered the pont of contact for the instance,
