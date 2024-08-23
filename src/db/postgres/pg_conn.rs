@@ -1,3 +1,5 @@
+use std::ops::DerefMut;
+
 use async_trait::async_trait;
 use deadpool_postgres::Pool;
 use tokio_postgres::Row;
@@ -11,6 +13,11 @@ use super::{follows, instance_actor, posts};
 
 pub struct PgConn {
     pub db: Pool,
+}
+
+mod embedded {
+    use refinery::embed_migrations;
+    embed_migrations!("./migrations");
 }
 
 fn local_user_from_row(result: Row, instance_domain: &str) -> Actor {
@@ -271,5 +278,34 @@ impl Conn for PgConn {
     }
     async fn create_instance_actor(&self, private_key_pem: String, public_key_pem: String) {
         instance_actor::create_instance_actor(self, private_key_pem, public_key_pem).await
+    }
+    async fn init(&self) -> Result<(), String> {
+        let mut conn = self
+            .db
+            .get()
+            .await
+            .expect("could not get conn for migrations");
+        let client = conn.deref_mut().deref_mut();
+        let report = embedded::migrations::runner().run_async(client).await;
+        match report {
+            Ok(x) => {
+                println!("migrations sucessful");
+                if x.applied_migrations().is_empty() {
+                    println!("no migrations applied")
+                } else {
+                    println!("applied migrations: ");
+                    for migration in x.applied_migrations() {
+                        match migration.applied_on() {
+                            Some(x) => println!(" - {} applied {}", migration.name(), x),
+                            None => println!(" - {} applied N/A", migration.name()),
+                        }
+                    }
+                }
+            }
+            Err(x) => {
+                return Err(x.to_string());
+            }
+        }
+        Ok(())
     }
 }

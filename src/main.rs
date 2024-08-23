@@ -1,14 +1,6 @@
-use std::{ops::DerefMut, sync::Mutex};
+use std::sync::Mutex;
 
-use actix_web::{
-    // error::ErrorBadRequest,
-    get,
-    web::Data,
-    App,
-    HttpResponse,
-    HttpServer,
-    Responder,
-};
+use actix_web::{get, web::Data, App, HttpResponse, HttpServer, Responder};
 
 use mini_ap::{
     api::{
@@ -21,13 +13,7 @@ use mini_ap::{
     config::get_config,
     db::{conn::Conn, postgres::pg_conn::PgConn, InstanceActor},
 };
-// use refinery::Migration;
 use tokio_postgres::NoTls;
-
-mod embedded {
-    use refinery::embed_migrations;
-    embed_migrations!("./migrations");
-}
 
 #[get("/")]
 async fn hello() -> impl Responder {
@@ -62,37 +48,16 @@ async fn main() -> std::io::Result<()> {
 
     let pool = db_config.create_pool(None, NoTls).unwrap();
 
-    let mut conn = pool.get().await.expect("could not get conn for migrations");
-    let client = conn.deref_mut().deref_mut();
-    let report = embedded::migrations::runner().run_async(client).await;
-    match report {
-        Ok(x) => {
-            println!("migrations sucessful");
-            // println!("{:?}", x);
-            if x.applied_migrations().is_empty() {
-                println!("no migrations applied")
-            } else {
-                println!("applied migrations: ");
-                for migration in x.applied_migrations() {
-                    match migration.applied_on() {
-                        Some(x) => println!(" - {} applied {}", migration.name(), x),
-                        None => println!(" - {} applied N/A", migration.name()),
-                    }
-                }
-            }
-        }
-        Err(x) => {
-            println!("{:?}", x);
-            return Ok(());
-        }
-    }
-
     let inbox = Data::new(Inbox {
         inbox: Mutex::new(Vec::new()),
     });
 
     {
         let conn = Box::new(PgConn { db: pool.clone() }) as Box<dyn Conn>;
+        if let Err(x) = conn.init().await {
+            eprintln!("{}", x);
+            return Ok(());
+        }
         InstanceActor::init_instance_actor(&conn).await;
     }
 

@@ -19,19 +19,6 @@ CREATE TABLE ap_instance_actor (
 
 ----------------------------------------------------------------
 
-CREATE TABLE following (
-	-- the user that is following
-	fedi_from		BIGINT NULL REFERENCES federated_ap_users(ap_user_id) ON DELETE CASCADE,
-	local_from		BIGINT NULL REFERENCES internal_users(uid) ON DELETE CASCADE,
-
-	-- the user that is being followed
-	target_fedi		BIGINT NULL REFERENCES federated_ap_users(ap_user_id) ON DELETE CASCADE,
-	target_local	BIGINT NULL REFERENCES internal_users(uid) ON DELETE CASCADE,
-
-	pending				BOOLEAN NOT NULL DEFAULT true,
-	PRIMARY KEY(fedi_from, local_from, target_fedi, target_local)
-);
-
 CREATE TABLE federated_instances (
 	instance_id			BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
 	domain				TEXT NOT NULL UNIQUE,
@@ -65,6 +52,19 @@ CREATE TABLE federated_ap_users (
 	discoverable		BOOLEAN NOT NULL DEFAULT false
 	-- featured			TEXT,
 	-- featuredTags		TEXT,
+);
+
+CREATE TABLE following (
+	-- the user that is following
+	fedi_from		BIGINT NULL REFERENCES federated_ap_users(ap_user_id) ON DELETE CASCADE,
+	local_from		BIGINT NULL REFERENCES internal_users(uid) ON DELETE CASCADE,
+
+	-- the user that is being followed
+	target_fedi		BIGINT NULL REFERENCES federated_ap_users(ap_user_id) ON DELETE CASCADE,
+	target_local	BIGINT NULL REFERENCES internal_users(uid) ON DELETE CASCADE,
+
+	pending				BOOLEAN NOT NULL DEFAULT true,
+	PRIMARY KEY(fedi_from, local_from, target_fedi, target_local)
 );
 
 CREATE TABLE posts (

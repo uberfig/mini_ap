@@ -77,4 +77,6 @@ pub trait Conn {
 
     async fn get_instance_actor(&self) -> Option<InstanceActor>;
     async fn create_instance_actor(&self, private_key_pem: String, public_key_pem: String);
+
+    async fn init(&self) -> Result<(), String>;
 }
