@@ -195,14 +195,14 @@ pub async fn verify_incoming(
 
                 let value = String::from_utf8(value.as_bytes().to_vec()).unwrap();
                 let x = format!("{signed_header_name}: {value}",);
-                dbg!(&x);
+                // dbg!(&x);
                 Some(x)
             }
         })
         .collect();
 
     let comparison_string = comparison_string.join("\n");
-    dbg!(&comparison_string);
+    // dbg!(&comparison_string);
 
     let pubkey = openssl::pkey::PKey::from_rsa(key).unwrap();
 

@@ -184,6 +184,29 @@ pub enum ActivityType {
     /// the origin indicates the context from which the object was deleted.
     ///
     /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-delete
+    /// 
+    ///  The Delete activity is used to delete an already existing object. 
+    /// The side effect of this is that the server MAY replace the object 
+    /// with a [`super::object::ObjectType::Tombstone`] of the object that 
+    /// will be displayed in activities which reference the deleted object. 
+    /// If the deleted object is requested the server SHOULD respond with 
+    /// either the HTTP 410 Gone status code if a Tombstone object is presented 
+    /// as the response body, otherwise respond with a HTTP 404 Not Found.
+    /// 
+    /// A deleted object:
+    /// 
+    /// ```json
+    /// {
+    ///   "@context": "https://www.w3.org/ns/activitystreams",
+    ///   "id": "https://example.com/~alice/note/72",
+    ///   "type": "Tombstone",
+    ///   "published": "2015-02-10T15:04:55Z",
+    ///   "updated": "2015-02-10T15:04:55Z",
+    ///   "deleted": "2015-02-10T15:04:55Z"
+    /// }
+    /// ```
+    /// 
+    /// https://www.w3.org/TR/activitypub/#delete-activity-outbox
     Delete,
     /// Indicates that the actor is "following" the object. Following
     /// is defined in the sense typically used within Social systems in
@@ -191,6 +214,18 @@ pub enum ActivityType {
     /// the object. The target and origin typically have no defined meaning.
     ///
     /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-follow
+    /// 
+    /// The side effect of receiving this in an inbox is that the server 
+    /// SHOULD generate either an [`ActivityType::Accept`] or 
+    /// [`ActivityType::Reject`] activity with the Follow as the object 
+    /// and deliver it to the actor of the Follow. 
+    /// 
+    /// The Accept or Reject MAY be generated automatically, or MAY be the result of 
+    /// user input (possibly after some delay in which the user reviews). 
+    /// Servers MAY choose to not explicitly send a Reject in response to 
+    /// a Follow, this would typically be represented as pending
+    /// 
+    /// https://www.w3.org/TR/activitypub/#follow-activity-inbox
     Follow,
     /// Indicates that the actor is ignoring the object.
     /// The target and origin typically have no defined meaning.
@@ -243,6 +278,24 @@ pub enum ActivityType {
     /// The target and origin typically have no defined meaning.
     ///
     /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-undo
+    /// 
+    /// The Undo activity is used to undo a previous activity. See the 
+    /// Activity Vocabulary documentation on Inverse Activities and "Undo". 
+    /// For example, Undo may be used to undo a previous [`ActivityType::Like`], 
+    /// [`ActivityType::Follow`], or [`ActivityType::Block`]. The undo activity 
+    /// and the activity being undone MUST both have the same actor. Side effects 
+    /// should be undone, to the extent possible. For example, if undoing a Like, 
+    /// any counter that had been incremented previously should be decremented appropriately.
+    /// 
+    /// There are some exceptions where there is an existing and explicit 
+    /// "inverse activity" which should be used instead. 
+    /// [`ActivityType::Create`] based activities should instead use 
+    /// [`ActivityType::Delete`], and [`ActivityType::Add`] activities 
+    /// should use [`ActivityType::Remove`]. 
+    /// 
+    /// https://www.w3.org/TR/activitypub/#undo-activity-outbox
+    /// 
+    /// https://www.w3.org/TR/activitystreams-vocabulary/#inverse
     Undo,
     /// Indicates that the actor has updated the object.
     /// Note, however, that this vocabulary does not define a mechanism for

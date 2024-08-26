@@ -10,7 +10,7 @@ use actix_web::{
 };
 
 use crate::{
-    db::conn::Conn,
+    db::{conn::Conn, incoming::process_incoming},
     protocol::{
         fetch::FetchErr,
         incoming::{verify_incoming, RequestVerificationError},
@@ -71,7 +71,7 @@ async fn handle_inbox(
             .body(serde_json::to_string(&RequestVerificationError::BadMessageBody).unwrap()));
     };
 
-    println!("{}", &body);
+    // println!("{}", &body);
 
     let x = verify_incoming(
         request,
@@ -93,6 +93,8 @@ async fn handle_inbox(
                 let deserialized = serde_json::to_string(&x).unwrap();
                 data.push(format!("Success:\n{}", deserialized));
             }
+
+            process_incoming(conn, state, x).await;
 
             return Ok(HttpResponse::Ok()
                 .status(StatusCode::OK)
