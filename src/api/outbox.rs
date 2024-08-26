@@ -9,8 +9,8 @@ use url::Url;
 
 use crate::{
     activitystream_objects::object::{Object, ObjectType},
-    db::conn::Conn,
-    protocol::verification::post_to_inbox,
+    db::{conn::Conn, UserRef},
+    protocol::outgoing::post_to_inbox,
 };
 
 #[post("/users/{preferred_username}/outbox")]
@@ -68,22 +68,37 @@ pub async fn create_post(
     let activity = object.unwrap().to_create_activitystream();
     let activity_str = serde_json::to_string(&activity).unwrap();
 
-    post_to_inbox(
-        &activity_str,
-        actor.get_id().as_str(),
-        "mastodon.social",
-        "https://mastodon.social/inbox",
-        &key,
-    )
-    .await;
-    post_to_inbox(
-        &activity_str,
-        actor.get_id().as_str(),
-        "cutie.city",
-        "https://cutie.city/inbox",
-        &key,
-    )
-    .await;
+    let followers = conn.get_followers(UserRef::Local(uid)).await.unwrap();
+
+    let from_id = actor.get_id().as_str();
+
+    for follower in followers {
+        match follower {
+            UserRef::Local(_) => {}
+            UserRef::Activitypub(x) => {
+                let actor = conn.get_federated_actor_db_id(x).await.unwrap();
+                let domain = actor.get_id().domain().unwrap();
+                post_to_inbox(&activity_str, from_id, domain, actor.inbox.as_str(), &key).await;
+            }
+        }
+    }
+
+    // post_to_inbox(
+    //     &activity_str,
+    //     actor.get_id().as_str(),
+    //     "mastodon.social",
+    //     "https://mastodon.social/inbox",
+    //     &key,
+    // )
+    // .await;
+    // post_to_inbox(
+    //     &activity_str,
+    //     actor.get_id().as_str(),
+    //     "cutie.city",
+    //     "https://cutie.city/inbox",
+    //     &key,
+    // )
+    // .await;
 
     return Ok(HttpResponse::Created().body(format!("{}", activity_str)));
 }

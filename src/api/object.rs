@@ -11,16 +11,15 @@ use crate::{activitystream_objects::core_types::ActivityStream, db::conn::Conn};
 pub async fn get_object(
     path: web::Path<(String, i64)>,
     conn: Data<Box<dyn Conn>>,
-    request: HttpRequest,
-    body: web::Bytes,
+    // request: HttpRequest,
+    // body: web::Bytes,
     // state: Data<crate::config::Config>,
 ) -> Result<HttpResponse> {
-    println!("getting an object");
-
-    dbg!(request);
-    dbg!(&body);
+    // dbg!(request);
+    // dbg!(&body);
 
     let (_preferred_username, object_id) = path.into_inner();
+    // println!("getting an object, {}", object_id);
 
     let object = conn.get_post(object_id).await;
 

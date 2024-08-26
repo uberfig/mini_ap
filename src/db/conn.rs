@@ -6,6 +6,8 @@ use super::{InstanceActor, NewLocal, PermissionLevel, PostType, UserRef};
 
 #[async_trait]
 pub trait Conn {
+    async fn get_actor(&self, uid: UserRef, instance_domain: &str) -> Option<Actor>;
+
     async fn create_federated_user(&self, actor: &Actor) -> i64;
     async fn get_federated_user_db_id(&self, actor_id: &str) -> Option<i64>;
     async fn get_federated_actor(&self, actor_id: &str) -> Option<Actor>;

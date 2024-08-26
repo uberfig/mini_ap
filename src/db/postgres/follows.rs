@@ -84,20 +84,32 @@ pub async fn approve_follow_request(
 
 pub async fn get_followers(conn: &PgConn, user: UserRef) -> Result<Vec<UserRef>, ()> {
     let client = conn.db.get().await.expect("failed to get client");
-    let stmt = r#"
-        SELECT * FROM following 
-        WHERE
-        target_fedi = $1
-        target_local = $1;
-        "#;
+    let stmt = match user {
+        UserRef::Local(_) => {
+            r#"
+            SELECT * FROM following 
+            WHERE
+            target_local = $1;
+            "#
+        }
+        UserRef::Activitypub(_) => {
+            r#"
+            SELECT * FROM following 
+            WHERE
+            target_fedi = $1;
+            "#
+        }
+    };
     let stmt = client.prepare(stmt).await.unwrap();
 
-    let (target_fedi, target_local) = user.parts();
+    let id = user.id();
 
-    let result = client
-        .query(&stmt, &[&target_fedi, &target_local])
-        .await
-        .expect("failed to get followers");
+    // let (target_fedi, target_local) = user.parts();
+
+    let result = client.query(&stmt, &[&id]).await;
+    // .expect("failed to get followers");
+    dbg!(&result);
+    let result = result.unwrap();
 
     let x = result.into_iter().map(|x| to_follower(x));
 

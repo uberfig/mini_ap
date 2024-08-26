@@ -99,13 +99,25 @@ async fn webfinger(
         None => return Err(ErrorBadRequest("no preferred username provided")),
     };
 
-    let actor = conn
-        .get_local_user_actor(&preferred_username, &state.instance_domain)
-        .await;
-    let (actor, _) = match actor {
-        Some(x) => x,
-        None => {
-            return Err(ErrorNotFound("not found"));
+    let actor = match preferred_username.eq(&state.instance_domain) {
+        //is the instance actor
+        true => conn
+            .get_instance_actor()
+            .await
+            .expect("instance actor should have been inited")
+            .to_actor(&state.instance_domain),
+        //not the instance actor
+        false => {
+            let actor = conn
+                .get_local_user_actor(&preferred_username, &state.instance_domain)
+                .await;
+            let (actor, _) = match actor {
+                Some(x) => x,
+                None => {
+                    return Err(ErrorNotFound("not found"));
+                }
+            };
+            actor
         }
     };
 

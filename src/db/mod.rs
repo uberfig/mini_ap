@@ -35,6 +35,12 @@ impl UserRef {
             UserRef::Activitypub(x) => (Some(x), None),
         }
     }
+    pub fn id(self) -> i64 {
+        match self {
+            UserRef::Local(x) => x,
+            UserRef::Activitypub(x) => x,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]

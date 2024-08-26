@@ -2,7 +2,7 @@ use actix_web::{
     error::ErrorNotFound,
     get,
     web::{self, Data},
-    HttpRequest, HttpResponse, Result,
+    HttpResponse, Result,
 };
 
 use crate::db::{conn::Conn, NewLocal};
@@ -12,14 +12,14 @@ pub async fn get_actor(
     path: web::Path<String>,
     state: Data<crate::config::Config>,
     conn: Data<Box<dyn Conn>>,
-    request: HttpRequest,
-    body: web::Bytes,
+    // request: HttpRequest,
+    // body: web::Bytes,
 ) -> Result<HttpResponse> {
-    println!("getting the actor");
+    // println!("getting the actor");
 
-    dbg!(request);
-    dbg!(&body);
-    dbg!(String::from_utf8(body.to_vec()).unwrap());
+    // dbg!(request);
+    // dbg!(&body);
+    // dbg!(String::from_utf8(body.to_vec()).unwrap());
 
     let preferred_username = path.into_inner();
 

@@ -13,7 +13,7 @@ use crate::{
     db::conn::Conn,
     protocol::{
         fetch::FetchErr,
-        verification::{verify_incoming, RequestVerificationError},
+        incoming::{verify_incoming, RequestVerificationError},
     },
 };
 pub struct Inbox {
@@ -70,6 +70,8 @@ async fn handle_inbox(
         return Ok(HttpResponse::Unauthorized()
             .body(serde_json::to_string(&RequestVerificationError::BadMessageBody).unwrap()));
     };
+
+    println!("{}", &body);
 
     let x = verify_incoming(
         request,
