@@ -69,7 +69,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(Data::new(
-                Box::new(PgConn { db: pool.clone() }) as Box<dyn Conn>
+                Box::new(PgConn { db: pool.clone() }) as Box<dyn Conn + Sync>
             ))
             .app_data(inbox.clone())
             .app_data(Data::new(config.to_owned()))
