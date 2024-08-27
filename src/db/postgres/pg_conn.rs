@@ -171,6 +171,22 @@ impl Conn for PgConn {
         todo!()
     }
 
+    async fn get_local_manually_approves_followers(&self, uid: i64) -> bool {
+        let client = self.db.get().await.expect("failed to get client");
+        let stmt = r#"
+        SELECT * FROM internal_users WHERE uid = $1;
+        "#;
+        let stmt = client.prepare(stmt).await.unwrap();
+
+        let result = client
+            .query(&stmt, &[&uid])
+            .await
+            .expect("failed to get local user")
+            .pop()
+            .unwrap();
+        result.get("manual_followers")
+    }
+
     async fn get_local_user_db_id(&self, preferred_username: &str) -> Option<i64> {
         todo!()
     }
@@ -244,6 +260,24 @@ impl Conn for PgConn {
         private_key_pem
     }
 
+    async fn get_local_user_private_key_db_id(&self, uid: i64) -> String {
+        let client = self.db.get().await.expect("failed to get client");
+        let stmt = r#"
+        SELECT * FROM internal_users WHERE uid = $1;
+        "#;
+        let stmt = client.prepare(stmt).await.unwrap();
+
+        let result = client
+            .query(&stmt, &[&uid])
+            .await
+            .expect("failed to get local user")
+            .pop();
+        let result = result.expect("could not get private key");
+
+        let private_key_pem: String = result.get("private_key_pem");
+        private_key_pem
+    }
+
     async fn create_new_post(
         &self,
         post: &crate::db::PostType,
@@ -254,8 +288,13 @@ impl Conn for PgConn {
         posts::create_new_post(self, post, instance_domain, uid, in_reply_to).await
     }
 
-    async fn create_follow_request(&self, from: UserRef, to: UserRef) -> Result<(), ()> {
-        follows::create_follow_request(self, from, to).await
+    async fn create_follow_request(
+        &self,
+        from: UserRef,
+        to: UserRef,
+        pending: bool,
+    ) -> Result<(), ()> {
+        follows::create_follow_request(self, from, to, pending).await
     }
 
     async fn approve_follow_request(&self, from: UserRef, to: UserRef) -> Result<(), ()> {

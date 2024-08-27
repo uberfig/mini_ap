@@ -21,6 +21,7 @@ pub async fn create_follow_request(
     conn: &PgConn,
     from_id: UserRef,
     to_id: UserRef,
+    pending: bool,
 ) -> Result<(), ()> {
     let client = conn.db.get().await.expect("failed to get client");
     let stmt = r#"
@@ -54,7 +55,7 @@ pub async fn create_follow_request(
                 &local_from,
                 &target_fedi,
                 &target_local,
-                &false,
+                &pending,
                 &created,
             ],
         )

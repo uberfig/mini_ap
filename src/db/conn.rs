@@ -31,7 +31,7 @@ pub trait Conn {
         }
     }
 
-    async fn load_federated_actor(
+    async fn load_new_federated_actor(
         &self,
         actor_id: &Url,
         instance_domain: &str,
@@ -68,6 +68,7 @@ pub trait Conn {
     async fn set_permission_level(&self, uid: i64, permission_level: PermissionLevel);
     async fn update_password(&self, uid: i64, password: &str);
     async fn set_manually_approves_followers(&self, uid: i64, value: bool);
+    async fn get_local_manually_approves_followers(&self, uid: i64) -> bool;
 
     async fn get_local_user_db_id(&self, preferred_username: &str) -> Option<i64>;
 
@@ -97,6 +98,7 @@ pub trait Conn {
     async fn get_local_user_actor_db_id(&self, uid: i64, instance_domain: &str) -> Option<Actor>;
     // async fn get_local_user_private_key(&self, preferred_username: &str) -> String;
     async fn get_local_user_private_key(&self, preferred_username: &str) -> String;
+    async fn get_local_user_private_key_db_id(&self, uid: i64) -> String;
 
     async fn create_new_post(
         &self,
@@ -106,7 +108,12 @@ pub trait Conn {
         in_reply_to: Option<i64>,
     ) -> i64;
 
-    async fn create_follow_request(&self, from: UserRef, to: UserRef) -> Result<(), ()>;
+    async fn create_follow_request(
+        &self,
+        from: UserRef,
+        to: UserRef,
+        pending: bool,
+    ) -> Result<(), ()>;
 
     /// approves an existing follow request and creates the record in
     /// the followers

@@ -1,8 +1,12 @@
 use actix_web::web::Data;
+use url::Url;
 
-use crate::activitystream_objects::{
-    activities::{Activity, ExtendsIntransitive},
-    core_types::ActivityStream,
+use crate::{
+    activitystream_objects::{
+        activities::{Activity, ExtendsIntransitive},
+        core_types::ActivityStream,
+    },
+    protocol::outgoing::post_to_inbox,
 };
 
 use super::conn::Conn;
@@ -79,7 +83,7 @@ pub async fn handle_follow(
     let from = match from {
         Some(x) => Ok(x),
         None => {
-            conn.load_federated_actor(from_id, &state.instance_domain)
+            conn.load_new_federated_actor(from_id, &state.instance_domain)
                 .await
         }
     };
@@ -102,16 +106,41 @@ pub async fn handle_follow(
         println!("invalid username: {}", activity.object.get_id().as_str());
         return ();
     };
-    let to = conn.get_local_user_db_id(to).await;
-    match to {
-        Some(to) => {
-            conn.create_follow_request(
-                super::UserRef::Activitypub(from),
-                super::UserRef::Local(to),
-            )
-            .await
-            .unwrap();
-        }
-        None => return,
+    let Some(to) = conn.get_local_user_db_id(to).await else {
+        return;
+    };
+
+    let manual_followers = conn.get_local_manually_approves_followers(to).await;
+
+    conn.create_follow_request(
+        super::UserRef::Activitypub(from),
+        super::UserRef::Local(to),
+        manual_followers,
+    )
+    .await
+    .unwrap();
+
+    //send the accept
+    if !manual_followers {
+        let fedi_actor = conn.get_federated_actor_db_id(from).await.unwrap();
+        let key = conn.get_local_user_private_key_db_id(to).await;
+        let key = openssl::rsa::Rsa::private_key_from_pem(key.as_bytes()).unwrap();
+        let key = openssl::pkey::PKey::from_rsa(key).unwrap();
+
+        let local_user =
+            Url::parse(&format!("https://{}/users/{}", state.instance_domain, to)).unwrap();
+        let accept = Activity::new_accept(
+            local_user,
+            activity.extends_intransitive.id,
+            &state.instance_domain,
+        );
+        post_to_inbox(
+            &serde_json::to_string(&accept.to_activitystream()).unwrap(),
+            from_id.as_str(),
+            &fedi_actor.domain.unwrap(),
+            fedi_actor.inbox.as_str(),
+            &key,
+        )
+        .await
     }
 }

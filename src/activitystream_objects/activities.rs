@@ -4,7 +4,7 @@ use url::Url;
 
 use super::{
     actors::Actor,
-    core_types::ExtendsObject,
+    core_types::{ActivityStream, ExtendsObject},
     link::{LinkSimpleOrExpanded, RangeLinkItem},
     object::ObjectWrapper,
 };
@@ -130,10 +130,11 @@ pub struct Activity {
     #[serde(rename = "type")]
     pub type_field: ActivityType,
 
-    pub object: RangeLinkItem<ExtendsObject>,
-
+    ///gets id from intransitive
     #[serde(flatten)]
     pub extends_intransitive: IntransitiveActivity,
+
+    pub object: RangeLinkItem<ExtendsObject>,
 }
 
 impl Activity {
@@ -154,6 +155,24 @@ impl Activity {
             extends_intransitive: intransitive,
         }
     }
+    pub fn new_accept(actor: Url, object: Url, domain: &str) -> Self {
+        let intransitive = IntransitiveActivity {
+            id: Url::parse(&format!("{}/accept", domain)).unwrap(),
+            actor: RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(actor)),
+            target: None,
+            result: None,
+            origin: None,
+            instrument: None,
+        };
+        Activity {
+            type_field: ActivityType::Accept,
+            object: RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(object)),
+            extends_intransitive: intransitive,
+        }
+    }
+    pub fn to_activitystream(self) -> ActivityStream {
+        todo!()
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -162,6 +181,30 @@ pub enum ActivityType {
     /// Indicates that the actor accepts the object. The target property
     /// can be used in certain circumstances to indicate the context into
     /// which the object has been accepted.
+    ///
+    /// example of an [`ActivityType::Follow`] accept
+    ///
+    /// ```json
+    /// {
+    ///   "@context": "https://www.w3.org/ns/activitystreams",
+    ///   "summary": "sally accepts john's follow request",
+    ///   "type": "Accept",
+    ///   "actor": {
+    ///     "type": "Person",
+    ///     "name": "Sally"
+    ///   },
+    ///   "object": {
+    ///     "type": "Follow",
+    ///     "actor": "http://john.example.org",
+    ///     "object": {
+    ///       "id": "https://example.com",
+    ///       "type": "Person",
+    ///       "name": "Sally"
+    ///     }
+    ///   }
+    /// }
+    ///
+    /// ```
     ///
     /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-accept
     Accept,
