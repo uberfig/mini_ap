@@ -79,7 +79,7 @@ pub async fn handle_follow(
     state: Data<crate::config::Config>,
 ) {
     let from_id = activity.extends_intransitive.actor.get_id();
-    let from = conn.get_federated_user_db_id(from_id.as_str()).await;
+    let from = conn.get_federated_db_id(from_id.as_str()).await;
     let from = match from {
         Some(x) => Ok(x),
         None => {

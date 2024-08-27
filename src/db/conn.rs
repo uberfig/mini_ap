@@ -55,7 +55,7 @@ pub trait Conn {
     }
 
     async fn create_federated_user(&self, actor: &Actor) -> i64;
-    async fn get_federated_user_db_id(&self, actor_id: &str) -> Option<i64>;
+    async fn get_federated_db_id(&self, actor_id: &str) -> Option<i64>;
     async fn get_federated_actor(&self, actor_id: &str) -> Option<Actor>;
     async fn get_federated_actor_db_id(&self, id: i64) -> Option<Actor>;
 

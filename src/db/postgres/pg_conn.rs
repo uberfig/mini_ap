@@ -100,8 +100,19 @@ impl Conn for PgConn {
         result
     }
 
-    async fn get_federated_user_db_id(&self, actor_id: &str) -> Option<i64> {
-        todo!()
+    async fn get_federated_db_id(&self, actor_id: &str) -> Option<i64> {
+        let client = self.db.get().await.expect("failed to get client");
+        let stmt = r#"
+        SELECT * FROM federated_ap_users WHERE id = $1;
+        "#;
+        let stmt = client.prepare(stmt).await.unwrap();
+
+        client
+            .query(&stmt, &[&actor_id])
+            .await
+            .expect("failed to get local user")
+            .pop()
+            .map(|x| x.get("ap_user_id"))
     }
 
     async fn get_federated_actor(
