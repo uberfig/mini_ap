@@ -27,6 +27,9 @@ impl Display for FetchErr {
     }
 }
 
+/// key_id and private_key are the properties of the key
+/// being used to perform the fetch. usually done by the
+/// instance actor
 pub async fn authorized_fetch(
     object_id: &Url,
     key_id: &str,

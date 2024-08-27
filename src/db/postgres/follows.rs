@@ -1,3 +1,5 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
 use tokio_postgres::Row;
 
 use crate::db::UserRef;
@@ -26,24 +28,35 @@ pub async fn create_follow_request(
         (
             fedi_from, local_from,
             target_fedi, target_local,
-            pending
+            pending, published
         )
         VALUES
         (
             $1, $2, 
             $3, $4,
-            $5
+            $5, $6
         );
         "#;
     let stmt = client.prepare(stmt).await.unwrap();
 
     let (fedi_from, local_from) = from_id.parts();
     let (target_fedi, target_local) = to_id.parts();
+    let created = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_millis() as i64;
 
     let _result = client
         .query(
             &stmt,
-            &[&fedi_from, &local_from, &target_fedi, &target_local, &false],
+            &[
+                &fedi_from,
+                &local_from,
+                &target_fedi,
+                &target_local,
+                &false,
+                &created,
+            ],
         )
         .await
         .expect("failed to create follow");

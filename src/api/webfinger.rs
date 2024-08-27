@@ -83,7 +83,7 @@ struct Info {
 #[get("/.well-known/webfinger")]
 async fn webfinger(
     state: Data<crate::config::Config>,
-    conn: Data<Box<dyn Conn>>,
+    conn: Data<Box<dyn Conn + Sync>>,
     info: web::Query<Info>,
 ) -> Result<HttpResponse> {
     let resource = info.into_inner().resource;

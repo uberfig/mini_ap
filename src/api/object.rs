@@ -10,7 +10,7 @@ use crate::{activitystream_objects::core_types::ActivityStream, db::conn::Conn};
 #[get("/users/{preferred_username}/statuses/{id}")]
 pub async fn get_object(
     path: web::Path<(String, i64)>,
-    conn: Data<Box<dyn Conn>>,
+    conn: Data<Box<dyn Conn + Sync>>,
     // request: HttpRequest,
     // body: web::Bytes,
     // state: Data<crate::config::Config>,
@@ -39,7 +39,7 @@ pub async fn get_object(
 #[get("/users/{preferred_username}/statuses/{id}/activity")]
 pub async fn get_object_create(
     path: web::Path<(String, i64)>,
-    conn: Data<Box<dyn Conn>>,
+    conn: Data<Box<dyn Conn + Sync>>,
     request: HttpRequest,
     body: web::Bytes,
 ) -> Result<HttpResponse> {

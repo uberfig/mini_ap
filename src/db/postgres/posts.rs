@@ -2,7 +2,7 @@ use url::Url;
 
 use crate::{
     activitystream_objects::object::{Object, ObjectType},
-    db::{get_post_id_and_published, PostSupertype},
+    db::{get_post_id_and_published, PostSupertype, UserRef},
 };
 
 use super::pg_conn::PgConn;
@@ -11,15 +11,11 @@ pub async fn create_new_post(
     conn: &PgConn,
     post: &crate::db::PostType,
     instance_domain: &str,
-    is_local: bool,
-    uid: i64,
+    uid: UserRef,
     in_reply_to: Option<i64>,
 ) -> i64 {
-    let (post_id, published) = get_post_id_and_published(is_local, post);
-    let (fedi_actor, local_actor) = match is_local {
-        true => (None, Some(uid)),
-        false => (Some(uid), None),
-    };
+    let (post_id, published) = get_post_id_and_published(uid.is_local(), &post);
+    let (fedi_actor, local_actor) = uid.parts();
     match &post {
         crate::db::PostType::Object(x) => {
             let client = conn.db.get().await.expect("failed to get client");
@@ -47,7 +43,7 @@ RETURNING obj_id;
                 .query(
                     &stmt,
                     &[
-                        &is_local,
+                        &uid.is_local(),
                         &post_id,
                         &post.get_surtype(),
                         &post.get_subtype(),

@@ -63,7 +63,8 @@ CREATE TABLE following (
 	target_fedi		BIGINT NULL REFERENCES federated_ap_users(ap_user_id) ON DELETE CASCADE,
 	target_local	BIGINT NULL REFERENCES internal_users(uid) ON DELETE CASCADE,
 
-	pending				BOOLEAN NOT NULL DEFAULT true,
+	pending			BOOLEAN NOT NULL DEFAULT true,
+	published		BIGINT NOT NULL,
 	PRIMARY KEY(fedi_from, local_from, target_fedi, target_local)
 );
 
@@ -73,6 +74,8 @@ CREATE TABLE posts (
 	fedi_id		TEXT NULL UNIQUE,	--not used for internal posts
 	surtype		TEXT NOT NULL,
 	subtype		TEXT NOT NULL,
+
+	likes		BIGINT NOT NULL DEFAULT 0,
 	-- local_post	BOOLEAN NOT NULL, -- created by a local user
 	local_only	BOOLEAN NOT NULL DEFAULT false,
 	published	BIGINT NOT NULL,
@@ -94,4 +97,12 @@ CREATE TABLE posts (
 
 	fedi_actor	BIGINT NULL REFERENCES federated_ap_users(ap_user_id) ON DELETE CASCADE,
 	local_actor	BIGINT NULL REFERENCES internal_users(uid) ON DELETE CASCADE
+);
+
+CREATE TABLE likes (
+	fedi_actor		BIGINT NULL REFERENCES federated_ap_users(ap_user_id) ON DELETE CASCADE,
+	local_actor		BIGINT NULL REFERENCES internal_users(uid) ON DELETE CASCADE,
+	post 			BIGINT NOT NULL REFERENCES posts(obj_id) ON DELETE CASCADE,
+	published		BIGINT NOT NULL,
+	PRIMARY KEY(fedi_actor, local_actor, post)
 );

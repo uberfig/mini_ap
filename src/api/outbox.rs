@@ -17,7 +17,7 @@ use crate::{
 pub async fn create_post(
     path: web::Path<String>,
     body: web::Bytes,
-    conn: Data<Box<dyn Conn>>,
+    conn: Data<Box<dyn Conn + Sync>>,
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse, Error> {
     let preferred_username = path.into_inner();
@@ -47,8 +47,7 @@ pub async fn create_post(
         .create_new_post(
             &crate::db::PostType::Object(object),
             &state.instance_domain,
-            true,
-            uid,
+            UserRef::Local(uid),
             None,
         )
         .await;

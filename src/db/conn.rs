@@ -1,12 +1,58 @@
 use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
+use url::Url;
 
-use crate::activitystream_objects::actors::Actor;
+use crate::{
+    activitystream_objects::actors::Actor,
+    protocol::fetch::{authorized_fetch, FetchErr},
+};
 
 use super::{InstanceActor, NewLocal, PermissionLevel, PostType, UserRef};
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub enum DbErr {
+    FetchErr(FetchErr),
+    InsertErr,
+    InvalidType,
+}
+
+impl std::fmt::Display for DbErr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", serde_json::to_string(self).unwrap())
+    }
+}
+
 #[async_trait]
 pub trait Conn {
-    async fn get_actor(&self, uid: UserRef, instance_domain: &str) -> Option<Actor>;
+    async fn get_actor(&self, uid: UserRef, instance_domain: &str) -> Option<Actor> {
+        match uid {
+            UserRef::Local(x) => self.get_local_user_actor_db_id(x, instance_domain).await,
+            UserRef::Activitypub(x) => self.get_federated_actor_db_id(x).await,
+        }
+    }
+
+    async fn load_federated_actor(
+        &self,
+        actor_id: &Url,
+        instance_domain: &str,
+    ) -> Result<i64, DbErr> {
+        let instance_actor = self.get_instance_actor().await.unwrap();
+        let key_id = InstanceActor::pub_key_id(&instance_domain);
+
+        let fetched = authorized_fetch(actor_id, &key_id, &instance_actor.get_rsa()).await;
+        let fetched = match fetched {
+            Ok(x) => x,
+            Err(x) => return Err(DbErr::FetchErr(x)),
+        };
+
+        let actor = fetched.get_actor();
+        let actor = match actor {
+            Some(x) => x,
+            None => return Err(DbErr::InvalidType),
+        };
+
+        Ok(self.create_federated_user(&actor).await)
+    }
 
     async fn create_federated_user(&self, actor: &Actor) -> i64;
     async fn get_federated_user_db_id(&self, actor_id: &str) -> Option<i64>;
@@ -56,8 +102,7 @@ pub trait Conn {
         &self,
         post: &PostType,
         instance_domain: &str,
-        is_local: bool,
-        uid: i64,
+        uid: UserRef,
         in_reply_to: Option<i64>,
     ) -> i64;
 

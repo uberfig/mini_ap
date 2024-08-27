@@ -50,13 +50,6 @@ fn local_user_from_row(result: Row, instance_domain: &str) -> Actor {
 #[allow(unused_variables)]
 #[async_trait]
 impl Conn for PgConn {
-    async fn get_actor(&self, uid: UserRef, instance_domain: &str) -> Option<Actor> {
-        match uid {
-            UserRef::Local(x) => self.get_local_user_actor_db_id(x, instance_domain).await,
-            UserRef::Activitypub(x) => self.get_federated_actor_db_id(x).await,
-        }
-    }
-
     async fn create_federated_user(&self, actor: &Actor) -> i64 {
         let client = self.db.get().await.expect("failed to get client");
         let stmt = r#"
@@ -255,11 +248,10 @@ impl Conn for PgConn {
         &self,
         post: &crate::db::PostType,
         instance_domain: &str,
-        is_local: bool,
-        uid: i64,
+        uid: UserRef,
         in_reply_to: Option<i64>,
     ) -> i64 {
-        posts::create_new_post(self, post, instance_domain, is_local, uid, in_reply_to).await
+        posts::create_new_post(self, post, instance_domain, uid, in_reply_to).await
     }
 
     async fn create_follow_request(&self, from: UserRef, to: UserRef) -> Result<(), ()> {

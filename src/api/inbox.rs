@@ -33,7 +33,7 @@ pub async fn shared_inbox(
     request: HttpRequest,
     inbox: Data<Inbox>,
     body: web::Bytes,
-    conn: Data<Box<dyn Conn>>,
+    conn: Data<Box<dyn Conn + Sync>>,
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse, Error> {
     dbg!(&request);
@@ -46,7 +46,7 @@ pub async fn private_inbox(
     path: web::Path<String>,
     inbox: Data<Inbox>,
     body: web::Bytes,
-    conn: Data<Box<dyn Conn>>,
+    conn: Data<Box<dyn Conn + Sync>>,
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse, Error> {
     println!("private inbox");
@@ -61,7 +61,7 @@ async fn handle_inbox(
     path: &str,
     inbox: Data<Inbox>,
     body: web::Bytes,
-    conn: Data<Box<dyn Conn>>,
+    conn: Data<Box<dyn Conn + Sync>>,
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse, Error> {
     let instance_actor_key = conn.get_instance_actor().await.unwrap().get_rsa();
@@ -105,7 +105,7 @@ async fn handle_inbox(
                 &x,
                 RequestVerificationError::ActorFetchFailed(FetchErr::IsTombstone(_))
             ) {
-                dbg!("another tombstone");
+                println!("another tombstone");
                 return Ok(HttpResponse::Ok()
                     .status(StatusCode::OK)
                     .body("OK".to_string()));

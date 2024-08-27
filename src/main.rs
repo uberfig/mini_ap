@@ -53,7 +53,7 @@ async fn main() -> std::io::Result<()> {
     });
 
     {
-        let conn = Box::new(PgConn { db: pool.clone() }) as Box<dyn Conn>;
+        let conn = Box::new(PgConn { db: pool.clone() }) as Box<dyn Conn + Sync>;
         if let Err(x) = conn.init().await {
             eprintln!("{}", x);
             return Ok(());

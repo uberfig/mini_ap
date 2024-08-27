@@ -226,6 +226,24 @@ pub enum ActivityType {
     /// a Follow, this would typically be represented as pending
     ///
     /// https://www.w3.org/TR/activitypub/#follow-activity-inbox
+    ///
+    /// example from activitystreams:
+    ///
+    /// ```json
+    /// {
+    ///   "@context": "https://www.w3.org/ns/activitystreams",
+    ///   "summary": "Sally followed John",
+    ///   "type": "Follow",
+    ///   "actor": {
+    ///     "type": "Person",
+    ///     "name": "Sally"
+    ///   },
+    ///   "object": {
+    ///     "type": "Person",
+    ///     "name": "John"
+    ///   }
+    /// }
+    /// ```
     Follow,
     /// Indicates that the actor is ignoring the object.
     /// The target and origin typically have no defined meaning.

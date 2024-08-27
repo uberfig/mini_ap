@@ -11,7 +11,7 @@ use crate::db::{conn::Conn, NewLocal};
 pub async fn get_actor(
     path: web::Path<String>,
     state: Data<crate::config::Config>,
-    conn: Data<Box<dyn Conn>>,
+    conn: Data<Box<dyn Conn + Sync>>,
     // request: HttpRequest,
     // body: web::Bytes,
 ) -> Result<HttpResponse> {
@@ -43,7 +43,7 @@ pub async fn get_actor(
 #[get("/create_test/{preferred_username}")]
 pub async fn create_test(
     path: web::Path<String>,
-    conn: Data<Box<dyn Conn>>,
+    conn: Data<Box<dyn Conn + Sync>>,
 ) -> Result<HttpResponse> {
     let preferred_username = path.into_inner();
 
@@ -63,7 +63,7 @@ pub async fn create_test(
 
 #[get("/actor")]
 pub async fn get_instance_actor(
-    conn: Data<Box<dyn Conn>>,
+    conn: Data<Box<dyn Conn + Sync>>,
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse> {
     println!("getting the instance actor");

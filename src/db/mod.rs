@@ -41,6 +41,12 @@ impl UserRef {
             UserRef::Activitypub(x) => x,
         }
     }
+    pub fn is_local(&self) -> bool {
+        match self {
+            UserRef::Local(_) => true,
+            UserRef::Activitypub(_) => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -251,7 +257,10 @@ pub struct InstanceActor {
 }
 
 impl InstanceActor {
-    pub async fn init_instance_actor(conn: &Box<dyn Conn>) {
+    pub fn pub_key_id(domain: &str) -> String {
+        format!("https://{domain}/actor#main-key")
+    }
+    pub async fn init_instance_actor(conn: &Box<dyn Conn + Sync>) {
         if conn.get_instance_actor().await.is_none() {
             let rsa = Rsa::generate(2048).unwrap();
             let private_key_pem = String::from_utf8(rsa.private_key_to_pem().unwrap()).unwrap();
