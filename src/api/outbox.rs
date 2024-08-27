@@ -100,7 +100,7 @@ pub async fn create_post(
     // )
     // .await;
 
-    return Ok(HttpResponse::Created().body(format!("{}", activity_str)));
+    Ok(HttpResponse::Created().body(activity_str.to_string()))
 }
 
 // #[get("/users/{preferred_username}/outbox")]

@@ -25,7 +25,7 @@ pub async fn post_to_inbox(
 
     //string to be signed
     let signed_string = format!("(request-target): post /inbox\nhost: {to_domain}\ndate: {date}\ndigest: SHA-256={digest_base64}");
-    let mut signer = openssl::sign::Signer::new(MessageDigest::sha256(), &keypair).unwrap();
+    let mut signer = openssl::sign::Signer::new(MessageDigest::sha256(), keypair).unwrap();
     signer.update(signed_string.as_bytes()).unwrap();
     let signature = openssl::base64::encode_block(&signer.sign_to_vec().unwrap());
 

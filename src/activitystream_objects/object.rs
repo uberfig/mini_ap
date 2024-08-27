@@ -41,12 +41,12 @@ pub enum ObjectType {
     Event,
     Place, //not used, adds  accuracy | altitude | latitude | longitude | radius | units
 
-    Profile,   // adds describes
-    /// A Tombstone represents a content object that has 
-    /// been deleted. It can be used in Collections to 
-    /// signify that there used to be an object at this 
-    /// position, but it has been deleted. 
-    /// 
+    Profile, // adds describes
+    /// A Tombstone represents a content object that has
+    /// been deleted. It can be used in Collections to
+    /// signify that there used to be an object at this
+    /// position, but it has been deleted.
+    ///
     /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-tombstone
     Tombstone, // adds formerType | deleted
 }
@@ -247,12 +247,8 @@ impl Object {
     //     self
     // }
     pub fn in_reply_to(mut self, in_reply_to: Option<String>) -> Self {
-        let in_reply_to = match in_reply_to {
-            Some(x) => Some(RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(
-                Url::parse(&x).unwrap(),
-            ))),
-            None => None,
-        };
+        let in_reply_to = in_reply_to
+            .map(|x| RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(Url::parse(&x).unwrap())));
         self.in_reply_to = in_reply_to;
         self
     }

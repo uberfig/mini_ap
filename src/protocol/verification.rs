@@ -27,5 +27,5 @@ pub async fn verify_attribution(
         crate::activitystream_objects::core_types::ExtendsObject::Actor(_) => todo!(),
     }
 
-    return Ok(());
+    Ok(())
 }

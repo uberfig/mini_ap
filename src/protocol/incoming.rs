@@ -62,7 +62,7 @@ pub async fn verify_incoming(
         return Err(RequestVerificationError::BadMessageDigest);
     };
 
-    let object: Result<ActivityStream, _> = serde_json::from_str(&body);
+    let object: Result<ActivityStream, _> = serde_json::from_str(body);
     let Ok(object) = object else {
         println!("deserialize failure\n{}", body);
         return Err(RequestVerificationError::BodyDeserializeErr);
@@ -127,7 +127,7 @@ pub async fn verify_incoming(
 
     // dbg!(&signature);
 
-    let fetched = authorized_fetch(&key_id, &instance_key_id, instance_private_key).await;
+    let fetched = authorized_fetch(&key_id, instance_key_id, instance_private_key).await;
 
     // dbg!(&fetched);
 

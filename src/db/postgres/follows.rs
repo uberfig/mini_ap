@@ -111,7 +111,7 @@ pub async fn get_followers(conn: &PgConn, user: UserRef) -> Result<Vec<UserRef>,
     dbg!(&result);
     let result = result.unwrap();
 
-    let x = result.into_iter().map(|x| to_follower(x));
+    let x = result.into_iter().map(to_follower);
 
     Ok(x.collect())
 }

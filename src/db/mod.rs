@@ -123,7 +123,7 @@ impl PostType {
     }
     pub fn get_id(&self) -> &str {
         match self {
-            PostType::Object(x) => &x.get_id().as_str(),
+            PostType::Object(x) => x.get_id().as_str(),
             PostType::Question(_) => todo!(),
         }
     }

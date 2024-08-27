@@ -76,7 +76,7 @@ async fn handle_inbox(
     let x = verify_incoming(
         request,
         &body,
-        &path,
+        path,
         &state.instance_domain,
         &format!("https://{}/actor#main-key", &state.instance_domain),
         &instance_actor_key,

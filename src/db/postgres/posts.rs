@@ -15,7 +15,7 @@ pub async fn create_new_post(
     uid: i64,
     in_reply_to: Option<i64>,
 ) -> i64 {
-    let (post_id, published) = get_post_id_and_published(is_local, &post);
+    let (post_id, published) = get_post_id_and_published(is_local, post);
     let (fedi_actor, local_actor) = match is_local {
         true => (None, Some(uid)),
         false => (Some(uid), None),
@@ -83,9 +83,7 @@ pub async fn get_post(conn: &PgConn, object_id: i64) -> Option<crate::db::PostTy
         .await
         .expect("failed to get post")
         .pop();
-    let Some(result) = result else {
-        return None;
-    };
+    let result = result?;
 
     let supertype: String = result.get("surtype");
     let supertype = PostSupertype::from_str(&supertype).expect("unkown supertype in posts");

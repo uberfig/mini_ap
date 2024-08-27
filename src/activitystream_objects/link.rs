@@ -140,7 +140,7 @@ mod tests {
         "##;
 
         let deserialized: Result<OptionalArray<Link>, serde_json::Error> =
-            serde_json::from_str(&tags);
+            serde_json::from_str(tags);
         let _deserialized = match deserialized {
             Ok(x) => x,
             Err(x) => return Err(format!("tag array failed to deserialize: {}", x)),

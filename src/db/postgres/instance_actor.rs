@@ -14,13 +14,10 @@ pub async fn get_instance_actor(conn: &PgConn) -> Option<crate::db::InstanceActo
         .await
         .expect("failed to get instance actor")
         .pop();
-    match result {
-        Some(result) => Some(InstanceActor {
-            private_key_pem: result.get("private_key_pem"),
-            public_key_pem: result.get("public_key_pem"),
-        }),
-        None => None,
-    }
+    result.map(|result| InstanceActor {
+        private_key_pem: result.get("private_key_pem"),
+        public_key_pem: result.get("public_key_pem"),
+    })
 }
 
 pub async fn create_instance_actor(conn: &PgConn, private_key_pem: String, public_key_pem: String) {
