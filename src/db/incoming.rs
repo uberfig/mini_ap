@@ -46,14 +46,33 @@ pub async fn process_intransitive(
                     let from = match from {
                         Ok(x) => x,
                         Err(x) => {
-                            println!("{}", x);
+                            dbg!(x);
                             return ();
                         }
                     };
 
-                    let to = activity.object.get_id();
-
-                    // conn.create_follow_request(from, to)
+                    //should be the preferred username
+                    let Some(to) = activity
+                        .object
+                        .get_id()
+                        .as_str()
+                        .strip_prefix(&format!("https://{}/users/", &state.instance_domain))
+                    else {
+                        println!("invalid username: {}", activity.object.get_id().as_str());
+                        return ();
+                    };
+                    let to = conn.get_local_user_db_id(to).await;
+                    match to {
+                        Some(to) => {
+                            conn.create_follow_request(
+                                super::UserRef::Activitypub(from),
+                                super::UserRef::Local(to),
+                            )
+                            .await
+                            .unwrap();
+                        }
+                        None => return,
+                    }
                 }
                 crate::activitystream_objects::activities::ActivityType::Accept => todo!(),
                 crate::activitystream_objects::activities::ActivityType::Reject => todo!(),
@@ -84,6 +103,6 @@ pub async fn process_intransitive(
                 crate::activitystream_objects::activities::ActivityType::Dislike => todo!(),
             }
         }
-        ExtendsIntransitive::Question(x) => todo!(),
+        ExtendsIntransitive::Question(_) => todo!(),
     }
 }

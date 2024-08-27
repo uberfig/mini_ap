@@ -235,10 +235,12 @@ pub enum ActivityType {
     ///   "summary": "Sally followed John",
     ///   "type": "Follow",
     ///   "actor": {
+    ///     "id": "https://example.com",
     ///     "type": "Person",
     ///     "name": "Sally"
     ///   },
     ///   "object": {
+    ///     "id": "https://example.com",
     ///     "type": "Person",
     ///     "name": "John"
     ///   }
