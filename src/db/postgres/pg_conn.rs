@@ -52,20 +52,21 @@ fn local_user_from_row(result: Row, instance_domain: &str) -> Actor {
 impl Conn for PgConn {
     async fn create_federated_user(&self, actor: &Actor) -> i64 {
         let client = self.db.get().await.expect("failed to get client");
+        //manual_followers, memorial, indexable, discoverable
+        //$13, $14, $15, $16
         let stmt = r#"
         INSERT INTO federated_ap_users 
         (
             id, type_field, preferred_username, domain,
             name, summary, url, public_key_pem,
             inbox, outbox, followers, following
-            manual_followers, memorial, indexable, discoverable
+            
         )
         VALUES
         (
             $1, $2, $3, $4, 
             $5, $6, $7, $8,
-            $9, $10, $11, $12,
-            $13, $14, $15, $16
+            $9, $10, $11, $12
         )
         RETURNING ap_user_id;
         "#;
@@ -81,10 +82,12 @@ impl Conn for PgConn {
                     &serde_json::to_string(&actor.type_field).unwrap(),
                     &actor.preferred_username,
                     &domain,
+
                     &actor.name,
                     &actor.summary,
                     &url,
                     &actor.public_key.public_key_pem,
+
                     &actor.inbox.as_str(),
                     &actor.outbox.as_str(),
                     &actor.followers.as_str(),
@@ -95,7 +98,7 @@ impl Conn for PgConn {
             .expect("failed to insert user")
             .pop()
             .expect("did not return uid")
-            .get("uid");
+            .get("ap_user_id");
 
         result
     }
@@ -199,7 +202,18 @@ impl Conn for PgConn {
     }
 
     async fn get_local_user_db_id(&self, preferred_username: &str) -> Option<i64> {
-        todo!()
+        let client = self.db.get().await.expect("failed to get client");
+        let stmt = r#"
+        SELECT * FROM internal_users WHERE preferred_username = $1;
+        "#;
+        let stmt = client.prepare(stmt).await.unwrap();
+
+        let result = client
+            .query(&stmt, &[&preferred_username])
+            .await
+            .expect("failed to get local user")
+            .pop();
+        result.map(|x| x.get("uid"))
     }
 
     async fn get_local_user_actor(
