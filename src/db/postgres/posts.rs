@@ -14,7 +14,7 @@ pub async fn create_new_post(
     uid: UserRef,
     in_reply_to: Option<i64>,
 ) -> i64 {
-    let (post_id, published) = get_post_id_and_published(uid.is_local(), &post);
+    let (post_id, published) = get_post_id_and_published(uid.is_local(), post);
     let (fedi_actor, local_actor) = uid.parts();
     match &post {
         crate::db::PostType::Object(x) => {

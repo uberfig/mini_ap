@@ -37,7 +37,7 @@ pub trait Conn {
         instance_domain: &str,
     ) -> Result<i64, DbErr> {
         let instance_actor = self.get_instance_actor().await.unwrap();
-        let key_id = InstanceActor::pub_key_id(&instance_domain);
+        let key_id = InstanceActor::pub_key_id(instance_domain);
 
         let fetched = authorized_fetch(actor_id, &key_id, &instance_actor.get_rsa()).await;
         let fetched = match fetched {

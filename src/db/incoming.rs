@@ -92,7 +92,7 @@ pub async fn handle_follow(
         Ok(x) => x,
         Err(x) => {
             dbg!(x);
-            return ();
+            return;
         }
     };
 
@@ -104,7 +104,7 @@ pub async fn handle_follow(
         .strip_prefix(&format!("https://{}/users/", &state.instance_domain))
     else {
         println!("invalid username: {}", activity.object.get_id().as_str());
-        return ();
+        return;
     };
     let Some(to) = conn.get_local_user_db_id(to).await else {
         return;

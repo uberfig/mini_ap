@@ -82,12 +82,10 @@ impl Conn for PgConn {
                     &serde_json::to_string(&actor.type_field).unwrap(),
                     &actor.preferred_username,
                     &domain,
-
                     &actor.name,
                     &actor.summary,
                     &url,
                     &actor.public_key.public_key_pem,
-
                     &actor.inbox.as_str(),
                     &actor.outbox.as_str(),
                     &actor.followers.as_str(),

@@ -1,5 +1,5 @@
 CREATE TABLE internal_users (
-	uid 				BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
+	local_id 			BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
 	password			TEXT NOT NULL, --stored with argon2
 	preferred_username	TEXT NOT NULL UNIQUE, --basically the username/login name
 	display_name		TEXT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE federated_instances (
 
 -- federated activitypub users, doesn't include internal
 CREATE TABLE federated_ap_users (
-	ap_user_id			BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
+	fedi_id			BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
 	id					TEXT NOT NULL UNIQUE,
 	type_field			TEXT NOT NULL DEFAULT 'Person',
 	preferred_username	TEXT NOT NULL,
@@ -54,15 +54,17 @@ CREATE TABLE federated_ap_users (
 	-- featuredTags		TEXT,
 );
 
+CREATE TABLE unified_users (
+	uid			BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
+	fedi_id		BIGINT NULL REFERENCES federated_ap_users(fedi_id) ON DELETE CASCADE,
+	local_id	BIGINT NULL REFERENCES internal_users(local_id) ON DELETE CASCADE
+);
+
 CREATE TABLE following (
 	-- the user that is following
-	fedi_from		BIGINT NULL REFERENCES federated_ap_users(ap_user_id) ON DELETE CASCADE,
-	local_from		BIGINT NULL REFERENCES internal_users(uid) ON DELETE CASCADE,
-
+	follower		BIGINT NULL REFERENCES unified_users(uid) ON DELETE CASCADE,
 	-- the user that is being followed
-	target_fedi		BIGINT NULL REFERENCES federated_ap_users(ap_user_id) ON DELETE CASCADE,
-	target_local	BIGINT NULL REFERENCES internal_users(uid) ON DELETE CASCADE,
-
+	target_user		BIGINT NULL REFERENCES unified_users(uid) ON DELETE CASCADE,
 	pending			BOOLEAN NOT NULL DEFAULT true,
 	published		BIGINT NOT NULL,
 	PRIMARY KEY(fedi_from, local_from, target_fedi, target_local)
@@ -95,13 +97,13 @@ CREATE TABLE posts (
 	closed				BIGINT NULL,
 	local_only_voting 	BOOLEAN NULL,
 
-	fedi_actor	BIGINT NULL REFERENCES federated_ap_users(ap_user_id) ON DELETE CASCADE,
-	local_actor	BIGINT NULL REFERENCES internal_users(uid) ON DELETE CASCADE
+	fedi_actor	BIGINT NULL REFERENCES federated_ap_users(fedi_id) ON DELETE CASCADE,
+	local_actor	BIGINT NULL REFERENCES internal_users(local_id) ON DELETE CASCADE
 );
 
 CREATE TABLE likes (
-	fedi_actor		BIGINT NULL REFERENCES federated_ap_users(ap_user_id) ON DELETE CASCADE,
-	local_actor		BIGINT NULL REFERENCES internal_users(uid) ON DELETE CASCADE,
+	fedi_actor		BIGINT NULL REFERENCES federated_ap_users(fedi_id) ON DELETE CASCADE,
+	local_actor		BIGINT NULL REFERENCES internal_users(local_id) ON DELETE CASCADE,
 	post 			BIGINT NOT NULL REFERENCES posts(obj_id) ON DELETE CASCADE,
 	published		BIGINT NOT NULL,
 	PRIMARY KEY(fedi_actor, local_actor, post)
