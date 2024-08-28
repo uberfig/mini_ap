@@ -22,41 +22,6 @@ use crate::activitystream_objects::{
 };
 
 #[derive(Debug, Clone, Copy)]
-pub enum UserRef {
-    Local(i64),
-    Activitypub(i64),
-}
-
-impl UserRef {
-    /// outputs (fedi, local)
-    pub fn parts(self) -> (Option<i64>, Option<i64>) {
-        match self {
-            UserRef::Local(x) => (None, Some(x)),
-            UserRef::Activitypub(x) => (Some(x), None),
-        }
-    }
-    pub fn id(self) -> i64 {
-        match self {
-            UserRef::Local(x) => x,
-            UserRef::Activitypub(x) => x,
-        }
-    }
-    pub fn is_local(&self) -> bool {
-        match self {
-            UserRef::Local(_) => true,
-            UserRef::Activitypub(_) => false,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum FollowType {
-    LocalToLocal,
-    LocalToFedi,
-    FediToLocal,
-}
-
-#[derive(Debug, Clone, Copy)]
 pub enum PermissionLevel {
     /// intended for the main admin account(s) of the server, will be
     /// featured and considered the pont of contact for the instance,
