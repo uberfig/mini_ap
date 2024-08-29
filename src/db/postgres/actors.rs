@@ -141,7 +141,7 @@ pub async fn create_federated_actor(conn: &PgConn, actor: &Actor) -> i64 {
             $8, $9, 
             $10, $11, $12, $13
         )
-        RETURNING ap_user_id;
+        RETURNING fedi_id;
         "#;
     let stmt = client.prepare(stmt).await.unwrap();
 
