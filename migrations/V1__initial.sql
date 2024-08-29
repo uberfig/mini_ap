@@ -39,6 +39,7 @@ CREATE TABLE federated_ap_users (
 	summary				TEXT NULL,
 	url					TEXT NULL,
 	public_key_pem		TEXT NOT NULL,
+	public_key_id		TEXT NOT NULL,
 
 	-- links
 	inbox				TEXT NOT NULL,

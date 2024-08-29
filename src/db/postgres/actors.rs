@@ -1,4 +1,5 @@
 use tokio_postgres::Row;
+use url::Url;
 
 use crate::{
     activitystream_objects::actors::{Actor, ActorType, PublicKey},
@@ -34,6 +35,43 @@ fn local_user_from_row(result: Row, instance_domain: &str) -> Actor {
     }
 }
 
+fn fedi_user_from_row(result: Row) -> Actor {
+    let id: String = result.get("id");
+    let id = Url::parse(&id).unwrap();
+    let type_field: String = result.get("type_field");
+    let type_field: ActorType = serde_json::from_str(&type_field).unwrap();
+    let preferred_username: String = result.get("preferred_username");
+    let url: String = result.get("url");
+    let url = Url::parse(&url).unwrap();
+    let public_key_id: String = result.get("public_key_id");
+    let inbox: String = result.get("inbox");
+    let outbox: String = result.get("outbox");
+    let followers: String = result.get("followers");
+    let following: String = result.get("following");
+    
+    let key = PublicKey {
+        id: Url::parse(&public_key_id).unwrap(),
+        owner: id.clone(),
+        public_key_pem: result.get("public_key_pem"),
+    };
+
+    Actor {
+        type_field,
+        id,
+        preferred_username,
+        summary: result.get("summary"),
+        name: result.get("name"),
+        url: Some(url),
+        public_key: key,
+        inbox: Url::parse(&inbox).unwrap(),
+        outbox: Url::parse(&outbox).unwrap(),
+        followers: Url::parse(&followers).unwrap(),
+        following: Url::parse(&following).unwrap(),
+        domain: None,
+        liked: None,
+    }
+}
+
 pub async fn get_local_user_actor(
     conn: &PgConn,
     preferred_username: &str,
@@ -58,4 +96,30 @@ pub async fn get_local_user_actor(
     let id: i64 = result.get("uid");
 
     Some((local_user_from_row(result, instance_domain), id))
+}
+
+pub async fn get_actor(conn: &PgConn, uid: i64, instance_domain: &str) -> Option<Actor> {
+    let client = conn.db.get().await.expect("failed to get client");
+    let stmt = r#"
+        SELECT * FROM unified_users JOIN internal_users local_id = local_id JOIN federated_ap_users fedi_id = fedi_id WHERE uid = $1;
+        "#;
+    let stmt = client.prepare(stmt).await.unwrap();
+
+    let result = client
+        .query(&stmt, &[&uid])
+        .await
+        .expect("failed to get actor")
+        .pop();
+
+    let result = match result {
+        Some(x) => x,
+        None => return None,
+    };
+
+    let is_local: bool = result.get("is_local");
+
+    match is_local {
+        true => Some(local_user_from_row(result, instance_domain)),
+        false => Some(fedi_user_from_row(result)),
+    }
 }

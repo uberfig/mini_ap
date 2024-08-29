@@ -23,7 +23,7 @@ mod embedded {
 #[async_trait]
 impl Conn for PgConn {
     async fn get_actor(&self, uid: i64, instance_domain: &str) -> Option<Actor> {
-        todo!()
+        super::actors::get_actor(self, uid, instance_domain).await
     }
     async fn is_local(&self, uid: i64) -> bool {
         todo!()
@@ -36,15 +36,17 @@ impl Conn for PgConn {
         INSERT INTO federated_ap_users 
         (
             id, type_field, preferred_username, domain,
-            name, summary, url, public_key_pem,
+            name, summary, url, 
+            public_key_pem, public_key_id,
             inbox, outbox, followers, following
             
         )
         VALUES
         (
             $1, $2, $3, $4, 
-            $5, $6, $7, $8,
-            $9, $10, $11, $12
+            $5, $6, $7, 
+            $8, $9, 
+            $10, $11, $12, $13
         )
         RETURNING ap_user_id;
         "#;
@@ -64,6 +66,7 @@ impl Conn for PgConn {
                     &actor.summary,
                     &url,
                     &actor.public_key.public_key_pem,
+                    &actor.public_key.id.as_str(),
                     &actor.inbox.as_str(),
                     &actor.outbox.as_str(),
                     &actor.followers.as_str(),
