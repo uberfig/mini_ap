@@ -197,7 +197,7 @@ impl Conn for PgConn {
         preferred_username: &str,
         instance_domain: &str,
     ) -> Option<(Actor, i64)> {
-        get_local_user_actor(&self, preferred_username, instance_domain).await
+        get_local_user_actor(self, preferred_username, instance_domain).await
         // let client = self.db.get().await.expect("failed to get client");
         // let stmt = r#"
         // SELECT * FROM internal_users WHERE preferred_username = $1;

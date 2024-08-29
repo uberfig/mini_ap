@@ -36,5 +36,24 @@ pub async fn get_local_user_actor(
     preferred_username: &str,
     instance_domain: &str,
 ) -> Option<(Actor, i64)> {
-    todo!()
+
+    let client = conn.db.get().await.expect("failed to get client");
+        let stmt = r#"
+        SELECT * FROM internal_users WHERE preferred_username = $1;
+        "#;
+        let stmt = client.prepare(stmt).await.unwrap();
+
+        let result = client
+            .query(&stmt, &[&preferred_username])
+            .await
+            .expect("failed to get local user")
+            .pop();
+
+        let result = match result {
+            Some(x) => x,
+            None => return None,
+        };
+        let id: i64 = result.get("uid");
+
+        Some((local_user_from_row(result, instance_domain), id))
 }
