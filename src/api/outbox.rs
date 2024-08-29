@@ -60,7 +60,7 @@ pub async fn create_post(
 
     let object = conn.get_post(obj_id).await;
 
-    let key = conn.get_local_user_private_key(&preferred_username).await;
+    let key = conn.get_local_user_private_key_db_id(uid).await;
 
     let key = openssl::rsa::Rsa::private_key_from_pem(key.as_bytes()).unwrap();
     let key = PKey::from_rsa(key).unwrap();

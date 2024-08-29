@@ -8,7 +8,7 @@ use crate::{
     db::{conn::Conn, Follower},
 };
 
-use super::{actors, follows, instance_actor, posts};
+use super::{actors, follows, instance_actor, local_users, posts};
 
 pub struct PgConn {
     pub db: Pool,
@@ -62,44 +62,7 @@ impl Conn for PgConn {
     }
 
     async fn create_local_user(&self, user: &crate::db::NewLocal) -> Result<i64, ()> {
-        let client = self.db.get().await.expect("failed to get client");
-        let stmt = r#"
-        INSERT INTO internal_users 
-        (
-            password, preferred_username, email, private_key_pem,
-            public_key_pem, permission_level, custom_domain
-        )
-        VALUES
-        (
-            $1, $2, $3, $4,
-            $5, $6, $7
-        )
-        RETURNING uid;
-        "#;
-        let stmt = client.prepare(stmt).await.unwrap();
-
-        let permission: i16 = user.permission_level.into();
-
-        let result: i64 = client
-            .query(
-                &stmt,
-                &[
-                    &user.password,
-                    &user.username,
-                    &user.email,
-                    &user.private_key_pem,
-                    &user.public_key_pem,
-                    &permission,
-                    &user.custom_domain,
-                ],
-            )
-            .await
-            .expect("failed to insert user")
-            .pop()
-            .expect("did not return uid")
-            .get("uid");
-
-        Ok(result)
+        local_users::create_local_user(self, user).await
     }
 
     async fn set_permission_level(&self, uid: i64, permission_level: crate::db::PermissionLevel) {
@@ -117,7 +80,7 @@ impl Conn for PgConn {
     async fn get_local_manually_approves_followers(&self, uid: i64) -> bool {
         let client = self.db.get().await.expect("failed to get client");
         let stmt = r#"
-        SELECT * FROM internal_users WHERE uid = $1;
+        SELECT * FROM unified_users JOIN internal_users local_id = local_id WHERE uid = $1;
         "#;
         let stmt = client.prepare(stmt).await.unwrap();
 
@@ -133,7 +96,7 @@ impl Conn for PgConn {
     async fn get_local_user_db_id(&self, preferred_username: &str) -> Option<i64> {
         let client = self.db.get().await.expect("failed to get client");
         let stmt = r#"
-        SELECT * FROM internal_users WHERE preferred_username = $1;
+        SELECT * FROM unified_users JOIN internal_users local_id = local_id WHERE preferred_username = $1;
         "#;
         let stmt = client.prepare(stmt).await.unwrap();
 
@@ -151,74 +114,30 @@ impl Conn for PgConn {
         instance_domain: &str,
     ) -> Option<(Actor, i64)> {
         actors::get_local_user_actor(self, preferred_username, instance_domain).await
-        // let client = self.db.get().await.expect("failed to get client");
-        // let stmt = r#"
-        // SELECT * FROM internal_users WHERE preferred_username = $1;
-        // "#;
-        // let stmt = client.prepare(stmt).await.unwrap();
-
-        // let result = client
-        //     .query(&stmt, &[&preferred_username])
-        //     .await
-        //     .expect("failed to get local user")
-        //     .pop();
-
-        // let result = match result {
-        //     Some(x) => x,
-        //     None => return None,
-        // };
-        // let id: i64 = result.get("uid");
-
-        // Some((local_user_from_row(result, instance_domain), id))
     }
 
-    // async fn get_local_user_actor_db_id(
-    //     &self,
-    //     uid: i64,
-    //     instance_domain: &str,
-    // ) -> Option<crate::activitystream_objects::actors::Actor> {
+    // async fn get_local_user_private_key(&self, preferred_username: &str) -> String {
     //     let client = self.db.get().await.expect("failed to get client");
     //     let stmt = r#"
-    //     SELECT * FROM internal_users WHERE uid = $1;
+    //     SELECT * FROM internal_users WHERE preferred_username = $1;
     //     "#;
     //     let stmt = client.prepare(stmt).await.unwrap();
 
     //     let result = client
-    //         .query(&stmt, &[&uid])
+    //         .query(&stmt, &[&preferred_username])
     //         .await
     //         .expect("failed to get local user")
     //         .pop();
+    //     let result = result.expect("could not get private key");
 
-    //     let result = match result {
-    //         Some(x) => x,
-    //         None => return None,
-    //     };
-
-    //     Some(local_user_from_row(result, instance_domain))
+    //     let private_key_pem: String = result.get("private_key_pem");
+    //     private_key_pem
     // }
-
-    async fn get_local_user_private_key(&self, preferred_username: &str) -> String {
-        let client = self.db.get().await.expect("failed to get client");
-        let stmt = r#"
-        SELECT * FROM internal_users WHERE preferred_username = $1;
-        "#;
-        let stmt = client.prepare(stmt).await.unwrap();
-
-        let result = client
-            .query(&stmt, &[&preferred_username])
-            .await
-            .expect("failed to get local user")
-            .pop();
-        let result = result.expect("could not get private key");
-
-        let private_key_pem: String = result.get("private_key_pem");
-        private_key_pem
-    }
 
     async fn get_local_user_private_key_db_id(&self, uid: i64) -> String {
         let client = self.db.get().await.expect("failed to get client");
         let stmt = r#"
-        SELECT * FROM internal_users WHERE uid = $1;
+        SELECT * FROM unified_users JOIN internal_users local_id = local_id WHERE uid = $1;
         "#;
         let stmt = client.prepare(stmt).await.unwrap();
 

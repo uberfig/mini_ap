@@ -86,7 +86,7 @@ pub trait Conn {
 
     //-------------------------private keys----------------------------
 
-    async fn get_local_user_private_key(&self, preferred_username: &str) -> String;
+    // async fn get_local_user_private_key(&self, preferred_username: &str) -> String;
     async fn get_local_user_private_key_db_id(&self, uid: i64) -> String;
 
     //----------------------creating users-------------------------------
