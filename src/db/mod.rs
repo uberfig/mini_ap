@@ -22,38 +22,9 @@ use crate::activitystream_objects::{
 };
 
 #[derive(Debug, Clone, Copy)]
-pub enum UserRef {
-    Local(i64),
-    Activitypub(i64),
-}
-
-impl UserRef {
-    /// outputs (fedi, local)
-    pub fn parts(self) -> (Option<i64>, Option<i64>) {
-        match self {
-            UserRef::Local(x) => (None, Some(x)),
-            UserRef::Activitypub(x) => (Some(x), None),
-        }
-    }
-    pub fn id(self) -> i64 {
-        match self {
-            UserRef::Local(x) => x,
-            UserRef::Activitypub(x) => x,
-        }
-    }
-    pub fn is_local(&self) -> bool {
-        match self {
-            UserRef::Local(_) => true,
-            UserRef::Activitypub(_) => false,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum FollowType {
-    LocalToLocal,
-    LocalToFedi,
-    FediToLocal,
+pub struct Follower {
+    pub uid: i64,
+    pub is_local: bool,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -298,6 +269,10 @@ impl InstanceActor {
     }
 }
 
+/// since this is intended to be a dumb implimentation, the
+/// "password" being passed in should be the hashed argon2
+/// output containing the hash and the salt. the database
+/// should not be responsible for performing this task
 pub struct NewLocal {
     pub username: String,
     pub password: String,

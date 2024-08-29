@@ -9,7 +9,7 @@ use url::Url;
 
 use crate::{
     activitystream_objects::object::{Object, ObjectType},
-    db::{conn::Conn, UserRef},
+    db::conn::Conn,
     protocol::outgoing::post_to_inbox,
 };
 
@@ -47,7 +47,8 @@ pub async fn create_post(
         .create_new_post(
             &crate::db::PostType::Object(object),
             &state.instance_domain,
-            UserRef::Local(uid),
+            uid,
+            true,
             None,
         )
         .await;
@@ -59,7 +60,7 @@ pub async fn create_post(
 
     let object = conn.get_post(obj_id).await;
 
-    let key = conn.get_local_user_private_key(&preferred_username).await;
+    let key = conn.get_local_user_private_key_db_id(uid).await;
 
     let key = openssl::rsa::Rsa::private_key_from_pem(key.as_bytes()).unwrap();
     let key = PKey::from_rsa(key).unwrap();
@@ -67,18 +68,15 @@ pub async fn create_post(
     let activity = object.unwrap().to_create_activitystream();
     let activity_str = serde_json::to_string(&activity).unwrap();
 
-    let followers = conn.get_followers(UserRef::Local(uid)).await.unwrap();
+    let followers = conn.get_followers(uid).await.unwrap();
 
     let from_id = actor.get_id().as_str();
 
     for follower in followers {
-        match follower {
-            UserRef::Local(_) => {}
-            UserRef::Activitypub(x) => {
-                let actor = conn.get_federated_actor_db_id(x).await.unwrap();
-                let domain = actor.get_id().domain().unwrap();
-                post_to_inbox(&activity_str, from_id, domain, actor.inbox.as_str(), &key).await;
-            }
+        if follower.is_local {
+            let actor = conn.get_federated_actor_db_id(follower.uid).await.unwrap();
+            let domain = actor.get_id().domain().unwrap();
+            post_to_inbox(&activity_str, from_id, domain, actor.inbox.as_str(), &key).await;
         }
     }
 
