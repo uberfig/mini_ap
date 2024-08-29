@@ -291,12 +291,7 @@ impl Conn for PgConn {
         posts::create_new_post(self, post, instance_domain, uid, is_local, in_reply_to).await
     }
 
-    async fn create_follow_request(
-        &self,
-        from: i64,
-        to: i64,
-        pending: bool,
-    ) -> Result<(), ()> {
+    async fn create_follow_request(&self, from: i64, to: i64, pending: bool) -> Result<(), ()> {
         follows::create_follow_request(self, from, to, pending).await
     }
 

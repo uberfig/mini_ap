@@ -24,7 +24,6 @@ impl std::fmt::Display for DbErr {
 
 #[async_trait]
 pub trait Conn {
-
     /// run any prep for the database, for example running migrations
     async fn init(&self) -> Result<(), String>;
 
