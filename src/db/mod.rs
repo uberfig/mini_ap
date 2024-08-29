@@ -22,6 +22,12 @@ use crate::activitystream_objects::{
 };
 
 #[derive(Debug, Clone, Copy)]
+pub struct Follower {
+    pub uid: i64,
+    pub is_local: bool,
+}
+
+#[derive(Debug, Clone, Copy)]
 pub enum PermissionLevel {
     /// intended for the main admin account(s) of the server, will be
     /// featured and considered the pont of contact for the instance,
@@ -263,6 +269,10 @@ impl InstanceActor {
     }
 }
 
+/// since this is intended to be a dumb implimentation, the
+/// "password" being passed in should be the hashed argon2
+/// output containing the hash and the salt. the database
+/// should not be responsible for performing this task
 pub struct NewLocal {
     pub username: String,
     pub password: String,

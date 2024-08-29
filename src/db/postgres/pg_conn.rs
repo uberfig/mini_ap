@@ -6,7 +6,7 @@ use tokio_postgres::Row;
 
 use crate::{
     activitystream_objects::actors::{Actor, ActorType, PublicKey},
-    db::{conn::Conn, generate_links, UserRef},
+    db::{conn::Conn, generate_links},
 };
 
 use super::{follows, instance_actor, posts};

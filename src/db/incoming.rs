@@ -112,13 +112,9 @@ pub async fn handle_follow(
 
     let manual_followers = conn.get_local_manually_approves_followers(to).await;
 
-    conn.create_follow_request(
-        super::UserRef::Activitypub(from),
-        super::UserRef::Local(to),
-        manual_followers,
-    )
-    .await
-    .unwrap();
+    conn.create_follow_request(from, to, manual_followers)
+        .await
+        .unwrap();
 
     //send the accept
     if !manual_followers {

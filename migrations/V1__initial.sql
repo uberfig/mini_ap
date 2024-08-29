@@ -63,9 +63,9 @@ CREATE TABLE unified_users (
 
 CREATE TABLE following (
 	-- the user that is following
-	follower		BIGINT NULL REFERENCES unified_users(uid) ON DELETE CASCADE,
+	follower		BIGINT NOT NULL REFERENCES unified_users(uid) ON DELETE CASCADE,
 	-- the user that is being followed
-	target_user		BIGINT NULL REFERENCES unified_users(uid) ON DELETE CASCADE,
+	target_user		BIGINT NOT NULL REFERENCES unified_users(uid) ON DELETE CASCADE,
 	pending			BOOLEAN NOT NULL DEFAULT true,
 	published		BIGINT NOT NULL,
 	PRIMARY KEY(fedi_from, local_from, target_fedi, target_local)

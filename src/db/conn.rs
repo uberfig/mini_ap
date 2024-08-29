@@ -7,7 +7,7 @@ use crate::{
     protocol::fetch::{authorized_fetch, FetchErr},
 };
 
-use super::{InstanceActor, NewLocal, PermissionLevel, PostType, UserRef};
+use super::{Follower, InstanceActor, NewLocal, PermissionLevel, PostType};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum DbErr {
@@ -24,12 +24,27 @@ impl std::fmt::Display for DbErr {
 
 #[async_trait]
 pub trait Conn {
-    async fn get_actor(&self, uid: UserRef, instance_domain: &str) -> Option<Actor> {
-        match uid {
-            UserRef::Local(x) => self.get_local_user_actor_db_id(x, instance_domain).await,
-            UserRef::Activitypub(x) => self.get_federated_actor_db_id(x).await,
-        }
+    async fn get_actor(&self, uid: i64, instance_domain: &str) -> Option<Actor>;
+    async fn get_federated_actor_db_id(&self, uid: i64) -> Option<Actor> {
+        self.get_actor(uid, "invalid").await
     }
+
+    async fn is_local(&self, uid: i64) -> bool;
+
+    async fn get_federated_db_id(&self, actor_id: &str) -> Option<i64>;
+    async fn get_local_user_db_id(&self, preferred_username: &str) -> Option<i64>;
+
+    async fn set_permission_level(&self, uid: i64, permission_level: PermissionLevel);
+    /// since this is intended to be a dumb implimentation, the
+    /// "password" being passed in should be the hashed argon2
+    /// output containing the hash and the salt. the database
+    /// should not be responsible for performing this task
+    async fn update_password(&self, uid: i64, password: &str);
+    async fn set_manually_approves_followers(&self, uid: i64, value: bool);
+    async fn get_local_manually_approves_followers(&self, uid: i64) -> bool;
+
+    async fn create_local_user(&self, user: &NewLocal) -> Result<i64, ()>;
+    async fn create_federated_user(&self, actor: &Actor) -> i64;
 
     async fn load_new_federated_actor(
         &self,
@@ -54,23 +69,7 @@ pub trait Conn {
         Ok(self.create_federated_user(&actor).await)
     }
 
-    async fn create_federated_user(&self, actor: &Actor) -> i64;
-    async fn get_federated_db_id(&self, actor_id: &str) -> Option<i64>;
     async fn get_federated_actor(&self, actor_id: &str) -> Option<Actor>;
-    async fn get_federated_actor_db_id(&self, id: i64) -> Option<Actor>;
-
-    /// since this is intended to be a dumb implimentation, the
-    /// "password" being passed in should be the hashed argon2
-    /// output containing the hash and the salt. the database
-    /// should not be responsible for performing this task
-    async fn create_local_user(&self, user: &NewLocal) -> Result<i64, ()>;
-
-    async fn set_permission_level(&self, uid: i64, permission_level: PermissionLevel);
-    async fn update_password(&self, uid: i64, password: &str);
-    async fn set_manually_approves_followers(&self, uid: i64, value: bool);
-    async fn get_local_manually_approves_followers(&self, uid: i64) -> bool;
-
-    async fn get_local_user_db_id(&self, preferred_username: &str) -> Option<i64>;
 
     /// instance_domain must be provided as internal users will
     /// need to have their links generated based on the instance
@@ -104,28 +103,23 @@ pub trait Conn {
         &self,
         post: &PostType,
         instance_domain: &str,
-        uid: UserRef,
+        uid: i64,
         in_reply_to: Option<i64>,
     ) -> i64;
 
-    async fn create_follow_request(
-        &self,
-        from: UserRef,
-        to: UserRef,
-        pending: bool,
-    ) -> Result<(), ()>;
+    async fn create_follow_request(&self, from: i64, to: i64, pending: bool) -> Result<(), ()>;
 
     /// approves an existing follow request and creates the record in
     /// the followers
-    async fn approve_follow_request(&self, from: UserRef, to: UserRef) -> Result<(), ()>;
+    async fn approve_follow_request(&self, from: i64, to: i64) -> Result<(), ()>;
 
     /// in the event that we cannot view from the source instance, just show
     /// local followers
-    async fn get_followers(&self, user: UserRef) -> Result<Vec<UserRef>, ()>;
+    async fn get_followers(&self, user: i64) -> Result<Vec<Follower>, ()>;
 
     /// really just for local users, if used for a federated user it
     /// will only show the amout of local users following them
-    async fn get_follower_count(&self, user: UserRef) -> Result<i64, ()>;
+    async fn get_follower_count(&self, user: i64) -> Result<i64, ()>;
 
     async fn get_post(&self, object_id: i64) -> Option<PostType>;
 
