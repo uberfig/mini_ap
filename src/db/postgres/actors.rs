@@ -39,7 +39,7 @@ pub async fn get_local_user_actor(
 
     let client = conn.db.get().await.expect("failed to get client");
         let stmt = r#"
-        SELECT * FROM internal_users WHERE preferred_username = $1;
+        SELECT * FROM internal_users JOIN unified_users local_id = local_id WHERE preferred_username = $1;
         "#;
         let stmt = client.prepare(stmt).await.unwrap();
 
