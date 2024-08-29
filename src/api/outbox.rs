@@ -48,6 +48,7 @@ pub async fn create_post(
             &crate::db::PostType::Object(object),
             &state.instance_domain,
             uid,
+            true,
             None,
         )
         .await;

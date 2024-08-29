@@ -24,7 +24,32 @@ impl std::fmt::Display for DbErr {
 
 #[async_trait]
 pub trait Conn {
+
+    /// run any prep for the database, for example running migrations
+    async fn init(&self) -> Result<(), String>;
+
+    //-------------------instance actor------------------------------
+    async fn get_instance_actor(&self) -> Option<InstanceActor>;
+    async fn create_instance_actor(&self, private_key_pem: String, public_key_pem: String);
+
+    //----------------------getting actors---------------------------
+
+    /// instance_domain must be provided as internal users will
+    /// need to have their links generated based on the instance
+    /// domain. instances running in local only mode should be able
+    /// to change domains without any affect for the internal users
+    ///
+    /// in the case of users using a custom domain name, it will take
+    /// precidence over the user. how exactly this will be implimented
+    /// is not set in stone but we are keeping the door open to it so
+    /// that once a nice system is figured out we can impliment it
+    /// without too much hastle
     async fn get_actor(&self, uid: i64, instance_domain: &str) -> Option<Actor>;
+    async fn get_local_user_actor(
+        &self,
+        preferred_username: &str,
+        instance_domain: &str,
+    ) -> Option<(Actor, i64)>;
     async fn get_federated_actor_db_id(&self, uid: i64) -> Option<Actor> {
         self.get_actor(uid, "invalid").await
     }
@@ -34,7 +59,10 @@ pub trait Conn {
     async fn get_federated_db_id(&self, actor_id: &str) -> Option<i64>;
     async fn get_local_user_db_id(&self, preferred_username: &str) -> Option<i64>;
 
-    async fn set_permission_level(&self, uid: i64, permission_level: PermissionLevel);
+    async fn get_federated_actor(&self, actor_id: &str) -> Option<Actor>;
+
+    //-----------------------account managment-----------------------------
+
     /// since this is intended to be a dumb implimentation, the
     /// "password" being passed in should be the hashed argon2
     /// output containing the hash and the salt. the database
@@ -42,9 +70,30 @@ pub trait Conn {
     async fn update_password(&self, uid: i64, password: &str);
     async fn set_manually_approves_followers(&self, uid: i64, value: bool);
     async fn get_local_manually_approves_followers(&self, uid: i64) -> bool;
+    async fn set_permission_level(&self, uid: i64, permission_level: PermissionLevel);
+
+    //------------------------------posts---------------------------------
+
+    async fn create_new_post(
+        &self,
+        post: &PostType,
+        instance_domain: &str,
+        uid: i64,
+        is_local: bool,
+        in_reply_to: Option<i64>,
+    ) -> i64;
+
+    async fn get_post(&self, object_id: i64) -> Option<PostType>;
+
+    //-------------------------private keys----------------------------
+
+    async fn get_local_user_private_key(&self, preferred_username: &str) -> String;
+    async fn get_local_user_private_key_db_id(&self, uid: i64) -> String;
+
+    //----------------------creating users-------------------------------
 
     async fn create_local_user(&self, user: &NewLocal) -> Result<i64, ()>;
-    async fn create_federated_user(&self, actor: &Actor) -> i64;
+    async fn create_federated_actor(&self, actor: &Actor) -> i64;
 
     async fn load_new_federated_actor(
         &self,
@@ -66,46 +115,10 @@ pub trait Conn {
             None => return Err(DbErr::InvalidType),
         };
 
-        Ok(self.create_federated_user(&actor).await)
+        Ok(self.create_federated_actor(&actor).await)
     }
 
-    async fn get_federated_actor(&self, actor_id: &str) -> Option<Actor>;
-
-    /// instance_domain must be provided as internal users will
-    /// need to have their links generated based on the instance
-    /// domain. instances running in local only mode should be able
-    /// to change domains without any affect for the internal users
-    ///
-    /// in the case of users using a custom domain name, it will take
-    /// precidence over the user. how exactly this will be implimented
-    /// is not set in stone but we are keeping the door open to it so
-    /// that once a nice system is figured out we can impliment it
-    /// without too much hastle
-    // async fn get_local_user_actor(
-    //     &self,
-    //     preferred_username: &str,
-    //     instance_domain: &str,
-    // ) -> Option<Actor>;
-    async fn get_local_user_actor(
-        &self,
-        preferred_username: &str,
-        instance_domain: &str,
-    ) -> Option<(Actor, i64)>;
-
-    /// see documentation for [`Conn::get_local_user_actor()`] for more
-    /// info on instance domain
-    async fn get_local_user_actor_db_id(&self, uid: i64, instance_domain: &str) -> Option<Actor>;
-    // async fn get_local_user_private_key(&self, preferred_username: &str) -> String;
-    async fn get_local_user_private_key(&self, preferred_username: &str) -> String;
-    async fn get_local_user_private_key_db_id(&self, uid: i64) -> String;
-
-    async fn create_new_post(
-        &self,
-        post: &PostType,
-        instance_domain: &str,
-        uid: i64,
-        in_reply_to: Option<i64>,
-    ) -> i64;
+    //--------------------followers---------------------------------
 
     async fn create_follow_request(&self, from: i64, to: i64, pending: bool) -> Result<(), ()>;
 
@@ -121,10 +134,10 @@ pub trait Conn {
     /// will only show the amout of local users following them
     async fn get_follower_count(&self, user: i64) -> Result<i64, ()>;
 
-    async fn get_post(&self, object_id: i64) -> Option<PostType>;
+    //-------------------depreciated--------------------------------------    
 
-    async fn get_instance_actor(&self) -> Option<InstanceActor>;
-    async fn create_instance_actor(&self, private_key_pem: String, public_key_pem: String);
-
-    async fn init(&self) -> Result<(), String>;
+    /// see documentation for [`Conn::get_local_user_actor()`] for more
+    /// info on instance domain
+    async fn get_local_user_actor_db_id(&self, uid: i64, instance_domain: &str) -> Option<Actor>;
+    // async fn get_local_user_private_key(&self, preferred_username: &str) -> String;
 }

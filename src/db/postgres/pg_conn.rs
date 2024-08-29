@@ -6,7 +6,7 @@ use tokio_postgres::Row;
 
 use crate::{
     activitystream_objects::actors::{Actor, ActorType, PublicKey},
-    db::{conn::Conn, generate_links},
+    db::{conn::Conn, generate_links, Follower},
 };
 
 use super::{follows, instance_actor, posts};
@@ -50,7 +50,13 @@ fn local_user_from_row(result: Row, instance_domain: &str) -> Actor {
 #[allow(unused_variables)]
 #[async_trait]
 impl Conn for PgConn {
-    async fn create_federated_user(&self, actor: &Actor) -> i64 {
+    async fn get_actor(&self, uid: i64, instance_domain: &str) -> Option<Actor> {
+        todo!()
+    }
+    async fn is_local(&self, uid: i64) -> bool {
+        todo!()
+    }
+    async fn create_federated_actor(&self, actor: &Actor) -> i64 {
         let client = self.db.get().await.expect("failed to get client");
         //manual_followers, memorial, indexable, discoverable
         //$13, $14, $15, $16
@@ -305,30 +311,31 @@ impl Conn for PgConn {
         &self,
         post: &crate::db::PostType,
         instance_domain: &str,
-        uid: UserRef,
+        uid: i64,
+        is_local: bool,
         in_reply_to: Option<i64>,
     ) -> i64 {
-        posts::create_new_post(self, post, instance_domain, uid, in_reply_to).await
+        posts::create_new_post(self, post, instance_domain, uid, is_local, in_reply_to).await
     }
 
     async fn create_follow_request(
         &self,
-        from: UserRef,
-        to: UserRef,
+        from: i64,
+        to: i64,
         pending: bool,
     ) -> Result<(), ()> {
         follows::create_follow_request(self, from, to, pending).await
     }
 
-    async fn approve_follow_request(&self, from: UserRef, to: UserRef) -> Result<(), ()> {
+    async fn approve_follow_request(&self, from: i64, to: i64) -> Result<(), ()> {
         follows::approve_follow_request(self, from, to).await
     }
 
-    async fn get_followers(&self, user: UserRef) -> Result<Vec<UserRef>, ()> {
+    async fn get_followers(&self, user: i64) -> Result<Vec<Follower>, ()> {
         follows::get_followers(self, user).await
     }
 
-    async fn get_follower_count(&self, user: UserRef) -> Result<i64, ()> {
+    async fn get_follower_count(&self, user: i64) -> Result<i64, ()> {
         follows::get_follower_count(self, user).await
     }
     async fn get_post(&self, object_id: i64) -> Option<crate::db::PostType> {
