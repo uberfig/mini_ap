@@ -79,7 +79,7 @@ pub async fn get_local_user_actor(
 ) -> Option<(Actor, i64)> {
     let client = conn.db.get().await.expect("failed to get client");
     let stmt = r#"
-        SELECT * FROM internal_users JOIN unified_users local_id = local_id WHERE preferred_username = $1;
+        SELECT * FROM internal_users NATURAL JOIN unified_users WHERE preferred_username = $1;
         "#;
     let stmt = client.prepare(stmt).await.unwrap();
 
@@ -101,7 +101,7 @@ pub async fn get_local_user_actor(
 pub async fn get_actor(conn: &PgConn, uid: i64, instance_domain: &str) -> Option<Actor> {
     let client = conn.db.get().await.expect("failed to get client");
     let stmt = r#"
-        SELECT * FROM unified_users JOIN internal_users local_id = local_id JOIN federated_ap_users fedi_id = fedi_id WHERE uid = $1;
+        SELECT * FROM unified_users NATURAL JOIN internal_users NATURAL JOIN federated_ap_users WHERE uid = $1;
         "#;
     let stmt = client.prepare(stmt).await.unwrap();
 

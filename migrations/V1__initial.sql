@@ -58,8 +58,8 @@ CREATE TABLE federated_ap_users (
 CREATE TABLE unified_users (
 	uid			BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
 	is_local	BOOLEAN NOT NULL,
-	fedi_id		BIGINT NULL REFERENCES federated_ap_users(fedi_id) ON DELETE CASCADE,
-	local_id	BIGINT NULL REFERENCES internal_users(local_id) ON DELETE CASCADE
+	fedi_id		BIGINT NULL UNIQUE REFERENCES federated_ap_users(fedi_id) ON DELETE CASCADE,
+	local_id	BIGINT NULL UNIQUE REFERENCES internal_users(local_id) ON DELETE CASCADE
 );
 
 CREATE TABLE following (

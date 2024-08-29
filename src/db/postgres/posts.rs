@@ -70,7 +70,7 @@ RETURNING obj_id;
 pub async fn get_post(conn: &PgConn, object_id: i64) -> Option<crate::db::PostType> {
     let client = conn.db.get().await.expect("failed to get client");
     let stmt = r#"
-    SELECT * FROM posts JOIN unified_users ON actor = uid WHERE obj_id = $1 JOIN internal_users;
+    SELECT * FROM posts INNER JOIN unified_users ON actor = uid NATURAL JOIN internal_users WHERE obj_id = $1;
     "#;
     let stmt = client.prepare(stmt).await.unwrap();
 

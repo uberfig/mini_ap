@@ -70,7 +70,7 @@ pub async fn approve_follow_request(conn: &PgConn, from_id: i64, to_id: i64) -> 
 pub async fn get_followers(conn: &PgConn, user: i64) -> Result<Vec<Follower>, ()> {
     let client = conn.db.get().await.expect("failed to get client");
     let stmt = r#"
-            SELECT * FROM following 
+            SELECT * FROM following NATURAL JOIN unified_users
             WHERE
             target_user = $1;
             "#;

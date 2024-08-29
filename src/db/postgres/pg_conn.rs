@@ -35,7 +35,7 @@ impl Conn for PgConn {
     async fn get_federated_db_id(&self, actor_id: &str) -> Option<i64> {
         let client = self.db.get().await.expect("failed to get client");
         let stmt = r#"
-        SELECT * FROM unified_users JOIN federated_ap_users fedi_id = fedi_id WHERE id = $1;
+        SELECT * FROM unified_users NATURAL JOIN federated_ap_users WHERE id = $1;
         "#;
         let stmt = client.prepare(stmt).await.unwrap();
 
@@ -80,7 +80,7 @@ impl Conn for PgConn {
     async fn get_local_manually_approves_followers(&self, uid: i64) -> bool {
         let client = self.db.get().await.expect("failed to get client");
         let stmt = r#"
-        SELECT * FROM unified_users JOIN internal_users local_id = local_id WHERE uid = $1;
+        SELECT * FROM unified_users NATURAL JOIN internal_users WHERE uid = $1;
         "#;
         let stmt = client.prepare(stmt).await.unwrap();
 
@@ -96,7 +96,7 @@ impl Conn for PgConn {
     async fn get_local_user_db_id(&self, preferred_username: &str) -> Option<i64> {
         let client = self.db.get().await.expect("failed to get client");
         let stmt = r#"
-        SELECT * FROM unified_users JOIN internal_users local_id = local_id WHERE preferred_username = $1;
+        SELECT * FROM unified_users NATURAL JOIN internal_users WHERE preferred_username = $1;
         "#;
         let stmt = client.prepare(stmt).await.unwrap();
 
@@ -137,7 +137,7 @@ impl Conn for PgConn {
     async fn get_local_user_private_key_db_id(&self, uid: i64) -> String {
         let client = self.db.get().await.expect("failed to get client");
         let stmt = r#"
-        SELECT * FROM unified_users JOIN internal_users local_id = local_id WHERE uid = $1;
+        SELECT * FROM unified_users NATURAL JOIN internal_users WHERE uid = $1;
         "#;
         let stmt = client.prepare(stmt).await.unwrap();
 
