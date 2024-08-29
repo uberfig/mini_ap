@@ -133,11 +133,4 @@ pub trait Conn {
     /// really just for local users, if used for a federated user it
     /// will only show the amout of local users following them
     async fn get_follower_count(&self, user: i64) -> Result<i64, ()>;
-
-    //-------------------depreciated--------------------------------------    
-
-    /// see documentation for [`Conn::get_local_user_actor()`] for more
-    /// info on instance domain
-    async fn get_local_user_actor_db_id(&self, uid: i64, instance_domain: &str) -> Option<Actor>;
-    // async fn get_local_user_private_key(&self, preferred_username: &str) -> String;
 }
