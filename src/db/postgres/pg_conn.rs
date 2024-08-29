@@ -8,7 +8,7 @@ use crate::{
     db::{conn::Conn, Follower},
 };
 
-use super::{actors::get_local_user_actor, follows, instance_actor, posts};
+use super::{actors, follows, instance_actor, posts};
 
 pub struct PgConn {
     pub db: Pool,
@@ -23,63 +23,13 @@ mod embedded {
 #[async_trait]
 impl Conn for PgConn {
     async fn get_actor(&self, uid: i64, instance_domain: &str) -> Option<Actor> {
-        super::actors::get_actor(self, uid, instance_domain).await
+        actors::get_actor(self, uid, instance_domain).await
     }
     async fn is_local(&self, uid: i64) -> bool {
         todo!()
     }
     async fn create_federated_actor(&self, actor: &Actor) -> i64 {
-        let client = self.db.get().await.expect("failed to get client");
-        //manual_followers, memorial, indexable, discoverable
-        //$13, $14, $15, $16
-        let stmt = r#"
-        INSERT INTO federated_ap_users 
-        (
-            id, type_field, preferred_username, domain,
-            name, summary, url, 
-            public_key_pem, public_key_id,
-            inbox, outbox, followers, following
-            
-        )
-        VALUES
-        (
-            $1, $2, $3, $4, 
-            $5, $6, $7, 
-            $8, $9, 
-            $10, $11, $12, $13
-        )
-        RETURNING ap_user_id;
-        "#;
-        let stmt = client.prepare(stmt).await.unwrap();
-
-        let domain = actor.id.domain().unwrap();
-        let url = actor.url.as_ref().map(|url| url.as_str());
-        let result: i64 = client
-            .query(
-                &stmt,
-                &[
-                    &actor.id.as_str(),
-                    &serde_json::to_string(&actor.type_field).unwrap(),
-                    &actor.preferred_username,
-                    &domain,
-                    &actor.name,
-                    &actor.summary,
-                    &url,
-                    &actor.public_key.public_key_pem,
-                    &actor.public_key.id.as_str(),
-                    &actor.inbox.as_str(),
-                    &actor.outbox.as_str(),
-                    &actor.followers.as_str(),
-                    &actor.following.as_str(),
-                ],
-            )
-            .await
-            .expect("failed to insert user")
-            .pop()
-            .expect("did not return uid")
-            .get("ap_user_id");
-
-        result
+        actors::create_federated_actor(self, actor).await
     }
 
     async fn get_federated_db_id(&self, actor_id: &str) -> Option<i64> {
@@ -200,7 +150,7 @@ impl Conn for PgConn {
         preferred_username: &str,
         instance_domain: &str,
     ) -> Option<(Actor, i64)> {
-        get_local_user_actor(self, preferred_username, instance_domain).await
+        actors::get_local_user_actor(self, preferred_username, instance_domain).await
         // let client = self.db.get().await.expect("failed to get client");
         // let stmt = r#"
         // SELECT * FROM internal_users WHERE preferred_username = $1;
