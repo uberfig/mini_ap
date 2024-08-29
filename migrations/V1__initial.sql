@@ -69,7 +69,7 @@ CREATE TABLE following (
 	target_user		BIGINT NOT NULL REFERENCES unified_users(uid) ON DELETE CASCADE,
 	pending			BOOLEAN NOT NULL DEFAULT true,
 	published		BIGINT NOT NULL,
-	PRIMARY KEY(fedi_from, local_from, target_fedi, target_local)
+	PRIMARY KEY(follower, target_user)
 );
 
 CREATE TABLE posts (
@@ -106,5 +106,5 @@ CREATE TABLE likes (
 	actor		BIGINT NULL REFERENCES unified_users(uid) ON DELETE CASCADE,
 	post 		BIGINT NOT NULL REFERENCES posts(obj_id) ON DELETE CASCADE,
 	published	BIGINT NOT NULL,
-	PRIMARY KEY(fedi_actor, local_actor, post)
+	PRIMARY KEY(actor, post)
 );
