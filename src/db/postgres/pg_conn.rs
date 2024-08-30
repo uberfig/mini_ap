@@ -42,7 +42,7 @@ impl Conn for PgConn {
         client
             .query(&stmt, &[&actor_id])
             .await
-            .expect("failed to get local user")
+            .expect("failed to get federated user uid")
             .pop()
             .map(|x| x.get("uid"))
     }
@@ -50,13 +50,6 @@ impl Conn for PgConn {
     async fn get_federated_actor(
         &self,
         actor_id: &str,
-    ) -> Option<crate::activitystream_objects::actors::Actor> {
-        todo!()
-    }
-
-    async fn get_federated_actor_db_id(
-        &self,
-        id: i64,
     ) -> Option<crate::activitystream_objects::actors::Actor> {
         todo!()
     }
@@ -178,6 +171,11 @@ impl Conn for PgConn {
     async fn get_follower_count(&self, user: i64) -> Result<i64, ()> {
         follows::get_follower_count(self, user).await
     }
+
+    async fn get_follow(&self, from_id: i64, to_id: i64) -> Option<Follower> {
+        follows::get_follow(self, from_id, to_id).await
+    }
+
     async fn get_post(&self, object_id: i64) -> Option<crate::db::PostType> {
         posts::get_post(self, object_id).await
     }

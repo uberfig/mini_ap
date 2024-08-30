@@ -33,41 +33,45 @@ pub async fn process_intransitive(
 ) {
     match *intransitive {
         ExtendsIntransitive::ExtendsActivity(activity) => match activity.type_field {
-            crate::activitystream_objects::activities::ActivityType::Like => todo!(),
-
-            crate::activitystream_objects::activities::ActivityType::Create => todo!(),
-            crate::activitystream_objects::activities::ActivityType::Delete => todo!(),
+            
 
             crate::activitystream_objects::activities::ActivityType::Follow => {
                 handle_follow(activity, conn, state).await
             }
-            crate::activitystream_objects::activities::ActivityType::Accept => todo!(),
-            crate::activitystream_objects::activities::ActivityType::Reject => todo!(),
 
-            crate::activitystream_objects::activities::ActivityType::Activity => todo!(),
+            _ => {}
 
-            crate::activitystream_objects::activities::ActivityType::TentativeAccept => todo!(),
-            crate::activitystream_objects::activities::ActivityType::Add => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::Like => todo!(),
 
-            crate::activitystream_objects::activities::ActivityType::Ignore => todo!(),
-            crate::activitystream_objects::activities::ActivityType::Join => todo!(),
-            crate::activitystream_objects::activities::ActivityType::Leave => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::Create => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::Delete => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::Accept => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::Reject => todo!(),
 
-            crate::activitystream_objects::activities::ActivityType::Offer => todo!(),
-            crate::activitystream_objects::activities::ActivityType::Invite => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::Activity => todo!(),
 
-            crate::activitystream_objects::activities::ActivityType::TentativeReject => todo!(),
-            crate::activitystream_objects::activities::ActivityType::Remove => todo!(),
-            crate::activitystream_objects::activities::ActivityType::Undo => todo!(),
-            crate::activitystream_objects::activities::ActivityType::Update => todo!(),
-            crate::activitystream_objects::activities::ActivityType::View => todo!(),
-            crate::activitystream_objects::activities::ActivityType::Listen => todo!(),
-            crate::activitystream_objects::activities::ActivityType::Read => todo!(),
-            crate::activitystream_objects::activities::ActivityType::Move => todo!(),
-            crate::activitystream_objects::activities::ActivityType::Announce => todo!(),
-            crate::activitystream_objects::activities::ActivityType::Block => todo!(),
-            crate::activitystream_objects::activities::ActivityType::Flag => todo!(),
-            crate::activitystream_objects::activities::ActivityType::Dislike => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::TentativeAccept => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::Add => todo!(),
+
+            // crate::activitystream_objects::activities::ActivityType::Ignore => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::Join => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::Leave => todo!(),
+
+            // crate::activitystream_objects::activities::ActivityType::Offer => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::Invite => todo!(),
+
+            // crate::activitystream_objects::activities::ActivityType::TentativeReject => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::Remove => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::Undo => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::Update => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::View => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::Listen => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::Read => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::Move => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::Announce => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::Block => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::Flag => todo!(),
+            // crate::activitystream_objects::activities::ActivityType::Dislike => todo!(),
         },
         ExtendsIntransitive::Question(_) => todo!(),
     }
@@ -112,13 +116,25 @@ pub async fn handle_follow(
 
     let manual_followers = conn.get_local_manually_approves_followers(to).await;
 
-    conn.create_follow_request(from, to, manual_followers)
-        .await
-        .unwrap();
+    let follow = conn.get_follow(from, to).await;
+    if follow.is_none() {
+        conn.create_follow_request(from, to, manual_followers)
+            .await
+            .unwrap();
+    }
 
     //send the accept
     if !manual_followers {
-        let fedi_actor = conn.get_federated_actor_db_id(from).await.unwrap();
+        let fedi_actor = conn.get_actor(from, &state.instance_domain).await;
+
+        let fedi_actor = match fedi_actor {
+            Some(x) => x,
+            None => {
+                //the actor somehow got deleted in between then and now, return
+                return;
+            }
+        };
+
         let key = conn.get_local_user_private_key_db_id(to).await;
         let key = openssl::rsa::Rsa::private_key_from_pem(key.as_bytes()).unwrap();
         let key = openssl::pkey::PKey::from_rsa(key).unwrap();

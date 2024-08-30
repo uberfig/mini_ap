@@ -49,9 +49,6 @@ pub trait Conn {
         preferred_username: &str,
         instance_domain: &str,
     ) -> Option<(Actor, i64)>;
-    async fn get_federated_actor_db_id(&self, uid: i64) -> Option<Actor> {
-        self.get_actor(uid, "invalid").await
-    }
 
     async fn is_local(&self, uid: i64) -> bool;
 
@@ -94,6 +91,7 @@ pub trait Conn {
     async fn create_local_user(&self, user: &NewLocal) -> Result<i64, ()>;
     async fn create_federated_actor(&self, actor: &Actor) -> i64;
 
+    ///instance domain needed to form the instance actor for the request
     async fn load_new_federated_actor(
         &self,
         actor_id: &Url,
@@ -132,4 +130,6 @@ pub trait Conn {
     /// really just for local users, if used for a federated user it
     /// will only show the amout of local users following them
     async fn get_follower_count(&self, user: i64) -> Result<i64, ()>;
+
+    async fn get_follow(&self, from_id: i64, to_id: i64) -> Option<Follower>;
 }
