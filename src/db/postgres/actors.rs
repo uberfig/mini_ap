@@ -99,13 +99,23 @@ pub async fn get_local_user_actor(
 }
 
 pub async fn get_actor(conn: &PgConn, uid: i64, instance_domain: &str) -> Option<Actor> {
-    let client = conn.db.get().await.expect("failed to get client");
-    let stmt = r#"
-        SELECT * FROM unified_users NATURAL JOIN internal_users NATURAL JOIN federated_ap_users WHERE uid = $1;
-        "#;
-    let stmt = client.prepare(stmt).await.unwrap();
+    println!("{}", uid);
+    let mut client = conn.db.get().await.expect("failed to get client");
+    let transaction = client
+        .transaction()
+        .await
+        .expect("failed to begin transaction");
 
-    let result = client
+    //LEFT OUTER JOIN internal_users ON unified_users.local_id = internal_users.local_id
+    //LEFT OUTER JOIN federated_ap_users ON unified_users.fedi_id = federated_ap_users.fedi_id
+
+    let stmt = r#"
+        SELECT * FROM unified_users 
+        WHERE uid = $1;
+        "#;
+    let stmt = transaction.prepare(stmt).await.unwrap();
+
+    let result = transaction
         .query(&stmt, &[&uid])
         .await
         .expect("failed to get actor")
@@ -119,13 +129,69 @@ pub async fn get_actor(conn: &PgConn, uid: i64, instance_domain: &str) -> Option
     let is_local: bool = result.get("is_local");
 
     match is_local {
-        true => Some(local_user_from_row(result, instance_domain)),
-        false => Some(fedi_user_from_row(result)),
+        true => {
+            let local_id: i64 = result.get("local_id");
+            let stmt = r#"
+            SELECT * FROM internal_users 
+            WHERE local_id = $1;
+            "#;
+            let stmt = transaction.prepare(stmt).await.unwrap();
+
+            let result = transaction
+                .query(&stmt, &[&local_id])
+                .await
+                .expect("failed to get actor")
+                .pop()
+                .unwrap();
+            transaction.commit().await.expect("failed to commit");
+
+            Some(local_user_from_row(result, instance_domain))
+        }
+        false => {
+            let fedi_id: i64 = result.get("fedi_id");
+            let stmt = r#"
+            SELECT * FROM federated_ap_users 
+            WHERE fedi_id = $1;
+            "#;
+            let stmt = transaction.prepare(stmt).await.unwrap();
+
+            let result = transaction
+                .query(&stmt, &[&fedi_id])
+                .await
+                .expect("failed to get actor")
+                .pop()
+                .unwrap();
+
+            transaction.commit().await.expect("failed to commit");
+
+            Some(fedi_user_from_row(result))
+        }
     }
 }
 
 pub async fn create_federated_actor(conn: &PgConn, actor: &Actor) -> i64 {
-    let client = conn.db.get().await.expect("failed to get client");
+    let mut client = conn.db.get().await.expect("failed to get client");
+    let transaction = client
+        .transaction()
+        .await
+        .expect("failed to begin transaction");
+
+    let stmt = r#"
+        SELECT * FROM unified_users NATURAL JOIN federated_ap_users WHERE id = $1;
+        "#;
+    let stmt = transaction.prepare(stmt).await.unwrap();
+
+    let result = transaction
+        .query(&stmt, &[&actor.id.as_str()])
+        .await
+        .expect("failed to get actor")
+        .pop();
+
+    //user already exists
+    if let Some(x) = result {
+        return x.get("uid");
+    }
+
     let stmt = r#"
         INSERT INTO federated_ap_users 
         (
@@ -143,11 +209,11 @@ pub async fn create_federated_actor(conn: &PgConn, actor: &Actor) -> i64 {
         )
         RETURNING fedi_id;
         "#;
-    let stmt = client.prepare(stmt).await.unwrap();
+    let stmt = transaction.prepare(stmt).await.unwrap();
 
     let domain = actor.id.domain().unwrap();
     let url = actor.url.as_ref().map(|url| url.as_str());
-    let fedi_id: i64 = client
+    let fedi_id: i64 = transaction
         .query(
             &stmt,
             &[
@@ -183,13 +249,16 @@ pub async fn create_federated_actor(conn: &PgConn, actor: &Actor) -> i64 {
         )
         RETURNING uid;
         "#;
-    let stmt = client.prepare(stmt).await.unwrap();
+    let stmt = transaction.prepare(stmt).await.unwrap();
 
-    client
+    let uid: i64 = transaction
         .query(&stmt, &[&false, &fedi_id])
         .await
         .expect("failed to insert user")
         .pop()
         .expect("did not return uid")
-        .get("uid")
+        .get("uid");
+    transaction.commit().await.expect("failed to commit");
+
+    uid
 }

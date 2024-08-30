@@ -41,6 +41,8 @@ pub async fn post_to_inbox(
         from_id, &signature,
     );
 
+    println!("{}", &header);
+
     let client = reqwest::Client::new();
     let client = client
         .post(to_inbox)

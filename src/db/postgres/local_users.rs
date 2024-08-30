@@ -1,7 +1,28 @@
 use super::pg_conn::PgConn;
 
 pub async fn create_local_user(conn: &PgConn, user: &crate::db::NewLocal) -> Result<i64, ()> {
-    let client = conn.db.get().await.expect("failed to get client");
+    let mut client = conn.db.get().await.expect("failed to get client");
+    let transaction = client
+        .transaction()
+        .await
+        .expect("failed to begin transaction");
+
+    let stmt = r#"
+        SELECT * FROM unified_users NATURAL JOIN internal_users WHERE preferred_username = $1;
+        "#;
+    let stmt = transaction.prepare(stmt).await.unwrap();
+
+    let result = transaction
+        .query(&stmt, &[&user.username])
+        .await
+        .expect("failed to get actor")
+        .pop();
+
+    //user already exists
+    if let Some(_) = result {
+        return Err(());
+    }
+
     let stmt = r#"
     INSERT INTO internal_users 
     (
@@ -15,11 +36,11 @@ pub async fn create_local_user(conn: &PgConn, user: &crate::db::NewLocal) -> Res
     )
     RETURNING local_id;
     "#;
-    let stmt = client.prepare(stmt).await.unwrap();
+    let stmt = transaction.prepare(stmt).await.unwrap();
 
     let permission: i16 = user.permission_level.into();
 
-    let local_id: i64 = client
+    let local_id: i64 = transaction
         .query(
             &stmt,
             &[
@@ -49,15 +70,17 @@ pub async fn create_local_user(conn: &PgConn, user: &crate::db::NewLocal) -> Res
     )
     RETURNING uid;
     "#;
-    let stmt = client.prepare(stmt).await.unwrap();
+    let stmt = transaction.prepare(stmt).await.unwrap();
 
-    let result = client
+    let result = transaction
         .query(&stmt, &[&true, &local_id])
         .await
         .expect("failed to insert user")
         .pop()
         .expect("did not return uid")
         .get("uid");
+
+    transaction.commit().await.expect("failed to commit");
 
     Ok(result)
 }

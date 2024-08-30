@@ -73,29 +73,16 @@ pub async fn create_post(
     let from_id = actor.get_id().as_str();
 
     for follower in followers {
-        if follower.is_local {
-            let actor = conn.get_federated_actor_db_id(follower.uid).await.unwrap();
+        if !follower.is_local {
+            let actor = conn
+                .get_actor(follower.uid, &state.instance_domain)
+                .await
+                .unwrap();
             let domain = actor.get_id().domain().unwrap();
+            println!("posting to inbox");
             post_to_inbox(&activity_str, from_id, domain, actor.inbox.as_str(), &key).await;
         }
     }
-
-    // post_to_inbox(
-    //     &activity_str,
-    //     actor.get_id().as_str(),
-    //     "mastodon.social",
-    //     "https://mastodon.social/inbox",
-    //     &key,
-    // )
-    // .await;
-    // post_to_inbox(
-    //     &activity_str,
-    //     actor.get_id().as_str(),
-    //     "cutie.city",
-    //     "https://cutie.city/inbox",
-    //     &key,
-    // )
-    // .await;
 
     Ok(HttpResponse::Created().body(activity_str.to_string()))
 }
