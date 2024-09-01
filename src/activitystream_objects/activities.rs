@@ -4,7 +4,7 @@ use url::Url;
 
 use super::{
     actors::Actor,
-    core_types::{ActivityStream, ExtendsObject},
+    core_types::{ActivityStream, Context, ContextWrap, ExtendsObject},
     link::{LinkSimpleOrExpanded, RangeLinkItem},
     object::ObjectWrapper,
 };
@@ -157,7 +157,7 @@ impl Activity {
     }
     pub fn new_accept(actor: Url, object: Url, domain: &str) -> Self {
         let intransitive = IntransitiveActivity {
-            id: Url::parse(&format!("{}/accept", domain)).unwrap(),
+            id: Url::parse(&format!("https://{}/accept", domain)).unwrap(),
             actor: RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(actor)),
             target: None,
             result: None,
@@ -171,7 +171,10 @@ impl Activity {
         }
     }
     pub fn to_activitystream(self) -> ActivityStream {
-        todo!()
+        ActivityStream { content: ContextWrap {
+            context: Context::Single("https://www.w3.org/ns/activitystreams".to_string()),
+            activity_stream: ExtendsObject::ExtendsIntransitive(Box::new(ExtendsIntransitive::ExtendsActivity(self))),
+        } }
     }
 }
 
