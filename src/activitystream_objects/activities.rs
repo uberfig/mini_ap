@@ -171,10 +171,14 @@ impl Activity {
         }
     }
     pub fn to_activitystream(self) -> ActivityStream {
-        ActivityStream { content: ContextWrap {
-            context: Context::Single("https://www.w3.org/ns/activitystreams".to_string()),
-            activity_stream: ExtendsObject::ExtendsIntransitive(Box::new(ExtendsIntransitive::ExtendsActivity(self))),
-        } }
+        ActivityStream {
+            content: ContextWrap {
+                context: Context::Single("https://www.w3.org/ns/activitystreams".to_string()),
+                activity_stream: ExtendsObject::ExtendsIntransitive(Box::new(
+                    ExtendsIntransitive::ExtendsActivity(self),
+                )),
+            },
+        }
     }
 }
 

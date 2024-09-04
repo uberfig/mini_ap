@@ -1,6 +1,8 @@
 use config::ConfigError;
 use serde::Deserialize;
 
+use crate::db::conn::Conn;
+
 #[derive(Deserialize, Debug, Clone)]
 pub struct Config {
     // pub database_url: String,
@@ -14,6 +16,22 @@ pub struct Config {
     pub pg_host: String,
     pub pg_port: u16,
     pub pg_dbname: String,
+}
+
+impl Config {
+    pub fn create_conn(&self) -> Box<dyn Conn + Sync> {
+        let db_config = deadpool_postgres::Config {
+            user: Some(self.pg_user.clone()),
+            password: Some(self.pg_password.clone()),
+            host: Some(self.pg_host.clone()),
+            dbname: Some(self.pg_dbname.clone()),
+
+            ..Default::default()
+        };
+
+        let pool = db_config.create_pool(None, tokio_postgres::NoTls).unwrap();
+        Box::new(crate::db::postgres::pg_conn::PgConn { db: pool.clone() }) as Box<dyn Conn + Sync>
+    }
 }
 
 pub fn get_config() -> Result<Config, ConfigError> {

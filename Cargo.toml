@@ -28,3 +28,4 @@ config = { version = "0.14.0", features = ["toml"]}
 xsd-types = {version = "0.9.5", features = ["serde"]}
 chrono = "0.4.38"
 async-trait = "0.1.81"
+# tokio = { features = ["full"] }

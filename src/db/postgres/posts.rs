@@ -82,7 +82,7 @@ pub async fn get_post(conn: &PgConn, object_id: i64) -> Option<crate::db::PostTy
     let result = result?;
 
     let supertype: String = result.get("surtype");
-    let supertype = PostSupertype::from_str(&supertype).expect("unkown supertype in posts");
+    let supertype = PostSupertype::parse_str(&supertype).expect("unkown supertype in posts");
     match supertype {
         PostSupertype::Object => {
             let is_local: bool = result.get("is_local");

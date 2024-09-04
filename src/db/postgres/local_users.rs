@@ -19,7 +19,7 @@ pub async fn create_local_user(conn: &PgConn, user: &crate::db::NewLocal) -> Res
         .pop();
 
     //user already exists
-    if let Some(_) = result {
+    if result.is_some() {
         return Err(());
     }
 

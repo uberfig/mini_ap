@@ -58,7 +58,7 @@ async fn main() -> std::io::Result<()> {
             eprintln!("{}", x);
             return Ok(());
         }
-        InstanceActor::init_instance_actor(&conn).await;
+        InstanceActor::init_instance_actor(&*conn).await;
     }
 
     println!(

@@ -128,5 +128,5 @@ pub async fn get_follow(conn: &PgConn, from_id: i64, to_id: i64) -> Option<Follo
         .expect("failed to get follow count")
         .pop();
 
-    result.map(|x| to_follower(x))
+    result.map(to_follower)
 }

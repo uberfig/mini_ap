@@ -33,45 +33,42 @@ pub async fn process_intransitive(
 ) {
     match *intransitive {
         ExtendsIntransitive::ExtendsActivity(activity) => match activity.type_field {
-            
-
             crate::activitystream_objects::activities::ActivityType::Follow => {
                 handle_follow(activity, conn, state).await
             }
 
-            _ => {}
+            crate::activitystream_objects::activities::ActivityType::Create => todo!(),
 
-            // crate::activitystream_objects::activities::ActivityType::Like => todo!(),
+            _ => {} // crate::activitystream_objects::activities::ActivityType::Like => todo!(),
 
-            // crate::activitystream_objects::activities::ActivityType::Create => todo!(),
-            // crate::activitystream_objects::activities::ActivityType::Delete => todo!(),
-            // crate::activitystream_objects::activities::ActivityType::Accept => todo!(),
-            // crate::activitystream_objects::activities::ActivityType::Reject => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::Delete => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::Accept => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::Reject => todo!(),
 
-            // crate::activitystream_objects::activities::ActivityType::Activity => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::Activity => todo!(),
 
-            // crate::activitystream_objects::activities::ActivityType::TentativeAccept => todo!(),
-            // crate::activitystream_objects::activities::ActivityType::Add => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::TentativeAccept => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::Add => todo!(),
 
-            // crate::activitystream_objects::activities::ActivityType::Ignore => todo!(),
-            // crate::activitystream_objects::activities::ActivityType::Join => todo!(),
-            // crate::activitystream_objects::activities::ActivityType::Leave => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::Ignore => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::Join => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::Leave => todo!(),
 
-            // crate::activitystream_objects::activities::ActivityType::Offer => todo!(),
-            // crate::activitystream_objects::activities::ActivityType::Invite => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::Offer => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::Invite => todo!(),
 
-            // crate::activitystream_objects::activities::ActivityType::TentativeReject => todo!(),
-            // crate::activitystream_objects::activities::ActivityType::Remove => todo!(),
-            // crate::activitystream_objects::activities::ActivityType::Undo => todo!(),
-            // crate::activitystream_objects::activities::ActivityType::Update => todo!(),
-            // crate::activitystream_objects::activities::ActivityType::View => todo!(),
-            // crate::activitystream_objects::activities::ActivityType::Listen => todo!(),
-            // crate::activitystream_objects::activities::ActivityType::Read => todo!(),
-            // crate::activitystream_objects::activities::ActivityType::Move => todo!(),
-            // crate::activitystream_objects::activities::ActivityType::Announce => todo!(),
-            // crate::activitystream_objects::activities::ActivityType::Block => todo!(),
-            // crate::activitystream_objects::activities::ActivityType::Flag => todo!(),
-            // crate::activitystream_objects::activities::ActivityType::Dislike => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::TentativeReject => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::Remove => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::Undo => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::Update => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::View => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::Listen => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::Read => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::Move => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::Announce => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::Block => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::Flag => todo!(),
+                    // crate::activitystream_objects::activities::ActivityType::Dislike => todo!(),
         },
         ExtendsIntransitive::Question(_) => todo!(),
     }

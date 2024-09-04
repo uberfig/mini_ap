@@ -1,6 +1,8 @@
 pub mod conn;
 pub mod incoming;
 pub mod postgres;
+#[cfg(test)]
+pub mod tests;
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -60,7 +62,7 @@ pub enum PostSupertype {
     Question,
 }
 impl PostSupertype {
-    pub fn from_str(value: &str) -> Result<Self, serde_json::Error> {
+    pub fn parse_str(value: &str) -> Result<Self, serde_json::Error> {
         serde_json::from_str(value)
     }
 }
@@ -231,7 +233,7 @@ impl InstanceActor {
     pub fn pub_key_id(domain: &str) -> String {
         format!("https://{domain}/actor#main-key")
     }
-    pub async fn init_instance_actor(conn: &Box<dyn Conn + Sync>) {
+    pub async fn init_instance_actor(conn: &dyn Conn) {
         if conn.get_instance_actor().await.is_none() {
             let rsa = Rsa::generate(2048).unwrap();
             let private_key_pem = String::from_utf8(rsa.private_key_to_pem().unwrap()).unwrap();
