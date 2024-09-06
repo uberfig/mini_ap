@@ -80,6 +80,19 @@ pub async fn create_local_user(conn: &PgConn, user: &crate::db::NewLocal) -> Res
         .expect("did not return uid")
         .get("uid");
 
+    //update to have the new uid
+    let stmt = r#"
+        UPDATE internal_users
+        SET uid = $1
+        WHERE local_id = $2;
+        "#;
+    let stmt = transaction.prepare(stmt).await.unwrap();
+
+    let _ = transaction
+        .query(&stmt, &[&result, &local_id])
+        .await
+        .expect("failed to update user");
+
     transaction.commit().await.expect("failed to commit");
 
     Ok(result)

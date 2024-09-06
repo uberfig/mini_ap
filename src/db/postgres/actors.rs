@@ -258,6 +258,20 @@ pub async fn create_federated_actor(conn: &PgConn, actor: &Actor) -> i64 {
         .pop()
         .expect("did not return uid")
         .get("uid");
+
+    //update to have the new uid
+    let stmt = r#"
+        UPDATE federated_ap_users
+        SET uid = $1
+        WHERE fedi_id = $2;
+    "#;
+    let stmt = transaction.prepare(stmt).await.unwrap();
+
+    let _ = transaction
+        .query(&stmt, &[&uid, &fedi_id])
+        .await
+        .expect("failed to update fedi user");
+
     transaction.commit().await.expect("failed to commit");
 
     uid

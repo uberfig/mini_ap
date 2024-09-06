@@ -1,5 +1,6 @@
 CREATE TABLE internal_users (
 	local_id 			BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
+	uid					BIGINT NULL UNIQUE,
 	password			TEXT NOT NULL, --stored with argon2
 	preferred_username	TEXT NOT NULL UNIQUE, --basically the username/login name
 	display_name		TEXT NULL,
@@ -31,6 +32,7 @@ CREATE TABLE federated_instances (
 -- federated activitypub users, doesn't include internal
 CREATE TABLE federated_ap_users (
 	fedi_id			BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
+	uid					BIGINT NULL UNIQUE,
 	id					TEXT NOT NULL UNIQUE,
 	type_field			TEXT NOT NULL DEFAULT 'Person',
 	preferred_username	TEXT NOT NULL,

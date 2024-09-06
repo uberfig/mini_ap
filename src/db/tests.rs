@@ -1,4 +1,3 @@
-
 use crate::config::get_config;
 
 use super::NewLocal;
@@ -25,9 +24,13 @@ async fn create_and_retrieve_user() -> Result<(), String> {
         .unwrap();
     let actor = conn.get_actor(uid, &config.instance_domain).await;
     let Some(actor) = actor else {
-        return Err("failed to retrieve actor with get_actor, may have failed to insert".to_string());
+        return Err(
+            "failed to retrieve actor with get_actor, may have failed to insert".to_string(),
+        );
     };
-    let second = conn.get_local_user_actor(&preferred_username, &config.instance_domain).await;
+    let second = conn
+        .get_local_user_actor(&preferred_username, &config.instance_domain)
+        .await;
     let Some((second_actor, second_uid)) = second else {
         return Err("failed to retrieve actor with get_local_user_actor".to_string());
     };
@@ -37,7 +40,9 @@ async fn create_and_retrieve_user() -> Result<(), String> {
     }
 
     if uid != second_uid {
-        return Err("get_local_user_actor uid doesn't match uid returned from inserting".to_string());
+        return Err(
+            "get_local_user_actor uid doesn't match uid returned from inserting".to_string(),
+        );
     }
 
     Ok(())
