@@ -31,7 +31,7 @@ pub trait Conn {
     async fn get_instance_actor(&self) -> Option<InstanceActor>;
     async fn create_instance_actor(&self, private_key_pem: String, public_key_pem: String);
 
-    //----------------------getting actors---------------------------
+    //----------------------actors---------------------------
 
     /// instance_domain must be provided as internal users will
     /// need to have their links generated based on the instance
@@ -78,7 +78,7 @@ pub trait Conn {
         is_local: bool,
         in_reply_to: Option<i64>,
     ) -> i64;
-
+    async fn delete_post(&self, uid: i64) -> Result<(), ()>;
     async fn get_post(&self, object_id: i64) -> Option<PostType>;
 
     //-------------------------private keys----------------------------
@@ -86,7 +86,10 @@ pub trait Conn {
     // async fn get_local_user_private_key(&self, preferred_username: &str) -> String;
     async fn get_local_user_private_key_db_id(&self, uid: i64) -> String;
 
-    //----------------------creating users-------------------------------
+    //----------------------managing actors-------------------------------
+
+    ///used for deleting both federated and local accounts
+    async fn delete_actor(&self, uid: i64) -> Result<(), ()>;
 
     async fn create_local_user(&self, user: &NewLocal) -> Result<i64, ()>;
     async fn create_federated_actor(&self, actor: &Actor) -> i64;

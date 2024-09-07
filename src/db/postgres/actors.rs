@@ -276,3 +276,32 @@ pub async fn create_federated_actor(conn: &PgConn, actor: &Actor) -> i64 {
 
     uid
 }
+
+pub async fn get_federated_db_id(conn: &PgConn, actor_id: &str) -> Option<i64> {
+    let client = conn.db.get().await.expect("failed to get client");
+    let stmt = r#"
+    SELECT * FROM unified_users NATURAL JOIN federated_ap_users WHERE id = $1;
+    "#;
+    let stmt = client.prepare(stmt).await.unwrap();
+
+    client
+        .query(&stmt, &[&actor_id])
+        .await
+        .expect("failed to get federated user uid")
+        .pop()
+        .map(|x| x.get("uid"))
+}
+pub async fn get_local_user_db_id(conn: &PgConn, preferred_username: &str) -> Option<i64> {
+    let client = conn.db.get().await.expect("failed to get client");
+    let stmt = r#"
+    SELECT * FROM unified_users NATURAL JOIN internal_users WHERE preferred_username = $1;
+    "#;
+    let stmt = client.prepare(stmt).await.unwrap();
+
+    let result = client
+        .query(&stmt, &[&preferred_username])
+        .await
+        .expect("failed to get local user")
+        .pop();
+    result.map(|x| x.get("uid"))
+}
