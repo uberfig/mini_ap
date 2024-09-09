@@ -45,7 +45,7 @@ pub async fn create_post(
     .wrap(ObjectType::Note);
     let obj_id = conn
         .create_new_post(
-            &crate::db::PostType::Object(object),
+            &crate::db::utility::post_types::PostType::Object(object),
             &state.instance_domain,
             uid,
             true,

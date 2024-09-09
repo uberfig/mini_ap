@@ -11,7 +11,7 @@ use mini_ap::{
         webfinger::webfinger,
     },
     config::get_config,
-    db::{conn::Conn, postgres::pg_conn::PgConn, InstanceActor},
+    db::{conn::Conn, postgres::pg_conn::PgConn, utility::instance_actor::InstanceActor},
 };
 use tokio_postgres::NoTls;
 

@@ -2,7 +2,7 @@ use url::Url;
 
 use crate::{
     activitystream_objects::object::{Object, ObjectType},
-    db::{get_post_id_and_published, PostSupertype},
+    db::{get_published, utility::post_types::PostSupertype},
 };
 
 use super::pg_conn::PgConn;
@@ -15,7 +15,11 @@ pub async fn create_new_post(
     is_local: bool,
     in_reply_to: Option<i64>,
 ) -> i64 {
-    let (post_id, published) = get_post_id_and_published(is_local, post);
+    let published = get_published(is_local, post);
+    let post_id = match is_local {
+        true => None,
+        false => Some(post.get_id().to_string()),
+    };
 
     match &post {
         crate::db::PostType::Object(x) => {

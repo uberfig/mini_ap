@@ -6,10 +6,9 @@ use crate::{
         activities::{Activity, ExtendsIntransitive},
         core_types::ActivityStream,
     },
+    db::conn::Conn,
     protocol::outgoing::post_to_inbox,
 };
-
-use super::conn::Conn;
 
 pub async fn process_incoming(
     conn: Data<Box<dyn Conn + Sync>>,

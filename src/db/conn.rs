@@ -7,7 +7,10 @@ use crate::{
     protocol::fetch::{authorized_fetch, FetchErr},
 };
 
-use super::{Follower, InstanceActor, NewLocal, PermissionLevel, PostType};
+use super::{
+    utility::instance_actor::InstanceActor, utility::new_actor::NewLocal, Follower,
+    PermissionLevel, PostType,
+};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum DbErr {
@@ -89,7 +92,7 @@ pub trait Conn {
     //----------------------managing actors-------------------------------
 
     ///used for deleting both federated and local accounts
-    async fn delete_actor(&self, uid: i64) -> Result<(), ()>;
+    async fn delete_actor(&self, uid: i64, reason: Option<&str>) -> Result<(), ()>;
 
     async fn create_local_user(&self, user: &NewLocal) -> Result<i64, ()>;
     async fn create_federated_actor(&self, actor: &Actor) -> i64;

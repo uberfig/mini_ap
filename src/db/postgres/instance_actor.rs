@@ -1,8 +1,8 @@
-use crate::db::InstanceActor;
+use crate::db::utility::instance_actor::InstanceActor;
 
 use super::pg_conn::PgConn;
 
-pub async fn get_instance_actor(conn: &PgConn) -> Option<crate::db::InstanceActor> {
+pub async fn get_instance_actor(conn: &PgConn) -> Option<InstanceActor> {
     let client = conn.db.get().await.expect("failed to get client");
     let stmt = r#"
     SELECT * FROM ap_instance_actor;

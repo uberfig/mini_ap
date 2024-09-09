@@ -1,6 +1,6 @@
 use crate::config::get_config;
 
-use super::NewLocal;
+use super::utility::new_actor::NewLocal;
 
 #[actix_web::test]
 #[ignore]
@@ -43,6 +43,11 @@ async fn create_and_retrieve_user() -> Result<(), String> {
         return Err(
             "get_local_user_actor uid doesn't match uid returned from inserting".to_string(),
         );
+    }
+
+    let deleted = conn.delete_actor(uid, None).await;
+    if deleted.is_err() {
+        return Err("failed to delete the test user".to_string());
     }
 
     Ok(())

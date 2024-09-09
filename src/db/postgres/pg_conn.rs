@@ -3,7 +3,11 @@ use deadpool_postgres::Pool;
 
 use crate::{
     activitystream_objects::actors::Actor,
-    db::{conn::Conn, Follower},
+    db::{
+        conn::Conn,
+        utility::{instance_actor::InstanceActor, new_actor::NewLocal},
+        Follower,
+    },
 };
 
 use super::{acct_mgmt, actors, follows, init, instance_actor, local_users, posts};
@@ -20,7 +24,7 @@ impl Conn for PgConn {
     }
 
     //-------------------instance actor------------------------------
-    async fn get_instance_actor(&self) -> Option<crate::db::InstanceActor> {
+    async fn get_instance_actor(&self) -> Option<InstanceActor> {
         instance_actor::get_instance_actor(self).await
     }
     async fn create_instance_actor(&self, private_key_pem: String, public_key_pem: String) {
@@ -44,10 +48,10 @@ impl Conn for PgConn {
     }
 
     async fn get_federated_db_id(&self, actor_id: &str) -> Option<i64> {
-        actors::get_federated_db_id(&self, actor_id).await
+        actors::get_federated_db_id(self, actor_id).await
     }
     async fn get_local_user_db_id(&self, preferred_username: &str) -> Option<i64> {
-        actors::get_local_user_db_id(&self, preferred_username).await
+        actors::get_local_user_db_id(self, preferred_username).await
     }
 
     async fn get_federated_actor(
@@ -66,7 +70,7 @@ impl Conn for PgConn {
         todo!()
     }
     async fn get_local_manually_approves_followers(&self, uid: i64) -> bool {
-        acct_mgmt::get_local_manually_approves_followers(&self, uid).await
+        acct_mgmt::get_local_manually_approves_followers(self, uid).await
     }
     async fn set_permission_level(&self, uid: i64, permission_level: crate::db::PermissionLevel) {
         todo!()
@@ -94,11 +98,61 @@ impl Conn for PgConn {
     //----------------------managing actors-------------------------------
 
     ///used for deleting both federated and local accounts
-    async fn delete_actor(&self, uid: i64) -> Result<(), ()> {
-        todo!()
+    async fn delete_actor(&self, uid: i64, reason: Option<&str>) -> Result<(), ()> {
+        let mut client = self.db.get().await.expect("failed to get client");
+        let transaction = client
+            .transaction()
+            .await
+            .expect("failed to begin transaction");
+
+        let stmt = r#"
+        SELECT * FROM unified_users WHERE uid = $1;
+        "#;
+        let stmt = transaction.prepare(stmt).await.unwrap();
+
+        let result = transaction
+            .query(&stmt, &[&uid])
+            .await
+            .expect("failed to get actor")
+            .pop();
+
+        let Some(result) = result else {
+            return Err(());
+        };
+
+        let is_local: bool = result.get("is_local");
+
+        match is_local {
+            true => {
+                let stmt = r#"
+                    DELETE FROM internal_users WHERE uid = $1;
+                "#;
+                let stmt = transaction.prepare(stmt).await.unwrap();
+
+                let result = transaction
+                    .query(&stmt, &[&uid])
+                    .await
+                    .expect("failed to delete local");
+            }
+            false => {
+                let stmt = r#"
+                    DELETE FROM federated_ap_users WHERE uid = $1;
+                "#;
+                let stmt = transaction.prepare(stmt).await.unwrap();
+
+                let result = transaction
+                    .query(&stmt, &[&uid])
+                    .await
+                    .expect("failed to delete fedi");
+            }
+        };
+
+        transaction.commit().await.expect("failed to commit");
+
+        Ok(())
     }
 
-    async fn create_local_user(&self, user: &crate::db::NewLocal) -> Result<i64, ()> {
+    async fn create_local_user(&self, user: &NewLocal) -> Result<i64, ()> {
         local_users::create_local_user(self, user).await
     }
     async fn create_federated_actor(&self, actor: &Actor) -> i64 {

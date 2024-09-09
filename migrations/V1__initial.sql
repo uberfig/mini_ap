@@ -57,9 +57,16 @@ CREATE TABLE federated_ap_users (
 	-- featuredTags		TEXT,
 );
 
+CREATE TABLE defed_users (
+	id			TEXT PRIMARY KEY NOT NULL UNIQUE, 
+	uid			BIGINT NOT NULL UNIQUE,
+	reason		TEXT NULL
+);
+
 CREATE TABLE unified_users (
 	uid			BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
 	is_local	BOOLEAN NOT NULL,
+	defed		BOOLEAN NOT NULL DEFAULT false,
 	fedi_id		BIGINT NULL UNIQUE REFERENCES federated_ap_users(fedi_id) ON DELETE CASCADE,
 	local_id	BIGINT NULL UNIQUE REFERENCES internal_users(local_id) ON DELETE CASCADE
 );

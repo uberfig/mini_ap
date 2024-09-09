@@ -3,7 +3,7 @@ use url::Url;
 
 use crate::{
     activitystream_objects::actors::{Actor, ActorType, PublicKey},
-    db::generate_links,
+    db::utility::new_actor::generate_links,
 };
 
 use super::pg_conn::PgConn;

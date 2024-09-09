@@ -1,6 +1,8 @@
+use crate::db::utility::new_actor::NewLocal;
+
 use super::pg_conn::PgConn;
 
-pub async fn create_local_user(conn: &PgConn, user: &crate::db::NewLocal) -> Result<i64, ()> {
+pub async fn create_local_user(conn: &PgConn, user: &NewLocal) -> Result<i64, ()> {
     let mut client = conn.db.get().await.expect("failed to get client");
     let transaction = client
         .transaction()
