@@ -15,6 +15,7 @@ pub enum FetchErr {
     IsTombstone(String),
     RequestErr(String),
     DeserializationErr(String),
+    InvalidUrl(String),
 }
 
 impl Display for FetchErr {
@@ -23,6 +24,7 @@ impl Display for FetchErr {
             FetchErr::IsTombstone(x) => write!(f, "IsTombstone: {}", x),
             FetchErr::RequestErr(x) => write!(f, "RequestErr: {}", x),
             FetchErr::DeserializationErr(x) => write!(f, "DeserializationErr: {}", x),
+            FetchErr::InvalidUrl(x) => write!(f, "InvalidUrl: {}", x),
         }
     }
 }
@@ -36,7 +38,14 @@ pub async fn authorized_fetch(
     private_key: &Rsa<Private>,
 ) -> Result<ActivityStream, FetchErr> {
     let path = object_id.path();
-    let fetch_domain = object_id.domain().unwrap();
+    let Some(fetch_domain) = object_id.host_str() else {
+        return Err(FetchErr::InvalidUrl(object_id.as_str().to_string()));
+    };
+    // let fetch_domain = object_id.domain();
+    // let fetch_domain = match fetch_domain {
+    //     Some(x) => x,
+    //     None => object_id.host_str(),
+    // };
 
     let keypair = PKey::from_rsa(private_key.clone()).unwrap();
 

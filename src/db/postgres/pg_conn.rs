@@ -12,6 +12,7 @@ use crate::{
 
 use super::{acct_mgmt, actors, follows, init, instance_actor, local_users, posts};
 
+#[derive(Clone, Debug)]
 pub struct PgConn {
     pub db: Pool,
 }
@@ -94,9 +95,9 @@ impl Conn for PgConn {
     async fn get_post(&self, object_id: i64) -> Option<crate::db::PostType> {
         posts::get_post(self, object_id).await
     }
-    
+
     //------------------------------likes-----------------------------------
-    
+
     async fn create_like(&self, uid: i64, obj_id: i64) -> Result<(), ()> {
         todo!()
     }

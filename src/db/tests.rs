@@ -1,10 +1,13 @@
+use serial_test::serial;
+
 use crate::config::get_config;
 
 use super::utility::new_actor::NewLocal;
 
 #[actix_web::test]
+#[serial]
 #[ignore]
-///requires a fresh db, doesn't clean up after itself yet
+///requires a fresh db, does clean up after itself now
 async fn create_and_retrieve_user() -> Result<(), String> {
     let config = get_config().unwrap();
     let conn = config.create_conn();
@@ -50,5 +53,13 @@ async fn create_and_retrieve_user() -> Result<(), String> {
         return Err("failed to delete the test user".to_string());
     }
 
+    Ok(())
+}
+
+#[actix_web::test]
+#[serial]
+#[ignore]
+///requires a fresh db, does clean up after itself now
+async fn backfill_fedi_user() -> Result<(), String> {
     Ok(())
 }
