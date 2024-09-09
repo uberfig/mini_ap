@@ -8,8 +8,7 @@ use crate::{
 };
 
 use super::{
-    utility::instance_actor::InstanceActor, utility::new_actor::NewLocal, Follower,
-    PermissionLevel, PostType,
+    utility::{instance_actor::InstanceActor, new_actor::NewLocal}, Follower, Like, PermissionLevel, PostType
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -83,6 +82,14 @@ pub trait Conn {
     ) -> i64;
     async fn delete_post(&self, uid: i64) -> Result<(), ()>;
     async fn get_post(&self, object_id: i64) -> Option<PostType>;
+
+    //------------------------------likes-----------------------------------
+    
+    async fn create_like(&self, uid: i64, obj_id: i64) -> Result<(), ()>;
+    async fn remove_like(&self, uid: i64, obj_id: i64) -> Result<(), ()>;
+    async fn get_post_likes(&self, obj_id: i64) -> Result<Vec<Like>, ()>;
+    async fn get_user_likes(&self, uid: i64) -> Result<Vec<Like>, ()>;
+
 
     //-------------------------private keys----------------------------
 

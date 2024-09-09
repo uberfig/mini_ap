@@ -6,7 +6,7 @@ use crate::{
     db::{
         conn::Conn,
         utility::{instance_actor::InstanceActor, new_actor::NewLocal},
-        Follower,
+        Follower, Like,
     },
 };
 
@@ -93,6 +93,21 @@ impl Conn for PgConn {
     }
     async fn get_post(&self, object_id: i64) -> Option<crate::db::PostType> {
         posts::get_post(self, object_id).await
+    }
+    
+    //------------------------------likes-----------------------------------
+    
+    async fn create_like(&self, uid: i64, obj_id: i64) -> Result<(), ()> {
+        todo!()
+    }
+    async fn remove_like(&self, uid: i64, obj_id: i64) -> Result<(), ()> {
+        todo!()
+    }
+    async fn get_post_likes(&self, obj_id: i64) -> Result<Vec<Like>, ()> {
+        todo!()
+    }
+    async fn get_user_likes(&self, uid: i64) -> Result<Vec<Like>, ()> {
+        todo!()
     }
 
     //----------------------managing actors-------------------------------

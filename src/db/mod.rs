@@ -15,6 +15,13 @@ pub struct Follower {
     pub is_local: bool,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct Like {
+    pub uid: i64,
+    pub is_local: bool,
+    pub obj_id: i64,
+}
+
 pub fn get_published(is_local: bool, post: &PostType) -> i64 {
     match is_local {
         true => SystemTime::now()
