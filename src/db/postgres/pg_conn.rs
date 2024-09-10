@@ -4,7 +4,7 @@ use deadpool_postgres::Pool;
 use crate::{
     activitystream_objects::actors::Actor,
     db::{
-        conn::Conn,
+        conn::{Conn, DbErr},
         utility::{instance_actor::InstanceActor, new_actor::NewLocal},
         Follower, Like,
     },
@@ -168,7 +168,7 @@ impl Conn for PgConn {
         Ok(())
     }
 
-    async fn create_local_user(&self, user: &NewLocal) -> Result<i64, ()> {
+    async fn create_local_user(&self, user: &NewLocal) -> Result<i64, DbErr> {
         local_users::create_local_user(self, user).await
     }
     async fn create_federated_actor(&self, actor: &Actor) -> i64 {

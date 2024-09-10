@@ -13,9 +13,14 @@ use super::{
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+pub enum InsertErr {
+    AlreadyExists,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum DbErr {
     FetchErr(FetchErr),
-    InsertErr,
+    InsertErr(InsertErr),
     InvalidType,
 }
 
@@ -101,7 +106,7 @@ pub trait Conn: Sync {
     ///used for deleting both federated and local accounts
     async fn delete_actor(&self, uid: i64, reason: Option<&str>) -> Result<(), ()>;
 
-    async fn create_local_user(&self, user: &NewLocal) -> Result<i64, ()>;
+    async fn create_local_user(&self, user: &NewLocal) -> Result<i64, DbErr>;
     async fn create_federated_actor(&self, actor: &Actor) -> i64;
 
     ///instance domain needed to form the instance actor for the request

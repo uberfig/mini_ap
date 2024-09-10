@@ -1,8 +1,8 @@
-use crate::db::utility::new_actor::NewLocal;
+use crate::db::{conn::{DbErr, InsertErr}, utility::new_actor::NewLocal};
 
 use super::pg_conn::PgConn;
 
-pub async fn create_local_user(conn: &PgConn, user: &NewLocal) -> Result<i64, ()> {
+pub async fn create_local_user(conn: &PgConn, user: &NewLocal) -> Result<i64, DbErr> {
     let mut client = conn.db.get().await.expect("failed to get client");
     let transaction = client
         .transaction()
@@ -22,7 +22,7 @@ pub async fn create_local_user(conn: &PgConn, user: &NewLocal) -> Result<i64, ()
 
     //user already exists
     if result.is_some() {
-        return Err(());
+        return Err(DbErr::InsertErr(InsertErr::AlreadyExists));
     }
 
     let stmt = r#"

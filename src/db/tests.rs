@@ -1,13 +1,14 @@
+use actix_web::rt::spawn;
 use serial_test::serial;
+use url::Url;
 
-use crate::config::get_config;
+use crate::{app::start_application, config::get_config};
 
 use super::utility::new_actor::NewLocal;
 
 #[actix_web::test]
 #[serial]
 #[ignore]
-///requires a fresh db, does clean up after itself now
 async fn create_and_retrieve_user() -> Result<(), String> {
     let config = get_config().unwrap();
     let conn = config.create_conn();
@@ -27,6 +28,7 @@ async fn create_and_retrieve_user() -> Result<(), String> {
         .unwrap();
     let actor = conn.get_actor(uid, &config.instance_domain).await;
     let Some(actor) = actor else {
+        conn.delete_actor(uid, None).await.unwrap();
         return Err(
             "failed to retrieve actor with get_actor, may have failed to insert".to_string(),
         );
@@ -35,23 +37,23 @@ async fn create_and_retrieve_user() -> Result<(), String> {
         .get_local_user_actor(&preferred_username, &config.instance_domain)
         .await;
     let Some((second_actor, second_uid)) = second else {
+        conn.delete_actor(uid, None).await.unwrap();
         return Err("failed to retrieve actor with get_local_user_actor".to_string());
     };
 
     if second_actor.id.ne(&actor.id) {
+        conn.delete_actor(uid, None).await.unwrap();
         return Err("id's of the retrieved actors don't match".to_string());
     }
 
     if uid != second_uid {
+        conn.delete_actor(uid, None).await.unwrap();
         return Err(
             "get_local_user_actor uid doesn't match uid returned from inserting".to_string(),
         );
     }
 
-    let deleted = conn.delete_actor(uid, None).await;
-    if deleted.is_err() {
-        return Err("failed to delete the test user".to_string());
-    }
+    conn.delete_actor(uid, None).await.unwrap();
 
     Ok(())
 }
@@ -59,7 +61,28 @@ async fn create_and_retrieve_user() -> Result<(), String> {
 #[actix_web::test]
 #[serial]
 #[ignore]
-///requires a fresh db, does clean up after itself now
 async fn backfill_fedi_user() -> Result<(), String> {
+    let config = get_config().unwrap();
+    let conn = config.create_conn();
+    conn.init().await.unwrap();
+    let handle = spawn(start_application(config.clone()));
+
+    let uid = match conn.load_new_federated_actor(&Url::parse("https://mastodon.social/@ivy_test").unwrap(), &config.instance_domain).await {
+    Ok(x) => x,
+    Err(x) => return Err(format!("failed to load the federated actor: {}", x)),
+    };
+
+    let Some(actor) = conn.get_actor(uid, &config.instance_domain).await else {
+        conn.delete_actor(uid, None).await.unwrap();
+        return Err("failed to get backfilled fedi actor".to_string());
+    };
+
+    if actor.preferred_username.ne("ivy_test") {
+        conn.delete_actor(uid, None).await.unwrap();
+        return Err(format!("preferred uname doesn't match ivy_test value: {}", actor.preferred_username));
+    }
+
+    conn.delete_actor(uid, None).await.unwrap();
+    handle.abort();
     Ok(())
 }
