@@ -7,7 +7,7 @@ use url::Url;
 
 use crate::{
     activitystream_objects::core_types::ActivityStream,
-    protocol::{
+    ap_protocol::{
         digest::generate_digest, fetch::authorized_fetch, verification::verify_attribution,
     },
 };

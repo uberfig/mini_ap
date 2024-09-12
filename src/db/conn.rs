@@ -4,7 +4,7 @@ use url::Url;
 
 use crate::{
     activitystream_objects::actors::Actor,
-    protocol::fetch::{authorized_fetch, FetchErr},
+    ap_protocol::fetch::{authorized_fetch, FetchErr},
 };
 
 use super::{

@@ -9,8 +9,8 @@ use url::Url;
 
 use crate::{
     activitystream_objects::object::{Object, ObjectType},
+    ap_protocol::outgoing::post_to_inbox,
     db::conn::Conn,
-    protocol::outgoing::post_to_inbox,
 };
 
 #[post("/users/{preferred_username}/outbox")]
