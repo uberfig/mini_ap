@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 use super::{
-    activities::{Activity, ExtendsIntransitive, Question},
+    activities::{Activity, ExtendsIntransitive},
     actors::Actor,
     collections::ExtendsCollection,
     core_types::{ActivityStream, Context, ContextWrap, ExtendsObject, OptionalArray},
@@ -105,13 +105,6 @@ impl RangeLinkItem<ExtendsObject> {
             RangeLinkItem::Link(x) => x.get_id(),
         }
     }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(untagged)]
-pub enum PostType {
-    Object(RangeLinkItem<ObjectWrapper>),
-    Question(RangeLinkItem<Question>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -435,7 +428,7 @@ mod tests {
 
         let deserialized = match deserialized.content.activity_stream {
             crate::activitystream_objects::core_types::ExtendsObject::Object(x) => x,
-            _ => return Err(format!("not of type object")),
+            _ => return Err("not of type object".to_string()),
         };
 
         if !matches!(deserialized.type_field, ObjectType::Note) {

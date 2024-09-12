@@ -1,15 +1,7 @@
-use std::collections::HashMap;
+// use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 use url::Url;
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ImageContentFormat {
-    #[serde(rename = "image/png")]
-    pub image_png: Option<ImageContent>,
-    #[serde(rename = "image/webp")]
-    pub image_webp: Option<ImageContent>,
-}
 
 /// The ContentFormat structure is used to represent content with metadata.
 /// It supports multiple content types for the same file, such as a PNG
@@ -18,12 +10,63 @@ pub struct ImageContentFormat {
 /// https://versia.pub/structures/content-format
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
+#[allow(clippy::large_enum_variant)]
 pub enum ContentFormat {
     Image(ImageContentFormat),
-    Text(),
-    Audio(),
-    Video(),
+    Text(TextContentFormat),
+    Audio(AudioContentFormat),
+    Video(VideoContentFormat),
     // Unkown(HashMap<String, >)
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ImageContentFormat {
+    #[serde(rename = "image/png")]
+    pub png: Option<ImageContent>,
+    #[serde(rename = "image/webp")]
+    pub webp: Option<ImageContent>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TextContentFormat {
+    #[serde(rename = "text/html")]
+    pub html: Option<TextContent>,
+    #[serde(rename = "text/markdown")]
+    pub markdown: Option<TextContent>,
+    #[serde(rename = "text/x.misskeymarkdown")]
+    pub misskeymarkdown: Option<TextContent>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AudioContentFormat {
+    #[serde(rename = "audio/mp3")]
+    pub mp3: Option<AudioContent>,
+    #[serde(rename = "audio/ogg")]
+    pub ogg: Option<AudioContent>,
+    #[serde(rename = "audio/wav")]
+    pub wav: Option<AudioContent>,
+    #[serde(rename = "audio/flac")]
+    pub flac: Option<AudioContent>,
+    #[serde(rename = "audio/opus")]
+    pub opus: Option<AudioContent>,
+    #[serde(rename = "audio/aac")]
+    pub aac: Option<AudioContent>,
+    #[serde(rename = "audio/m4a")]
+    pub m4a: Option<AudioContent>,
+    #[serde(rename = "audio/3gp")]
+    pub audio_3gp: Option<AudioContent>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct VideoContentFormat {
+    #[serde(rename = "video/mp4")]
+    pub mp4: Option<VideoContent>,
+    #[serde(rename = "video/m4v")]
+    pub m4v: Option<VideoContent>,
+    #[serde(rename = "video/mov")]
+    pub mov: Option<VideoContent>,
+    #[serde(rename = "video/webm")]
+    pub webm: Option<VideoContent>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -34,7 +77,7 @@ pub enum TextOption {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct TextContentEntity {
+pub struct TextContent {
     pub content: TextOption,
     pub remote: bool,
     pub description: Option<String>,

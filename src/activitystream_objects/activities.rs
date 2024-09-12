@@ -11,6 +11,7 @@ use super::{
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
+#[allow(clippy::large_enum_variant)]
 pub enum ExtendsIntransitive {
     ExtendsActivity(Activity),
     // IntransitiveActivity(IntransitiveActivity),

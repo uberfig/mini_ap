@@ -16,6 +16,7 @@ impl PostSupertype {
 }
 
 #[derive(Debug, Clone)]
+#[allow(clippy::large_enum_variant)]
 /// a concrete post to be stored in the database.
 /// surtype of either object or question, then subtypes of their
 /// respective types, eg note, or for a question multi or single select
