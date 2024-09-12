@@ -76,27 +76,6 @@ pub struct Note {
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Content {
-    #[serde(rename = "text/html")]
-    pub text_html: TextHtml,
-    #[serde(rename = "text/plain")]
-    pub text_plain: TextPlain2,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct TextHtml {
-    pub content: String,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct TextPlain2 {
-    pub content: String,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct Device {
     pub name: String,
     pub version: Option<String>,
