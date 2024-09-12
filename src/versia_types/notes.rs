@@ -75,47 +75,6 @@ pub struct Note {
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Attachment {
-    #[serde(rename = "image/png")]
-    pub image_png: Option<ImagePng>,
-    #[serde(rename = "text/plain")]
-    pub text_plain: Option<TextPlain>,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ImagePng {
-    pub content: String,
-    pub remote: bool,
-    pub thumbhash: String,
-    pub height: i64,
-    pub size: i64,
-    pub hash: Hash,
-    pub width: i64,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Hash {
-    pub sha256: String,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct TextPlain {
-    pub content: String,
-    pub remote: bool,
-    pub size: i64,
-    pub hash: Hash2,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Hash2 {
-    pub sha256: String,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Content {
     #[serde(rename = "text/html")]

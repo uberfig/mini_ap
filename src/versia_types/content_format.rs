@@ -1,25 +1,129 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 use url::Url;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ImageContentFormat {
+    #[serde(rename = "image/png")]
+    pub image_png: Option<ImageContent>,
+    #[serde(rename = "image/webp")]
+    pub image_webp: Option<ImageContent>,
+}
+
 /// The ContentFormat structure is used to represent content with metadata.
 /// It supports multiple content types for the same file, such as a PNG
 /// image and a WebP image.
 ///
 /// https://versia.pub/structures/content-format
-pub struct ContentFormat {
-    #[serde(rename = "image/png")]
-    pub image_png: ImagePng,
-    #[serde(rename = "image/webp")]
-    pub image_webp: ImageWebp,
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ContentFormat {
+    Image(ImageContentFormat),
+    Text(),
+    Audio(),
+    Video(),
+    // Unkown(HashMap<String, >)
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ImagePng {
-    pub content: Url,
+#[serde(untagged)]
+pub enum TextOption {
+    Remote(Url),
+    Simple(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ImageWebp {
+pub struct TextContentEntity {
+    pub content: TextOption,
+    pub remote: bool,
+    pub description: Option<String>,
+    pub size: Option<u64>,
+    pub hash: Option<Hash>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ImageContent {
     pub content: Url,
+    pub remote: bool, //should always be true
+    pub description: Option<String>,
+    pub size: Option<u64>,
+    pub hash: Option<Hash>,
+    pub thumbhash: Option<String>,
+    pub width: Option<u64>,
+    pub height: Option<u64>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct VideoContent {
+    pub content: Url,
+    pub remote: bool, //should always be false
+    pub description: Option<String>,
+    pub size: Option<u64>,
+    pub hash: Option<Hash>,
+    pub thumbhash: Option<String>,
+    pub width: Option<u64>,
+    pub height: Option<u64>,
+    pub fps: Option<u64>,
+    pub duration: Option<u64>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AudioContent {
+    pub content: Url,
+    pub remote: bool, //should always be false
+    pub description: Option<String>,
+    pub size: Option<u64>,
+    pub hash: Option<Hash>,
+    pub thumbhash: Option<String>,
+    pub width: Option<u64>,
+    pub height: Option<u64>,
+    pub duration: Option<u64>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Hash {
+    #[serde(flatten)]
+    pub value: HashType,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[allow(non_camel_case_types)]
+pub enum HashType {
+    #[serde(rename = "sha256")]
+    Sha256(String),
+    #[serde(rename = "sha512")]
+    Sha512(String),
+    #[serde(rename = "sha3-256")]
+    Sha3_256(String),
+    #[serde(rename = "sha3-512")]
+    Sha3_512(String),
+    #[serde(rename = "blake2b-256")]
+    Blake2b_256(String),
+    #[serde(rename = "blake2b-512")]
+    Blake2b_512(String),
+    #[serde(rename = "blake3-256")]
+    Blake3_256(String),
+    #[serde(rename = "blake3-512")]
+    Blake3_512(String),
+    #[serde(rename = "md5")]
+    Md5(String),
+    #[serde(rename = "sha1")]
+    Sha1(String),
+    #[serde(rename = "sha224")]
+    Sha224(String),
+    #[serde(rename = "sha384")]
+    Sha384(String),
+    #[serde(rename = "sha3-224")]
+    Sha3_224(String),
+    #[serde(rename = "sha3-384")]
+    Sha3_384(String),
+    #[serde(rename = "blake2s-256")]
+    Blake2s_256(String),
+    #[serde(rename = "blake2s-512")]
+    Blake2s_512(String),
+    #[serde(rename = "blake3-224")]
+    Blake3_224(String),
+    #[serde(rename = "blake3-384")]
+    Blake3_384(String),
 }
