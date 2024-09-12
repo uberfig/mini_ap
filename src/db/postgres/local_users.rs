@@ -1,4 +1,7 @@
-use crate::db::{conn::{DbErr, InsertErr}, utility::new_actor::NewLocal};
+use crate::db::{
+    conn::{DbErr, InsertErr},
+    utility::new_actor::NewLocal,
+};
 
 use super::pg_conn::PgConn;
 

@@ -67,9 +67,15 @@ async fn backfill_fedi_user() -> Result<(), String> {
     conn.init().await.unwrap();
     let handle = spawn(start_application(config.clone()));
 
-    let uid = match conn.load_new_federated_actor(&Url::parse("https://mastodon.social/@ivy_test").unwrap(), &config.instance_domain).await {
-    Ok(x) => x,
-    Err(x) => return Err(format!("failed to load the federated actor: {}", x)),
+    let uid = match conn
+        .load_new_federated_actor(
+            &Url::parse("https://mastodon.social/@ivy_test").unwrap(),
+            &config.instance_domain,
+        )
+        .await
+    {
+        Ok(x) => x,
+        Err(x) => return Err(format!("failed to load the federated actor: {}", x)),
     };
 
     let Some(actor) = conn.get_actor(uid, &config.instance_domain).await else {
@@ -79,7 +85,10 @@ async fn backfill_fedi_user() -> Result<(), String> {
 
     if actor.preferred_username.ne("ivy_test") {
         conn.delete_actor(uid, None).await.unwrap();
-        return Err(format!("preferred uname doesn't match ivy_test value: {}", actor.preferred_username));
+        return Err(format!(
+            "preferred uname doesn't match ivy_test value: {}",
+            actor.preferred_username
+        ));
     }
 
     conn.delete_actor(uid, None).await.unwrap();
