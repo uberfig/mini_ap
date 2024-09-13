@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde::Deserializer;
 use url::Url;
 
 use super::{
@@ -34,6 +35,7 @@ pub struct User {
     /// - `a-z` (lowercase),
     /// - `0-9`, `_` and `-`
     /// - Should be limited to reasonable lengths.
+    #[serde(deserialize_with = "de_username")]
     pub username: String,
     /// A header image for the user's profile.
     /// Also known as a cover photo or a banner.
@@ -73,6 +75,12 @@ fn default_true() -> bool {
 
 fn default_false() -> bool {
     false
+}
+
+fn de_username<'de, D>(deserializer: D) -> Result<String, D::Error> where D: Deserializer<'de> {
+    let v = String::deserialize(deserializer)?;
+    /* identical to check_above_2 body */
+    todo!()
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
