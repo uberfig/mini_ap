@@ -1,7 +1,6 @@
 use chrono::{DateTime, SecondsFormat};
 // serde::ser::Error as that's the trait where the custom function comes from.
-use serde::{ser::Error as SerError, de::Error as DeError, Deserialize, Deserializer, Serializer};
-
+use serde::{de::Error as DeError, ser::Error as SerError, Deserialize, Deserializer, Serializer};
 
 pub fn deserialize_time<'de, D>(deserializer: D) -> Result<i64, D::Error>
 where

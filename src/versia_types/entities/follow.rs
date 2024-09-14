@@ -1,6 +1,6 @@
+use crate::versia_types::serde_fns::{deserialize_time, serialize_time};
 use serde::{Deserialize, Serialize};
 use url::Url;
-use super::serde_fns::{serialize_time, deserialize_time};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ChangeFollowType {

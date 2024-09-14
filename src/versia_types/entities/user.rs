@@ -3,11 +3,9 @@ use serde::Deserializer;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use super::{
-    content_format::{ImageContentFormat, TextContentFormat},
-    public_key::PublicKey,
-    serde_fns::{serialize_time, deserialize_time},
-};
+use super::public_key::PublicKey;
+use crate::versia_types::serde_fns::{deserialize_time, serialize_time};
+use crate::versia_types::structures::content_format::{ImageContentFormat, TextContentFormat};
 
 /// Users are identified by their id property, which is unique within the instance.
 ///

@@ -1,16 +1,16 @@
+use crate::versia_types::serde_fns::{deserialize_time, serialize_time};
 use serde::{Deserialize, Serialize};
 use url::Url;
-use super::serde_fns::{serialize_time, deserialize_time};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum FollowResponseType {
     /// the author accepts follower's request
-    /// 
+    ///
     /// https://versia.pub/entities/follow-accept
     FollowAccept,
-    /// FollowReject can also be used after a follow relationship has 
+    /// FollowReject can also be used after a follow relationship has
     /// been established to remove a follower or to reject a new request
-    /// 
+    ///
     /// https://versia.pub/entities/follow-reject
     FollowReject,
 }

@@ -1,7 +1,9 @@
+use crate::versia_types::{
+    serde_fns::{deserialize_time, serialize_time},
+    structures::content_format::ContentFormat,
+};
 use serde::{Deserialize, Serialize};
 use url::Url;
-
-use super::content_format::ContentFormat;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum NoteTyoe {
@@ -44,7 +46,9 @@ pub struct Note {
     #[serde(rename = "type")]
     pub type_field: NoteTyoe,
     pub uri: Url,
-    pub created_at: String,
+    #[serde(deserialize_with = "deserialize_time")]
+    #[serde(serialize_with = "serialize_time")]
+    pub created_at: i64,
     /// Media attachments to the note. May be any format. Must be remote.
     pub attachments: Vec<ContentFormat>,
     /// URI of the User considered the author of the note.

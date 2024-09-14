@@ -1,7 +1,11 @@
+use crate::versia_types::{
+    serde_fns::{deserialize_time, serialize_time},
+    structures::content_format::ContentFormat,
+};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use super::{content_format::ContentFormat, public_key::PublicKey};
+use super::public_key::PublicKey;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum InstanceMetadataType {
@@ -44,7 +48,9 @@ pub struct InstanceMetadata {
     pub public_key: PublicKey,
     /// Banner of the instance. Must be an image format (image/*).
     pub banner: Option<ContentFormat>,
-    pub created_at: String,
+    #[serde(deserialize_with = "deserialize_time")]
+    #[serde(serialize_with = "serialize_time")]
+    pub created_at: i64,
     // TODO
     // pub extensions: Extensions,
 }
@@ -63,7 +69,7 @@ impl InstanceMetadata {
         logo: Option<ContentFormat>,
         public_key: PublicKey,
         banner: Option<ContentFormat>,
-        created_at: String,
+        created_at: i64,
     ) -> InstanceMetadata {
         InstanceMetadata {
             type_field: InstanceMetadataType::InstanceMetadata,
