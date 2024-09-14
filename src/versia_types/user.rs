@@ -1,6 +1,7 @@
+use chrono::DateTime;
 use regex::Regex;
-use serde::{Deserialize, Serialize};
 use serde::Deserializer;
+use serde::{Deserialize, Serialize, Serializer};
 use url::Url;
 
 use super::{
@@ -17,7 +18,9 @@ pub struct User {
     #[serde(rename = "type")]
     pub type_field: UserType,
     pub uri: Url,
-    pub created_at: String,
+    #[serde(deserialize_with = "deserialize_time")]
+    #[serde(serialize_with = "serialize_time")]
+    pub created_at: i64,
 
     /// The user's avatar. Must be an image format (image/*).
     pub avatar: Option<ImageContentFormat>,
@@ -78,16 +81,42 @@ fn default_false() -> bool {
     false
 }
 
-fn deserialize_username<'de, D>(deserializer: D) -> Result<String, D::Error> where D: Deserializer<'de> {
+fn deserialize_username<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
     let input = String::deserialize(deserializer)?;
     let re = Regex::new(r"[^\da-z_\-]").unwrap();
     if re.is_match(&input) {
-        return Err(serde::de::Error::custom("username contains invalid characters"));
+        return Err(serde::de::Error::custom(
+            "username contains invalid characters",
+        ));
     }
     if input.is_empty() {
         return Err(serde::de::Error::custom("username is empty"));
     }
     Ok(input)
+}
+
+fn deserialize_time<'de, D>(deserializer: D) -> Result<i64, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let input = String::deserialize(deserializer)?;
+    let Ok(time) = DateTime::parse_from_rfc3339(&input) else {
+        return Err(serde::de::Error::custom("malformed created_at"));
+    };
+    Ok(time.timestamp_millis())
+}
+
+fn serialize_time<S>(x: &i64, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    let Some(time) = DateTime::from_timestamp_millis(*x) else {
+        return Err(serde::ser::Error::custom("invalid timestamp"));
+    };
+    s.serialize_str(&time.to_rfc3339())
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
