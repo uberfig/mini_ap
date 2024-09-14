@@ -4,12 +4,13 @@ use super::serde_fns::{serialize_time, deserialize_time};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum FollowType {
+    /// https://versia.pub/entities/follow
     Follow,
+    /// https://versia.pub/entities/unfollow
+    Unfollow,
 }
 
-/// the author requests to follow the followee
-/// 
-/// https://versia.pub/entities/follow
+/// the author requests to follow or unfollow the followee
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Follow {
     #[serde(rename = "type")]

@@ -6,3 +6,4 @@ pub mod user;
 pub mod serde_fns;
 pub mod follow;
 pub mod follow_response;
+pub mod group;
