@@ -1400,6 +1400,7 @@ dependencies = [
  "httpdate",
  "openssl",
  "refinery",
+ "regex",
  "reqwest",
  "serde",
  "serde_json",

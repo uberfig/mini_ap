@@ -1,3 +1,4 @@
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde::Deserializer;
 use url::Url;
@@ -33,9 +34,9 @@ pub struct User {
     ///
     /// Can only contain the following characters:
     /// - `a-z` (lowercase),
-    /// - `0-9`, `_` and `-`
+    /// - `0-9`, `_` and `-` using the regex `[^\da-z_\-]` to check for invalid
     /// - Should be limited to reasonable lengths.
-    #[serde(deserialize_with = "de_username")]
+    #[serde(deserialize_with = "deserialize_username")]
     pub username: String,
     /// A header image for the user's profile.
     /// Also known as a cover photo or a banner.
@@ -77,10 +78,16 @@ fn default_false() -> bool {
     false
 }
 
-fn de_username<'de, D>(deserializer: D) -> Result<String, D::Error> where D: Deserializer<'de> {
-    let v = String::deserialize(deserializer)?;
-    /* identical to check_above_2 body */
-    todo!()
+fn deserialize_username<'de, D>(deserializer: D) -> Result<String, D::Error> where D: Deserializer<'de> {
+    let input = String::deserialize(deserializer)?;
+    let re = Regex::new(r"[^\da-z_\-]").unwrap();
+    if re.is_match(&input) {
+        return Err(serde::de::Error::custom("username contains invalid characters"));
+    }
+    if input.is_empty() {
+        return Err(serde::de::Error::custom("username is empty"));
+    }
+    Ok(input)
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
