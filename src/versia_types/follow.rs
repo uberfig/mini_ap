@@ -12,7 +12,7 @@ pub enum FollowType {
 
 /// the author requests to follow or unfollow the followee
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Follow {
+pub struct ChangeFollowing {
     #[serde(rename = "type")]
     pub type_field: FollowType,
     pub id: String,
