@@ -3,7 +3,7 @@ use url::Url;
 use super::serde_fns::{serialize_time, deserialize_time};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum FollowType {
+pub enum ChangeFollowType {
     /// https://versia.pub/entities/follow
     Follow,
     /// https://versia.pub/entities/unfollow
@@ -14,7 +14,7 @@ pub enum FollowType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ChangeFollowing {
     #[serde(rename = "type")]
-    pub type_field: FollowType,
+    pub type_field: ChangeFollowType,
     pub id: String,
     pub author: Url,
     #[serde(deserialize_with = "deserialize_time")]
