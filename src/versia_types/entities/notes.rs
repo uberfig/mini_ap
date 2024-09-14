@@ -36,6 +36,7 @@ pub enum Groups {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum GroupType {
+    /// url to a [`super::group::Group`]
     Group(Url),
     Simple(Groups),
 }

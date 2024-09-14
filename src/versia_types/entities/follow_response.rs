@@ -17,7 +17,7 @@ pub enum FollowResponseType {
 
 /// the author accepts or rejects the follower's request
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct FollowAccept {
+pub struct FollowResponse {
     #[serde(rename = "type")]
     pub type_field: FollowResponseType,
     pub id: String,
