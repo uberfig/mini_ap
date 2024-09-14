@@ -5,3 +5,4 @@ pub mod public_key;
 pub mod user;
 pub mod serde_fns;
 pub mod follow;
+pub mod follow_response;
