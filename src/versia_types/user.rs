@@ -1,12 +1,12 @@
-use chrono::DateTime;
 use regex::Regex;
 use serde::Deserializer;
-use serde::{Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use url::Url;
 
 use super::{
     content_format::{ImageContentFormat, TextContentFormat},
     public_key::PublicKey,
+    serde_fns::{serialize_time, deserialize_time},
 };
 
 /// Users are identified by their id property, which is unique within the instance.
@@ -96,27 +96,6 @@ where
         return Err(serde::de::Error::custom("username is empty"));
     }
     Ok(input)
-}
-
-fn deserialize_time<'de, D>(deserializer: D) -> Result<i64, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let input = String::deserialize(deserializer)?;
-    let Ok(time) = DateTime::parse_from_rfc3339(&input) else {
-        return Err(serde::de::Error::custom("malformed created_at"));
-    };
-    Ok(time.timestamp_millis())
-}
-
-fn serialize_time<S>(x: &i64, s: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    let Some(time) = DateTime::from_timestamp_millis(*x) else {
-        return Err(serde::ser::Error::custom("invalid timestamp"));
-    };
-    s.serialize_str(&time.to_rfc3339())
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
