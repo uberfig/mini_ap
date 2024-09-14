@@ -1,4 +1,4 @@
-use chrono::DateTime;
+use chrono::{DateTime, SecondsFormat};
 // serde::ser::Error as that's the trait where the custom function comes from.
 use serde::{ser::Error as SerError, de::Error as DeError, Deserialize, Deserializer, Serializer};
 
@@ -21,5 +21,5 @@ where
     let Some(time) = DateTime::from_timestamp_millis(*x) else {
         return Err(S::Error::custom("invalid timestamp"));
     };
-    s.serialize_str(&time.to_rfc3339())
+    s.serialize_str(&time.to_rfc3339_opts(SecondsFormat::Secs, true))
 }
