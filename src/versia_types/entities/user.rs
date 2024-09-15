@@ -109,21 +109,33 @@ pub struct UserCollections {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct Field {
     pub key: TextContentFormat,
     pub value: TextContentFormat,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Extensions {
     #[serde(rename = "pub.versia:custom_emojis")]
     pub pub_versia_custom_emojis: Option<PubVersiaCustomEmojis>,
+    #[serde(rename = "pub.versia:migration")]
+    pub pub_versia_migration: Option<PubVersiaMigration>,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PubVersiaCustomEmojis {
     pub emojis: Vec<Emoji>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PrevOrNew {
+    Previous(Url),
+    New(Url)
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PubVersiaMigration {
+    #[serde(flatten)]
+    pub target: PrevOrNew,
 }
