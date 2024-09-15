@@ -1,4 +1,4 @@
-# mini_ap
+# Bayou
  
 this project is a rewrite of my older project https://github.com/uberfig/activity_playground
 
