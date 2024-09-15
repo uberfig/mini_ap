@@ -15,6 +15,8 @@ pub enum FollowResponseType {
     FollowReject,
 }
 
+/// actions taken by the followee
+///
 /// the author accepts or rejects the follower's request
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct FollowResponse {

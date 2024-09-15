@@ -10,6 +10,8 @@ pub enum ChangeFollowType {
     Unfollow,
 }
 
+/// actions taken by the follower
+///
 /// the author requests to follow or unfollow the followee
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ChangeFollowing {
