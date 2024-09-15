@@ -13,7 +13,7 @@ pub struct Emoji {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EmojiName {
     pub shortcode: String,
-    pub identifyer: char,
+    pub identifier: char,
 }
 
 fn deserialize_name<'de, D>(deserializer: D) -> Result<EmojiName, D::Error>
@@ -27,21 +27,21 @@ where
     let mut chars = input.chars();
 
     let Some(first) = chars.next() else {
-        return Err(D::Error::custom("emoji first identifyer missing"));
+        return Err(D::Error::custom("emoji first identifier missing"));
     };
     if first.is_ascii_whitespace() {
-        return Err(D::Error::custom("emoji identifyer is whitespace"));
+        return Err(D::Error::custom("emoji identifier is whitespace"));
     }
     if first.is_ascii_alphanumeric() {
-        return Err(D::Error::custom("emoji identifyer is alphanumeric"));
+        return Err(D::Error::custom("emoji identifier is alphanumeric"));
     }
 
     let mut shortcode: Vec<char> = chars.collect();
     let Some(last) = shortcode.pop() else {
-        return Err(D::Error::custom("emoji last identifyer missing"));
+        return Err(D::Error::custom("emoji last identifier missing"));
     };
     if first.ne(&last) {
-        return Err(D::Error::custom("emoji first identifyers don't match"));
+        return Err(D::Error::custom("emoji first identifier don't match"));
     }
     if shortcode.is_empty() {
         return Err(D::Error::custom("emoji shortcode missing"));
@@ -57,12 +57,12 @@ where
         ));
     }
     
-    Ok(EmojiName { shortcode, identifyer: first })
+    Ok(EmojiName { shortcode, identifier: first })
 }
 
 pub fn serialize_name<S>(x: &EmojiName, s: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
-    s.serialize_str(&format!("{}{}{}", x.identifyer, x.shortcode, x.identifyer))
+    s.serialize_str(&format!("{}{}{}", x.identifier, x.shortcode, x.identifier))
 }
