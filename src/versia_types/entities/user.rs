@@ -63,7 +63,7 @@ pub struct User {
     /// Collections related to the user.
     /// Must contain at least `outbox`, `followers`, `following`, and `featured`.
     pub collections: UserCollections,
-    pub extensions: Extensions,
+    pub extensions: Option<Extensions>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -119,7 +119,7 @@ pub struct Field {
 #[serde(rename_all = "camelCase")]
 pub struct Extensions {
     #[serde(rename = "pub.versia:custom_emojis")]
-    pub pub_versia_custom_emojis: PubVersiaCustomEmojis,
+    pub pub_versia_custom_emojis: Option<PubVersiaCustomEmojis>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]

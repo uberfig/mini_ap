@@ -63,7 +63,7 @@ pub struct Note {
     pub content: Option<ContentFormat>,
     /// Device used to post the note. Useful for functionality such as Twitter's "posted via" feature.
     pub device: Option<Device>,
-    pub extensions: NoteExtensions,
+    pub extensions: Option<NoteExtensions>,
     /// URI of a Group that the note is only visible in or one of the provided types
     ///
     /// If not provided, the note is only visible to the author and those mentioned in the note.
@@ -90,7 +90,7 @@ pub struct Device {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct NoteExtensions {
     #[serde(rename = "pub.versia:custom_emojis")]
-    pub pub_versia_custom_emojis: PubVersiaCustomEmojis,
+    pub pub_versia_custom_emojis: Option<PubVersiaCustomEmojis>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
