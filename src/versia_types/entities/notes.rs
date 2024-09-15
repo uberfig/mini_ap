@@ -1,6 +1,5 @@
 use crate::versia_types::{
-    serde_fns::{deserialize_time, serialize_time},
-    structures::content_format::ContentFormat,
+    extensions::emoji::Emoji, serde_fns::{deserialize_time, serialize_time}, structures::content_format::ContentFormat
 };
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -79,20 +78,20 @@ pub struct Note {
     pub subject: Option<String>,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Device {
     pub name: String,
     pub version: Option<String>,
     pub url: Option<String>,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct NoteExtensions {
     #[serde(rename = "pub.versia:custom_emojis")]
     pub pub_versia_custom_emojis: PubVersiaCustomEmojis,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PubVersiaCustomEmojis {
-    // pub emojis: Vec<Value>,
+    pub emojis: Vec<Emoji>,
 }

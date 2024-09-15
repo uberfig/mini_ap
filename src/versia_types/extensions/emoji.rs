@@ -20,7 +20,8 @@ fn deserialize_name<'de, D>(deserializer: D) -> Result<EmojiName, D::Error>
 where
     D: Deserializer<'de>,
 {
-    let input = String::deserialize(deserializer)?;
+    let input = <&str>::deserialize(deserializer)?;
+    // let input = String::deserialize(deserializer)?;
     if input.is_empty() {
         return Err(D::Error::custom("emoji name is empty"));
     }
