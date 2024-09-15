@@ -15,5 +15,5 @@ pub struct Collection<T: Clone + PartialEq> {
     pub total: u64,
     pub next: Option<Url>,
     pub previous: Option<Url>,
-    pub items: T,
+    pub items: Vec<T>,
 }
