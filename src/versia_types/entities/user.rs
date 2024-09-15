@@ -84,14 +84,14 @@ where
     D: Deserializer<'de>,
 {
     let input = String::deserialize(deserializer)?;
+    if input.is_empty() {
+        return Err(serde::de::Error::custom("username is empty"));
+    }
     let re = Regex::new(r"[^\da-z_\-]").unwrap();
     if re.is_match(&input) {
         return Err(serde::de::Error::custom(
             "username contains invalid characters",
         ));
-    }
-    if input.is_empty() {
-        return Err(serde::de::Error::custom("username is empty"));
     }
     Ok(input)
 }

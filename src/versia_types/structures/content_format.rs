@@ -23,8 +23,16 @@ pub enum ContentFormat {
 pub struct ImageContentFormat {
     #[serde(rename = "image/png")]
     pub png: Option<ImageContent>,
+    #[serde(rename = "image/jpg")]
+    pub jpg: Option<ImageContent>,
+    #[serde(rename = "image/heif")]
+    pub heif: Option<ImageContent>,
     #[serde(rename = "image/webp")]
     pub webp: Option<ImageContent>,
+    #[serde(rename = "image/avif")]
+    pub avif: Option<ImageContent>,
+    #[serde(rename = "image/gif")]
+    pub gif: Option<ImageContent>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
