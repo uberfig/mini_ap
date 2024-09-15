@@ -1,9 +1,9 @@
-use regex::Regex;
 use serde::Deserializer;
-use serde::{Deserialize, Serialize};
+use serde::{de::Error as DeError, Deserialize, Serialize};
 use url::Url;
 
 use super::public_key::PublicKey;
+use crate::versia_types::extensions::emoji::Emoji;
 use crate::versia_types::serde_fns::{deserialize_time, serialize_time};
 use crate::versia_types::structures::content_format::{ImageContentFormat, TextContentFormat};
 
@@ -63,7 +63,7 @@ pub struct User {
     /// Collections related to the user.
     /// Must contain at least `outbox`, `followers`, `following`, and `featured`.
     pub collections: UserCollections,
-    // pub extensions: Extensions,
+    pub extensions: Extensions,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -83,17 +83,16 @@ fn deserialize_username<'de, D>(deserializer: D) -> Result<String, D::Error>
 where
     D: Deserializer<'de>,
 {
-    let input = String::deserialize(deserializer)?;
+    let input = <&str>::deserialize(deserializer)?;
     if input.is_empty() {
         return Err(serde::de::Error::custom("username is empty"));
     }
-    let re = Regex::new(r"[^\da-z_\-]").unwrap();
-    if re.is_match(&input) {
-        return Err(serde::de::Error::custom(
-            "username contains invalid characters",
-        ));
+    for char in input.chars() {
+        if !matches!(char, 'a'..='z'| '0'..='9' | '_' | '-') {
+            return Err(D::Error::custom("username contains invalid characters"));
+        }
     }
-    Ok(input)
+    Ok(input.to_owned())
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -116,15 +115,15 @@ pub struct Field {
     pub value: TextContentFormat,
 }
 
-// #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-// #[serde(rename_all = "camelCase")]
-// pub struct Extensions {
-//     #[serde(rename = "pub.versia:custom_emojis")]
-//     pub pub_versia_custom_emojis: PubVersiaCustomEmojis,
-// }
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Extensions {
+    #[serde(rename = "pub.versia:custom_emojis")]
+    pub pub_versia_custom_emojis: PubVersiaCustomEmojis,
+}
 
-// #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-// #[serde(rename_all = "camelCase")]
-// pub struct PubVersiaCustomEmojis {
-//     pub emojis: Vec<Value>,
-// }
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PubVersiaCustomEmojis {
+    pub emojis: Vec<Emoji>,
+}

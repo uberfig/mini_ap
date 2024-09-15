@@ -25,7 +25,6 @@ config = { version = "0.14.0", features = ["toml"]}
 xsd-types = {version = "0.9.5", features = ["serde"]}
 chrono = "0.4.38"
 async-trait = "0.1.81"
-regex = "1.10.6"
 
 [dev-dependencies]
 serial_test = "3.1.1"

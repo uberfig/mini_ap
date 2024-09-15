@@ -1,5 +1,7 @@
 use crate::versia_types::{
-    extensions::emoji::Emoji, serde_fns::{deserialize_time, serialize_time}, structures::content_format::ContentFormat
+    extensions::emoji::Emoji,
+    serde_fns::{deserialize_time, serialize_time},
+    structures::content_format::ContentFormat,
 };
 use serde::{Deserialize, Serialize};
 use url::Url;
