@@ -1,5 +1,4 @@
 use crate::versia_types::structures::content_format::ImageContentFormat;
-use regex::Regex;
 use serde::{de::Error as DeError, Deserialize, Deserializer, Serialize, Serializer};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -21,44 +20,38 @@ where
     D: Deserializer<'de>,
 {
     let input = <&str>::deserialize(deserializer)?;
-    // let input = String::deserialize(deserializer)?;
-    if input.is_empty() {
-        return Err(D::Error::custom("emoji name is empty"));
-    }
-    let mut chars = input.chars();
 
+    let mut chars = input.chars();
     let Some(first) = chars.next() else {
         return Err(D::Error::custom("emoji first identifier missing"));
     };
-    if first.is_ascii_whitespace() {
-        return Err(D::Error::custom("emoji identifier is whitespace"));
-    }
-    if first.is_ascii_alphanumeric() {
-        return Err(D::Error::custom("emoji identifier is alphanumeric"));
-    }
-
-    let mut shortcode: Vec<char> = chars.collect();
-    let Some(last) = shortcode.pop() else {
+    let Some(last) = chars.next_back() else {
         return Err(D::Error::custom("emoji last identifier missing"));
     };
-    if first.ne(&last) {
-        return Err(D::Error::custom("emoji first identifier don't match"));
+    let shortcode = chars.as_str();
+
+    if first != last {
+        return Err(D::Error::custom("emoji first identifiers don't match"));
     }
-    if shortcode.is_empty() {
-        return Err(D::Error::custom("emoji shortcode missing"));
-    }
 
-    let shortcode: String = shortcode.into_iter().collect();
-
-    let re = Regex::new(r"[^\da-zA-Z_-]").unwrap();
-
-    if re.is_match(&shortcode) {
+    if matches!(first, 'a'..='z' | 'A'..='Z' | '0'..='9' | '_' | '-' | ' ') {
         return Err(D::Error::custom(
-            "shortcode contains invalid characters",
+            "emoji first identifiers cannot match as name character",
         ));
     }
-    
-    Ok(EmojiName { shortcode, identifier: first })
+    if input.is_empty() {
+        return Err(D::Error::custom("emoji name is empty"));
+    }
+    for char in shortcode.chars() {
+        if !matches!(char, 'a'..='z'| 'A'..='Z' | '0'..='9' | '_' | '-') {
+            return Err(D::Error::custom("shortcode contains invalid characters"));
+        }
+    }
+
+    Ok(EmojiName {
+        shortcode: shortcode.to_owned(),
+        identifier: first,
+    })
 }
 
 pub fn serialize_name<S>(x: &EmojiName, s: S) -> Result<S::Ok, S::Error>
