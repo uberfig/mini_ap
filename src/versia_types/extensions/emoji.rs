@@ -1,6 +1,6 @@
 use crate::versia_types::structures::content_format::ImageContentFormat;
 use regex::Regex;
-use serde::{de::Error as DeError, ser::Error as SerError, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{de::Error as DeError, Deserialize, Deserializer, Serialize, Serializer};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Emoji {
