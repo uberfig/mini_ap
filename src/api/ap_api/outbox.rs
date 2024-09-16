@@ -13,7 +13,7 @@ use crate::{
     db::conn::Conn,
 };
 
-#[post("/users/{preferred_username}/outbox")]
+#[post("/users/{preferred_username}/outbox/ap")]
 pub async fn create_post(
     path: web::Path<String>,
     body: web::Bytes,

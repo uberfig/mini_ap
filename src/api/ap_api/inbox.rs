@@ -28,7 +28,7 @@ pub async fn inspect_inbox(inbox: Data<Inbox>) -> String {
     format!("inbox: \n{}", data.join("\n\n"))
 }
 
-#[post("/inbox")]
+#[post("/inbox/ap")]
 pub async fn shared_inbox(
     request: HttpRequest,
     inbox: Data<Inbox>,
@@ -37,10 +37,10 @@ pub async fn shared_inbox(
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse, Error> {
     dbg!(&request);
-    handle_inbox(request, "/inbox", inbox, body, conn, state).await
+    handle_inbox(request, "/inbox/ap", inbox, body, conn, state).await
 }
 
-#[post("/users/{preferred_username}/inbox")]
+#[post("/users/{preferred_username}/inbox/ap")]
 pub async fn private_inbox(
     request: HttpRequest,
     path: web::Path<String>,
@@ -51,7 +51,7 @@ pub async fn private_inbox(
 ) -> Result<HttpResponse, Error> {
     println!("private inbox");
     let preferred_username = path.into_inner();
-    let path = format!("/users/{}/inbox", &preferred_username);
+    let path = format!("/users/{}/inbox/ap", &preferred_username);
 
     handle_inbox(request, &path, inbox, body, conn, state).await
 }
@@ -78,7 +78,7 @@ async fn handle_inbox(
         &body,
         path,
         &state.instance_domain,
-        &format!("https://{}/actor#main-key", &state.instance_domain),
+        &format!("https://{}/actor/ap#main-key", &state.instance_domain),
         &instance_actor_key,
     )
     .await;

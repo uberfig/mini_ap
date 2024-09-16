@@ -7,7 +7,7 @@ use actix_web::{
 
 use crate::db::{conn::Conn, utility::new_actor::NewLocal};
 
-#[get("/users/{preferred_username}")]
+#[get("/users/{preferred_username}/ap")]
 pub async fn get_actor(
     path: web::Path<String>,
     state: Data<crate::config::Config>,
@@ -61,7 +61,7 @@ pub async fn create_test(
     Ok(HttpResponse::Ok().body(format!("{x}")))
 }
 
-#[get("/actor")]
+#[get("/actor/ap")]
 pub async fn get_instance_actor(
     conn: Data<Box<dyn Conn + Sync>>,
     state: Data<crate::config::Config>,

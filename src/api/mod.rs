@@ -1,7 +1,2 @@
-pub mod actor;
-pub mod inbox;
-pub mod object;
-pub mod outbox;
-#[cfg(test)]
-mod tests;
-pub mod webfinger;
+pub mod ap_api;
+pub mod versia_api;

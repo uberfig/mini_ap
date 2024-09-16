@@ -3,7 +3,7 @@ use std::sync::Mutex;
 use actix_web::{get, web::Data, App, HttpResponse, HttpServer, Responder};
 
 use crate::{
-    api::{
+    api::ap_api::{
         actor::{create_test, get_actor, get_instance_actor},
         inbox::{inspect_inbox, private_inbox, shared_inbox, Inbox},
         object::{get_object, get_object_create},
@@ -11,7 +11,7 @@ use crate::{
         webfinger::webfinger,
     },
     config::Config,
-    db::utility::instance_actor::InstanceActor, versia_api::instance_discovery::versia_metadata,
+    db::utility::instance_actor::InstanceActor, api::versia_api::instance_discovery::versia_metadata,
 };
 
 #[get("/")]
