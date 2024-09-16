@@ -1,7 +1,7 @@
 use crate::versia_types::{
     extensions::emoji::Emoji,
     serde_fns::{deserialize_time, serialize_time},
-    structures::content_format::ContentFormat,
+    structures::content_format::{ContentFormat, TextContentFormat},
 };
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -91,9 +91,30 @@ pub struct Device {
 pub struct NoteExtensions {
     #[serde(rename = "pub.versia:custom_emojis")]
     pub pub_versia_custom_emojis: Option<PubVersiaCustomEmojis>,
+    #[serde(rename = "pub.versia:polls")]
+    pub pub_versia_polls: Option<PubVersiaPolls>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PubVersiaCustomEmojis {
     pub emojis: Vec<Emoji>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PubVersiaPolls {
+    pub options: Vec<TextContentFormat>,
+    /// Array of the number of votes for each option. The length of this array should match the length of the options array.
+    pub votes: Vec<u64>,
+    pub multiple_choice: bool,
+    /// ISO 8601 timestamp of when the poll ends and no more votes can be cast. 
+    /// If not present, the poll does not expire.
+    #[serde(flatten)]
+    pub expires_at: Option<Expiry>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Expiry {
+    #[serde(deserialize_with = "deserialize_time")]
+    #[serde(serialize_with = "serialize_time")]
+    pub expires_at: i64,
 }
