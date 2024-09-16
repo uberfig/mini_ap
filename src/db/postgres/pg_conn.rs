@@ -11,7 +11,7 @@ use crate::{
     versia_types::entities::instance_metadata::InstanceMetadata,
 };
 
-use super::{acct_mgmt, actors, follows, init, instance_actor, local_users, posts};
+use super::{acct_mgmt, actors, follows, init, local_users, posts};
 
 #[derive(Clone, Debug)]
 pub struct PgConn {
