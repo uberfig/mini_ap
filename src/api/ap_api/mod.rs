@@ -4,4 +4,3 @@ pub mod object;
 pub mod outbox;
 #[cfg(test)]
 mod tests;
-pub mod webfinger;

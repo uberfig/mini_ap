@@ -74,7 +74,6 @@ pub async fn get_instance_actor(
                 &conn
                     .get_instance_actor()
                     .await
-                    .unwrap()
                     .to_actor(&state.instance_domain)
                     .to_activitystream(),
             )

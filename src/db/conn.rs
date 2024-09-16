@@ -4,7 +4,8 @@ use url::Url;
 
 use crate::{
     activitystream_objects::actors::Actor,
-    ap_protocol::fetch::{authorized_fetch, FetchErr}, versia_types::entities::instance_metadata::InstanceMetadata,
+    ap_protocol::fetch::{authorized_fetch, FetchErr},
+    versia_types::entities::instance_metadata::InstanceMetadata,
 };
 
 use super::{
@@ -36,8 +37,9 @@ pub trait Conn: Sync {
     async fn init(&self) -> Result<(), String>;
 
     //-------------------instance actor------------------------------
-    async fn get_instance_actor(&self) -> Option<InstanceActor>;
-    async fn create_instance_actor(&self, private_key_pem: &str, public_key_pem: &str);
+    /// gets the instance actor. creates one if its not present
+    async fn get_instance_actor(&self) -> InstanceActor;
+    // async fn create_instance_actor(&self, private_key_pem: &str, public_key_pem: &str);
 
     async fn get_versia_instance_metadata(&self, instance_domain: &str) -> InstanceMetadata;
     /// get the protocol of the given instance. will backfill if the instance isn't in the db
@@ -119,7 +121,7 @@ pub trait Conn: Sync {
         actor_id: &Url,
         instance_domain: &str,
     ) -> Result<i64, DbErr> {
-        let instance_actor = self.get_instance_actor().await.unwrap();
+        let instance_actor = self.get_instance_actor().await;
         let key_id = InstanceActor::pub_key_id(instance_domain);
 
         let fetched = authorized_fetch(actor_id, &key_id, &instance_actor.get_private_key()).await;

@@ -41,7 +41,7 @@ async fn test_actor_endpoint() -> Result<(), String> {
     // dbg!(&actor);
     println!("actor id: {}", actor.id);
 
-    let instance_actor = conn.get_instance_actor().await.unwrap();
+    let instance_actor = conn.get_instance_actor().await;
 
     let local_url = &Url::parse(&format!(
         "http://{}:{}/users/{}",

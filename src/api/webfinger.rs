@@ -86,7 +86,6 @@ async fn webfinger(
     conn: Data<Box<dyn Conn + Sync>>,
     info: web::Query<Info>,
 ) -> Result<HttpResponse> {
-
     let resource = info.into_inner().resource;
     let result = WebfingerQuery::parse_query(resource);
 
@@ -105,7 +104,6 @@ async fn webfinger(
         true => conn
             .get_instance_actor()
             .await
-            .expect("instance actor should have been inited")
             .to_actor(&state.instance_domain),
         //not the instance actor
         false => {

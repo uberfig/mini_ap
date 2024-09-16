@@ -3,7 +3,6 @@ use url::Url;
 use crate::{
     activitystream_objects::actors::{Actor, PublicKey},
     cryptography::{key::PrivateKey, openssl::OpenSSLPrivate},
-    db::conn::Conn,
 };
 
 use super::new_actor::instance_actor_links;
@@ -15,15 +14,15 @@ pub struct InstanceActor {
 
 impl InstanceActor {
     pub fn pub_key_id(domain: &str) -> String {
-        format!("https://{domain}/actor#main-key")
+        format!("https://{domain}/actor/ap#main-key")
     }
-    pub async fn init_instance_actor(conn: &dyn Conn) {
-        if conn.get_instance_actor().await.is_none() {
-            let key = OpenSSLPrivate::generate();
-            conn.create_instance_actor(key.private_key_pem(), key.public_key_pem())
-                .await;
-        }
-    }
+    // pub async fn init_instance_actor(conn: &dyn Conn) {
+    //     if conn.get_instance_actor().await.is_none() {
+    //         let key = OpenSSLPrivate::generate();
+    //         conn.create_instance_actor(key.private_key_pem(), key.public_key_pem())
+    //             .await;
+    //     }
+    // }
     pub fn get_private_key(&self) -> OpenSSLPrivate {
         OpenSSLPrivate::from_pem(&self.private_key_pem).unwrap()
     }

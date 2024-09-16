@@ -18,29 +18,42 @@ pub struct UserLinks {
     pub pub_key_id: Url,
 }
 
-pub fn generate_links(domain: &str, uname: &str) -> UserLinks {
+pub fn generate_ap_links(domain: &str, uname: &str) -> UserLinks {
     UserLinks {
-        id: Url::parse(&format!("https://{domain}/users/{uname}")).unwrap(),
-        inbox: Url::parse(&format!("https://{domain}/users/{uname}/inbox")).unwrap(),
-        outbox: Url::parse(&format!("https://{domain}/users/{uname}/outbox")).unwrap(),
-        followers: Url::parse(&format!("https://{domain}/users/{uname}/followers")).unwrap(),
-        following: Url::parse(&format!("https://{domain}/users/{uname}/following")).unwrap(),
-        liked: Url::parse(&format!("https://{domain}/users/{uname}/liked")).unwrap(),
+        id: Url::parse(&format!("https://{domain}/users/{uname}/ap")).unwrap(),
+        inbox: Url::parse(&format!("https://{domain}/users/{uname}/inbox/ap")).unwrap(),
+        outbox: Url::parse(&format!("https://{domain}/users/{uname}/outbox/ap")).unwrap(),
+        followers: Url::parse(&format!("https://{domain}/users/{uname}/followers/ap")).unwrap(),
+        following: Url::parse(&format!("https://{domain}/users/{uname}/following/ap")).unwrap(),
+        liked: Url::parse(&format!("https://{domain}/users/{uname}/liked/ap")).unwrap(),
         url: Url::parse(&format!("https://{domain}/@{uname}")).unwrap(),
-        pub_key_id: Url::parse(&format!("https://{domain}/users/{uname}#main-key")).unwrap(),
+        pub_key_id: Url::parse(&format!("https://{domain}/users/{uname}/ap#main-key")).unwrap(),
+    }
+}
+
+pub fn generate_versia_links(domain: &str, uname: &str) -> UserLinks {
+    UserLinks {
+        id: Url::parse(&format!("https://{domain}/users/{uname}/versia")).unwrap(),
+        inbox: Url::parse(&format!("https://{domain}/users/{uname}/inbox/versia")).unwrap(),
+        outbox: Url::parse(&format!("https://{domain}/users/{uname}/outbox/versia")).unwrap(),
+        followers: Url::parse(&format!("https://{domain}/users/{uname}/followers/versia")).unwrap(),
+        following: Url::parse(&format!("https://{domain}/users/{uname}/following/versia")).unwrap(),
+        liked: Url::parse(&format!("https://{domain}/users/{uname}/liked/versia")).unwrap(),
+        url: Url::parse(&format!("https://{domain}/@{uname}")).unwrap(),
+        pub_key_id: Url::parse(&format!("https://{domain}/users/{uname}/versia#main-key")).unwrap(),
     }
 }
 
 pub fn instance_actor_links(domain: &str) -> UserLinks {
     UserLinks {
-        id: Url::parse(&format!("https://{domain}/actor")).unwrap(),
-        inbox: Url::parse(&format!("https://{domain}/actor/inbox")).unwrap(),
-        outbox: Url::parse(&format!("https://{domain}/actor/outbox")).unwrap(),
-        followers: Url::parse(&format!("https://{domain}/actor/followers")).unwrap(),
-        following: Url::parse(&format!("https://{domain}/actor/following")).unwrap(),
-        liked: Url::parse(&format!("https://{domain}/actor/liked")).unwrap(),
+        id: Url::parse(&format!("https://{domain}/actor/ap")).unwrap(),
+        inbox: Url::parse(&format!("https://{domain}/actor/inbox/ap")).unwrap(),
+        outbox: Url::parse(&format!("https://{domain}/actor/outbox/ap")).unwrap(),
+        followers: Url::parse(&format!("https://{domain}/actor/followers/ap")).unwrap(),
+        following: Url::parse(&format!("https://{domain}/actor/following/ap")).unwrap(),
+        liked: Url::parse(&format!("https://{domain}/actor/liked/ap")).unwrap(),
         url: Url::parse(&format!("https://{domain}:")).unwrap(),
-        pub_key_id: Url::parse(&format!("https://{domain}/actor#main-key")).unwrap(),
+        pub_key_id: Url::parse(&format!("https://{domain}/actor/ap#main-key")).unwrap(),
     }
 }
 

@@ -7,7 +7,8 @@ use crate::{
         conn::{Conn, DbErr},
         utility::{instance_actor::InstanceActor, new_actor::NewLocal, protocols::Protocols},
         Follower, Like,
-    }, versia_types::entities::instance_metadata::InstanceMetadata,
+    },
+    versia_types::entities::instance_metadata::InstanceMetadata,
 };
 
 use super::{acct_mgmt, actors, follows, init, instance_actor, local_users, posts};
@@ -25,12 +26,13 @@ impl Conn for PgConn {
     }
 
     //-------------------instance actor------------------------------
-    async fn get_instance_actor(&self) -> Option<InstanceActor> {
-        instance_actor::get_instance_actor(self).await
+    async fn get_instance_actor(&self) -> InstanceActor {
+        // instance_actor::get_instance_actor(self).await
+        todo!()
     }
-    async fn create_instance_actor(&self, private_key_pem: &str, public_key_pem: &str) {
-        instance_actor::create_instance_actor(self, private_key_pem, public_key_pem).await
-    }
+    // async fn create_instance_actor(&self, private_key_pem: &str, public_key_pem: &str) {
+    //     instance_actor::create_instance_actor(self, private_key_pem, public_key_pem).await
+    // }
 
     async fn get_versia_instance_metadata(&self, instance_domain: &str) -> InstanceMetadata {
         todo!()

@@ -3,14 +3,14 @@ use url::Url;
 
 use crate::{
     activitystream_objects::actors::{Actor, ActorType, PublicKey},
-    db::utility::new_actor::generate_links,
+    db::utility::new_actor::generate_ap_links,
 };
 
 use super::pg_conn::PgConn;
 
 fn local_user_from_row(result: Row, instance_domain: &str) -> Actor {
     let preferred_username: String = result.get("preferred_username");
-    let links = generate_links(instance_domain, &preferred_username);
+    let links = generate_ap_links(instance_domain, &preferred_username);
 
     let key = PublicKey {
         id: links.pub_key_id,

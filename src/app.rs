@@ -3,15 +3,17 @@ use std::sync::Mutex;
 use actix_web::{get, web::Data, App, HttpResponse, HttpServer, Responder};
 
 use crate::{
-    api::ap_api::{
-        actor::{create_test, get_actor, get_instance_actor},
-        inbox::{inspect_inbox, private_inbox, shared_inbox, Inbox},
-        object::{get_object, get_object_create},
-        outbox::create_post,
+    api::{
+        ap_api::{
+            actor::{create_test, get_actor, get_instance_actor},
+            inbox::{inspect_inbox, private_inbox, shared_inbox, Inbox},
+            object::{get_object, get_object_create},
+            outbox::create_post,
+        },
+        versia_api::instance_discovery::versia_metadata,
         webfinger::webfinger,
     },
     config::Config,
-    db::utility::instance_actor::InstanceActor, api::versia_api::instance_discovery::versia_metadata,
 };
 
 #[get("/")]
@@ -20,14 +22,14 @@ async fn hello() -> impl Responder {
 }
 
 pub async fn start_application(config: Config) -> std::io::Result<()> {
-    //init the instance actor
+    //init the conn and instance actor
     {
         let conn = config.create_conn();
         if let Err(x) = conn.init().await {
             eprintln!("{}", x);
             return Ok(());
         }
-        InstanceActor::init_instance_actor(&*conn).await;
+        conn.get_instance_actor().await;
     }
 
     let bind = config.bind_address.clone();
@@ -51,7 +53,6 @@ pub async fn start_application(config: Config) -> std::io::Result<()> {
             .service(private_inbox)
             .service(shared_inbox)
             .service(inspect_inbox)
-
             .service(versia_metadata)
     })
     .bind((bind, port))?
