@@ -11,7 +11,7 @@ use crate::{
         webfinger::webfinger,
     },
     config::Config,
-    db::utility::instance_actor::InstanceActor,
+    db::utility::instance_actor::InstanceActor, versia_api::instance_discovery::versia_metadata,
 };
 
 #[get("/")]
@@ -51,6 +51,8 @@ pub async fn start_application(config: Config) -> std::io::Result<()> {
             .service(private_inbox)
             .service(shared_inbox)
             .service(inspect_inbox)
+
+            .service(versia_metadata)
     })
     .bind((bind, port))?
     .run()

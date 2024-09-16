@@ -7,3 +7,4 @@ pub mod cryptography;
 pub mod db;
 pub mod versia_protocol;
 pub mod versia_types;
+pub mod versia_api;

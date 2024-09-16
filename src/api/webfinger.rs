@@ -86,6 +86,11 @@ async fn webfinger(
     conn: Data<Box<dyn Conn + Sync>>,
     info: web::Query<Info>,
 ) -> Result<HttpResponse> {
+
+    // need to include activitypub and versia
+    // make sure activitypub comes first because mastodon just takes the first
+    todo!();
+
     let resource = info.into_inner().resource;
     let result = WebfingerQuery::parse_query(resource);
 

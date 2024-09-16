@@ -4,11 +4,11 @@ use url::Url;
 
 use crate::{
     activitystream_objects::actors::Actor,
-    ap_protocol::fetch::{authorized_fetch, FetchErr},
+    ap_protocol::fetch::{authorized_fetch, FetchErr}, versia_types::entities::instance_metadata::InstanceMetadata,
 };
 
 use super::{
-    utility::{instance_actor::InstanceActor, new_actor::NewLocal},
+    utility::{instance_actor::InstanceActor, new_actor::NewLocal, protocols::Protocols},
     Follower, Like, PermissionLevel, PostType,
 };
 
@@ -38,6 +38,10 @@ pub trait Conn: Sync {
     //-------------------instance actor------------------------------
     async fn get_instance_actor(&self) -> Option<InstanceActor>;
     async fn create_instance_actor(&self, private_key_pem: &str, public_key_pem: &str);
+
+    async fn get_versia_instance_metadata(&self, instance_domain: &str) -> InstanceMetadata;
+    /// get the protocol of the given instance. will backfill if the instance isn't in the db
+    async fn get_protocol(&self, instance: &str) -> Protocols;
 
     //----------------------actors---------------------------
 
