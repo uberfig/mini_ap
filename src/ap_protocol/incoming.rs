@@ -1,14 +1,16 @@
 use std::collections::HashMap;
 
 use actix_web::HttpRequest;
-use openssl::{pkey::Private, rsa::Rsa};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
 use crate::{
     activitystream_objects::core_types::ActivityStream,
-    ap_protocol::{
-        digest::generate_digest, fetch::authorized_fetch, verification::verify_attribution,
+    ap_protocol::{fetch::authorized_fetch, verification::verify_attribution},
+    cryptography::{
+        digest::generate_digest,
+        key::{PrivateKey, PublicKey},
+        openssl::OpenSSLPublic,
     },
 };
 
@@ -38,17 +40,18 @@ pub enum RequestVerificationError {
     KeyLinkNotActor,
     CannotParseKeyUrl,
     KeyOwnerFromIP,
+    InvalidKey,
 }
 
 ///verifys a request and returns the message body if its valid
-pub async fn verify_incoming(
+pub async fn verify_incoming<T: PrivateKey>(
     request: HttpRequest,
     body: &str,
     path: &str,
     instance_domain: &str,
     // instance_public_key_pem: String,
     instance_key_id: &str,
-    instance_private_key: &Rsa<Private>,
+    instance_private_key: &T,
 ) -> Result<ActivityStream, RequestVerificationError> {
     let request_headers = request.headers();
 
@@ -140,26 +143,6 @@ pub async fn verify_incoming(
         return Err(RequestVerificationError::KeyLinkNotActor);
     };
 
-    // let client = reqwest::Client::new();
-    // let client = client
-    //     .get(key_id)
-    //     .header("accept", "application/activity+json");
-
-    // let Ok(res) = client.send().await else {
-    //     return Err(RequestVerificationError::ActorFetchFailed);
-    // };
-
-    // let Ok(actor) = res.bytes().await else {
-    //     return Err(RequestVerificationError::ActorFetchBodyFailed);
-    // };
-
-    // println!("actor:\n{}", String::from_utf8((&actor).to_vec()).unwrap());
-    // let actor: Result<Actor, _> = serde_json::from_slice(&actor);
-    // let Ok(actor) = actor else {
-    //     dbg!(&actor);
-    //     return Err(RequestVerificationError::ActorDeserializeFailed);
-    // };
-
     if let Some(x) = object.get_owner() {
         if actor.get_id().domain().ne(&x.domain()) {
             println!(
@@ -171,8 +154,9 @@ pub async fn verify_incoming(
         }
     }
 
-    let key =
-        openssl::rsa::Rsa::public_key_from_pem(actor.public_key.public_key_pem.as_bytes()).unwrap();
+    let Ok(actor_public_key) = OpenSSLPublic::from_pem(&actor.public_key.public_key_pem) else {
+        return Err(RequestVerificationError::InvalidKey);
+    };
 
     let Some(headers) = signature_header.get("headers") else {
         return Err(RequestVerificationError::NoSignatureHeaders);
@@ -204,15 +188,7 @@ pub async fn verify_incoming(
     let comparison_string = comparison_string.join("\n");
     // dbg!(&comparison_string);
 
-    let pubkey = openssl::pkey::PKey::from_rsa(key).unwrap();
-
-    let mut verifier =
-        openssl::sign::Verifier::new(openssl::hash::MessageDigest::sha256(), &pubkey).unwrap();
-    let input = &comparison_string;
-    verifier.update(input.as_bytes()).unwrap();
-
-    let signature = openssl::base64::decode_block(&signature).unwrap();
-    let accepted = verifier.verify(&signature).unwrap();
+    let accepted = actor_public_key.verify(&comparison_string, &signature);
 
     if !accepted {
         return Err(RequestVerificationError::SignatureVerifyFailed);

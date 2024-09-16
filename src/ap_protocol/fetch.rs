@@ -1,14 +1,9 @@
 use std::{fmt::Display, time::SystemTime};
 
-use openssl::{
-    hash::MessageDigest,
-    pkey::{PKey, Private},
-    rsa::Rsa,
-};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::activitystream_objects::core_types::ActivityStream;
+use crate::{activitystream_objects::core_types::ActivityStream, cryptography::key::PrivateKey};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum FetchErr {
@@ -32,30 +27,21 @@ impl Display for FetchErr {
 /// key_id and private_key are the properties of the key
 /// being used to perform the fetch. usually done by the
 /// instance actor
-pub async fn authorized_fetch(
+pub async fn authorized_fetch<T: PrivateKey>(
     object_id: &Url,
     key_id: &str,
-    private_key: &Rsa<Private>,
+    private_key: &T,
 ) -> Result<ActivityStream, FetchErr> {
     let path = object_id.path();
     let Some(fetch_domain) = object_id.host_str() else {
         return Err(FetchErr::InvalidUrl(object_id.as_str().to_string()));
     };
-    // let fetch_domain = object_id.domain();
-    // let fetch_domain = match fetch_domain {
-    //     Some(x) => x,
-    //     None => object_id.host_str(),
-    // };
-
-    let keypair = PKey::from_rsa(private_key.clone()).unwrap();
 
     let date = httpdate::fmt_http_date(SystemTime::now());
 
     //string to be signed
     let signed_string = format!("(request-target): get {path}\nhost: {fetch_domain}\ndate: {date}\naccept: application/activity+json");
-    let mut signer = openssl::sign::Signer::new(MessageDigest::sha256(), &keypair).unwrap();
-    signer.update(signed_string.as_bytes()).unwrap();
-    let signature = openssl::base64::encode_block(&signer.sign_to_vec().unwrap());
+    let signature = private_key.sign(&signed_string);
 
     let header = format!(
         r#"keyId="{key_id}",headers="(request-target) host date accept",signature="{signature}""#

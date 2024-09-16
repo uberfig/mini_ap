@@ -37,7 +37,7 @@ pub trait Conn: Sync {
 
     //-------------------instance actor------------------------------
     async fn get_instance_actor(&self) -> Option<InstanceActor>;
-    async fn create_instance_actor(&self, private_key_pem: String, public_key_pem: String);
+    async fn create_instance_actor(&self, private_key_pem: &str, public_key_pem: &str);
 
     //----------------------actors---------------------------
 
@@ -118,7 +118,7 @@ pub trait Conn: Sync {
         let instance_actor = self.get_instance_actor().await.unwrap();
         let key_id = InstanceActor::pub_key_id(instance_domain);
 
-        let fetched = authorized_fetch(actor_id, &key_id, &instance_actor.get_rsa()).await;
+        let fetched = authorized_fetch(actor_id, &key_id, &instance_actor.get_private_key()).await;
         let fetched = match fetched {
             Ok(x) => x,
             Err(x) => return Err(DbErr::FetchErr(x)),

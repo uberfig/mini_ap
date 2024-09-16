@@ -28,7 +28,7 @@ impl Conn for PgConn {
     async fn get_instance_actor(&self) -> Option<InstanceActor> {
         instance_actor::get_instance_actor(self).await
     }
-    async fn create_instance_actor(&self, private_key_pem: String, public_key_pem: String) {
+    async fn create_instance_actor(&self, private_key_pem: &str, public_key_pem: &str) {
         instance_actor::create_instance_actor(self, private_key_pem, public_key_pem).await
     }
 

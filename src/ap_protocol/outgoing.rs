@@ -5,7 +5,7 @@ use openssl::{
     pkey::{PKey, Private},
 };
 
-use crate::ap_protocol::digest::generate_digest;
+use crate::cryptography::digest::generate_digest;
 
 pub async fn post_to_inbox(
     // activity: &ActivityStream,

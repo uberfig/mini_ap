@@ -52,7 +52,7 @@ async fn test_actor_endpoint() -> Result<(), String> {
     let result = authorized_fetch(
         local_url,
         &InstanceActor::pub_key_id(&config.instance_domain),
-        &instance_actor.get_rsa(),
+        &instance_actor.get_private_key(),
     )
     .await;
     if result.is_err() {

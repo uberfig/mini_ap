@@ -20,7 +20,7 @@ pub async fn get_instance_actor(conn: &PgConn) -> Option<InstanceActor> {
     })
 }
 
-pub async fn create_instance_actor(conn: &PgConn, private_key_pem: String, public_key_pem: String) {
+pub async fn create_instance_actor(conn: &PgConn, private_key_pem: &str, public_key_pem: &str) {
     let client = conn.db.get().await.expect("failed to get client");
     let stmt = r#"
     INSERT INTO ap_instance_actor 

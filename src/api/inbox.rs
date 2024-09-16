@@ -64,7 +64,7 @@ async fn handle_inbox(
     conn: Data<Box<dyn Conn + Sync>>,
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse, Error> {
-    let instance_actor_key = conn.get_instance_actor().await.unwrap().get_rsa();
+    let instance_actor_key = conn.get_instance_actor().await.unwrap().get_private_key();
 
     let Ok(body) = String::from_utf8(body.to_vec()) else {
         return Ok(HttpResponse::Unauthorized()
