@@ -17,7 +17,7 @@ pub struct Vote {
     #[serde(deserialize_with = "deserialize_time")]
     #[serde(serialize_with = "serialize_time")]
     pub created_at: i64,
-    
+
     pub author: Url,
     pub poll: Url,
     pub option: u64,

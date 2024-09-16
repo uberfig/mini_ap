@@ -19,6 +19,8 @@ async fn main() -> std::io::Result<()> {
         }
     };
 
+    println!("instance domain: {}", &config.instance_domain);
+
     println!(
         "starting server at http://{}:{}",
         &config.bind_address, &config.port

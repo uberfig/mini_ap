@@ -133,7 +133,7 @@ pub enum PrevOrNew {
     /// If this user has migrated from another instance, this property MUST be set to the URI of the user on the previous instance
     Previous(Url),
     /// If this user has migrated to another instance, this property MUST be set to the URI of the user on the new instance.
-    New(Url)
+    New(Url),
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

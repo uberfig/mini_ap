@@ -106,7 +106,7 @@ pub struct PubVersiaPolls {
     /// Array of the number of votes for each option. The length of this array should match the length of the options array.
     pub votes: Vec<u64>,
     pub multiple_choice: bool,
-    /// ISO 8601 timestamp of when the poll ends and no more votes can be cast. 
+    /// ISO 8601 timestamp of when the poll ends and no more votes can be cast.
     /// If not present, the poll does not expire.
     #[serde(flatten)]
     pub expires_at: Option<Expiry>,
