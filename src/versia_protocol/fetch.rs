@@ -1,3 +1,4 @@
+use openssl::pkey::Private;
 use serde::Deserialize;
 
 enum HttpMethod {

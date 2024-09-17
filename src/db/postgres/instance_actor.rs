@@ -20,18 +20,18 @@ pub async fn get_instance_actor(conn: &PgConn) -> Option<InstanceActor> {
     })
 }
 
-pub async fn create_instance_actor(conn: &PgConn, private_key_pem: &str, public_key_pem: &str) {
-    let client = conn.db.get().await.expect("failed to get client");
-    let stmt = r#"
-    INSERT INTO ap_instance_actor 
-    (private_key_pem, public_key_pem)
-    VALUES
-    ($1, $2);
-    "#;
-    let stmt = client.prepare(stmt).await.unwrap();
+// pub async fn create_instance_actor(conn: &PgConn, private_key_pem: &str, public_key_pem: &str) {
+//     let client = conn.db.get().await.expect("failed to get client");
+//     let stmt = r#"
+//     INSERT INTO ap_instance_actor 
+//     (private_key_pem, public_key_pem)
+//     VALUES
+//     ($1, $2);
+//     "#;
+//     let stmt = client.prepare(stmt).await.unwrap();
 
-    let result = client
-        .query(&stmt, &[&private_key_pem, &public_key_pem])
-        .await;
-    result.unwrap();
-}
+//     let result = client
+//         .query(&stmt, &[&private_key_pem, &public_key_pem])
+//         .await;
+//     result.unwrap();
+// }

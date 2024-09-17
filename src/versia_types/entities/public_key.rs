@@ -1,6 +1,12 @@
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum AlgorithmsPublicKey {
+    #[serde(rename = "ed25519")]
+    Ed25519
+}
+
 /// The user's public key. Must follow the Versia Public Key format.
 /// actor may be a URI to another user's profile, in which case this
 /// key may allow the other user act on behalf of this user (see delegation).
@@ -11,7 +17,7 @@ use url::Url;
 pub struct PublicKey {
     pub actor: Option<Url>,
     /// algorithm used for the public key. Can only be ed25519 for now.
-    pub algorithm: String,
-    /// Instance public key, in SPKI-encoded base64 (from raw bytes, not a PEM format).
+    pub algorithm: AlgorithmsPublicKey,
+    /// public key, in SPKI-encoded base64 (from raw bytes, not a PEM format).
     pub key: String,
 }

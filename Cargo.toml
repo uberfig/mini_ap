@@ -27,5 +27,8 @@ xsd-types = {version = "0.9.5", features = ["serde"]}
 chrono = "0.4.38"
 async-trait = "0.1.81"
 
+ed25519 = "2.2.3"
+ed25519-dalek = {version = "2.1.1", features = ["pkcs8"]}
+
 [dev-dependencies]
 serial_test = "3.1.1"
