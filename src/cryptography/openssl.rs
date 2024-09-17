@@ -4,7 +4,7 @@ use openssl::{
     rsa::Rsa,
 };
 
-use super::key::{ParseErr, PrivateKey, PublicKey};
+use super::key::{KeyType, ParseErr, PrivateKey, PublicKey};
 
 #[derive(Debug, Clone)]
 pub struct OpenSSLPrivate {
@@ -70,7 +70,7 @@ impl PublicKey for OpenSSLPublic {
         verifier.verify(&signature).unwrap()
     }
 
-    fn from_pem(pem: &str) -> Result<Self, ParseErr> {
+    fn from_pem(pem: &str, algorithm: KeyType) -> Result<Self, ParseErr> {
         let Ok(key) = openssl::rsa::Rsa::public_key_from_pem(pem.as_bytes()) else {
             return Err(ParseErr::Failure);
         };
