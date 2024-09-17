@@ -7,16 +7,16 @@ pub enum ParseErr {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum KeyType {
-    Ed25519
+    Ed25519,
 }
 
 pub trait PrivateKey: Clone {
     /// sign the provided content with this key
     fn sign(&self, content: &str) -> String;
     fn from_pem(pem: &str) -> Result<Self, ParseErr>;
-    fn generate() -> Self;
-    fn private_key_pem(&self) -> &str;
-    fn public_key_pem(&self) -> &str;
+    fn generate(algorithm: KeyType) -> Self;
+    fn private_key_pem(&self) -> String;
+    fn public_key_pem(&self) -> String;
 }
 
 pub trait PublicKey: Clone {

@@ -7,7 +7,10 @@ use actix_web::{
 use url::Url;
 
 use crate::{
-    activitystream_objects::object::{Object, ObjectType}, ap_protocol::outgoing::post_to_inbox, cryptography::{key::PrivateKey, openssl::OpenSSLPrivate}, db::conn::Conn
+    activitystream_objects::object::{Object, ObjectType},
+    ap_protocol::outgoing::post_to_inbox,
+    cryptography::{key::PrivateKey, openssl::OpenSSLPrivate},
+    db::conn::Conn,
 };
 
 #[post("/users/{preferred_username}/outbox/ap")]

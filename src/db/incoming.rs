@@ -5,7 +5,10 @@ use crate::{
     activitystream_objects::{
         activities::{Activity, ExtendsIntransitive},
         core_types::ActivityStream,
-    }, ap_protocol::outgoing::post_to_inbox, cryptography::{key::PrivateKey, openssl::OpenSSLPrivate}, db::conn::Conn
+    },
+    ap_protocol::outgoing::post_to_inbox,
+    cryptography::{key::PrivateKey, openssl::OpenSSLPrivate},
+    db::conn::Conn,
 };
 
 pub async fn process_incoming(

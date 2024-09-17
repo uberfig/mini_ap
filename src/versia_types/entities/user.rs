@@ -4,7 +4,9 @@ use url::Url;
 
 use super::public_key::PublicKey;
 use crate::versia_types::extensions::emoji::Emoji;
-use crate::versia_types::serde_fns::{deserialize_time, serialize_time, default_true, default_false};
+use crate::versia_types::serde_fns::{
+    default_false, default_true, deserialize_time, serialize_time,
+};
 use crate::versia_types::structures::content_format::{ImageContentFormat, TextContentFormat};
 
 /// Users are identified by their id property, which is unique within the instance.
@@ -156,7 +158,7 @@ mod tests {
             type_field: UserType::User,
             uri: Url::parse("https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771")
                 .unwrap(),
-            created_at:  1726590522000,
+            created_at: 1726590522000,
             avatar: None,
             bio: None,
             display_name: None,
@@ -207,7 +209,12 @@ mod tests {
         let deserialized: Result<User, _> = serde_json::from_str(&serialized);
         let _deserialized = match deserialized {
             Ok(ok) => ok,
-            Err(err) => return Err(format!("failed to deserialize the serialized value {}", err)),
+            Err(err) => {
+                return Err(format!(
+                    "failed to deserialize the serialized value {}",
+                    err
+                ))
+            }
         };
 
         Ok(())

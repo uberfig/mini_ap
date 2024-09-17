@@ -1,5 +1,5 @@
 use base64::Engine;
-use sha2::{Sha256, Digest};
+use sha2::{Digest, Sha256};
 
 /// generates an sha256 digest of the provided buffer encoded in base64
 pub fn sha256_hash(body: &[u8]) -> String {

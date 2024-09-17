@@ -33,7 +33,7 @@ impl PrivateKey for OpenSSLPrivate {
         })
     }
 
-    fn generate() -> Self {
+    fn generate(algorithm: KeyType) -> Self {
         let rsa = Rsa::generate(2048).unwrap();
         let private_key_pem = String::from_utf8(rsa.private_key_to_pem().unwrap()).unwrap();
         let public_key_pem = String::from_utf8(rsa.public_key_to_pem().unwrap()).unwrap();
@@ -44,12 +44,12 @@ impl PrivateKey for OpenSSLPrivate {
         }
     }
 
-    fn private_key_pem(&self) -> &str {
-        &self.private_key_pem
+    fn private_key_pem(&self) -> String {
+        self.private_key_pem.to_string()
     }
 
-    fn public_key_pem(&self) -> &str {
-        &self.public_key_pem
+    fn public_key_pem(&self) -> String {
+        self.public_key_pem.to_string()
     }
 }
 

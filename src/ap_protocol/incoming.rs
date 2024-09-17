@@ -9,7 +9,7 @@ use crate::{
     ap_protocol::{fetch::authorized_fetch, verification::verify_attribution},
     cryptography::{
         digest::sha256_hash,
-        key::{PrivateKey, PublicKey},
+        key::{KeyType, PrivateKey, PublicKey},
         openssl::OpenSSLPublic,
     },
 };
@@ -154,7 +154,9 @@ pub async fn verify_incoming<T: PrivateKey>(
         }
     }
 
-    let Ok(actor_public_key) = OpenSSLPublic::from_pem(&actor.public_key.public_key_pem) else {
+    let Ok(actor_public_key) =
+        OpenSSLPublic::from_pem(&actor.public_key.public_key_pem, KeyType::Ed25519)
+    else {
         return Err(RequestVerificationError::InvalidKey);
     };
 

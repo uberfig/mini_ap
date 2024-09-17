@@ -14,7 +14,6 @@ impl HttpMethod {
     }
 }
 
-use ed25519_dalek::Signature;
 use ed25519_dalek::SigningKey;
 use rand::rngs::OsRng;
 use textnonce::TextNonce;

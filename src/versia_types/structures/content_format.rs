@@ -1,5 +1,5 @@
+use crate::versia_types::serde_fns::{default_false, default_true};
 use serde::{Deserialize, Serialize};
-use crate::versia_types::serde_fns::{default_true, default_false};
 
 use url::Url;
 

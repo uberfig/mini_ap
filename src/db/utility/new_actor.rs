@@ -1,6 +1,9 @@
 use url::Url;
 
-use crate::cryptography::{key::PrivateKey, openssl::OpenSSLPrivate};
+use crate::cryptography::{
+    key::{KeyType, PrivateKey},
+    openssl::OpenSSLPrivate,
+};
 
 use super::permission::PermissionLevel;
 use argon2::{
@@ -84,7 +87,7 @@ impl NewLocal {
             Some(x) => x,
             None => PermissionLevel::UntrustedUser,
         };
-        let rsa = OpenSSLPrivate::generate();
+        let rsa = OpenSSLPrivate::generate(KeyType::Ed25519);
         let private_key_pem = rsa.private_key_pem().to_string();
         let public_key_pem = rsa.public_key_pem().to_string();
 
