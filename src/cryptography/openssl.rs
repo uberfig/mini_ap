@@ -24,7 +24,7 @@ impl PrivateKey for OpenSSLPrivate {
         let Ok(key) = openssl::rsa::Rsa::private_key_from_pem(pem.as_bytes()) else {
             return Err(ParseErr::Failure);
         };
-        let private_key_pem = String::from_utf8(key.private_key_to_pem().unwrap()).unwrap();
+        let private_key_pem = pem.to_string();
         let public_key_pem = String::from_utf8(key.public_key_to_pem().unwrap()).unwrap();
         Ok(OpenSSLPrivate {
             key: PKey::from_rsa(key).unwrap(),

@@ -5,7 +5,7 @@ use openssl::{
     pkey::{PKey, Private},
 };
 
-use crate::cryptography::digest::generate_digest;
+use crate::cryptography::digest::sha256_hash;
 
 pub async fn post_to_inbox(
     // activity: &ActivityStream,
@@ -21,7 +21,7 @@ pub async fn post_to_inbox(
 
     let date = httpdate::fmt_http_date(SystemTime::now());
 
-    let digest_base64 = &generate_digest(activity.as_bytes());
+    let digest_base64 = &sha256_hash(activity.as_bytes());
 
     //string to be signed
     let signed_string = format!("(request-target): post /inbox\nhost: {to_domain}\ndate: {date}\ndigest: SHA-256={digest_base64}");

@@ -8,7 +8,7 @@ use crate::{
     activitystream_objects::core_types::ActivityStream,
     ap_protocol::{fetch::authorized_fetch, verification::verify_attribution},
     cryptography::{
-        digest::generate_digest,
+        digest::sha256_hash,
         key::{PrivateKey, PublicKey},
         openssl::OpenSSLPublic,
     },
@@ -77,7 +77,7 @@ pub async fn verify_incoming<T: PrivateKey>(
     //     };
     // }
 
-    let generated_digest = "SHA-256=".to_owned() + &generate_digest(body.as_bytes());
+    let generated_digest = "SHA-256=".to_owned() + &sha256_hash(body.as_bytes());
 
     if !digest.eq(&generated_digest) {
         return Err(RequestVerificationError::DigestDoesNotMatch);
