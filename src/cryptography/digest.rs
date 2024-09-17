@@ -1,11 +1,11 @@
-use openssl::hash::MessageDigest;
+use base64::Engine;
+use sha2::{Sha256, Sha512, Digest};
 
 /// generates an sha256 digest of the provided buffer encoded in base64
 pub fn sha256_hash(body: &[u8]) -> String {
-    let mut hasher = openssl::hash::Hasher::new(MessageDigest::sha256()).unwrap();
-    hasher.update(body).unwrap();
-    let digest: &[u8] = &hasher.finish().unwrap();
-
-    //digest_base64
-    openssl::base64::encode_block(digest)
+    let mut hasher = Sha256::new();
+    // write input message
+    hasher.update(body);
+    let finished = hasher.finalize();
+    base64::prelude::BASE64_STANDARD.encode(finished)
 }
