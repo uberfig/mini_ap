@@ -17,8 +17,6 @@ tokio-pg-mapper-derive = "0.2.0"
 refinery = { version = "0.8", features = ["tokio-postgres"]}
 serde_json = "1.0.122"
 
-argon2 = "0.5.3"
-openssl = "0.10.64"
 httpdate = "1.0.3"
 reqwest = "0.12.4"
 url = {version = "2.5.1", features = ["serde"]}
@@ -27,12 +25,16 @@ xsd-types = {version = "0.9.5", features = ["serde"]}
 chrono = "0.4.38"
 async-trait = "0.1.81"
 
+# cryptography stuff
+argon2 = "0.5.3"
+openssl = "0.10.64"
+# we will not be using rsa until the side channel is fixed or its determined not a danger
+# rsa = "0.9.6"
 ed25519 = "2.2.3"
 ed25519-dalek = {version = "2.1.1", features = ["pkcs8", "rand_core", "serde"]}
 rand = "0.8.5"
 textnonce = "1.0.0"
 base64 = "0.22.1"
-# rsa = "0.9.6"
 
 [dev-dependencies]
 serial_test = "3.1.1"
