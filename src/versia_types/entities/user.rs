@@ -141,3 +141,99 @@ pub struct PubVersiaMigration {
     #[serde(flatten)]
     pub target: PrevOrNew,
 }
+
+
+#[cfg(test)]
+mod tests {
+    use ed25519_dalek::SigningKey;
+    use rand::rngs::OsRng;
+
+    use crate::versia_types::entities::public_key::Ed25519Public;
+
+    use super::*;
+
+    fn generate_verifying_key() -> ed25519_dalek::VerifyingKey {
+        let mut csprng = OsRng;
+        let key = SigningKey::generate(&mut csprng);
+        key.verifying_key()
+    }
+    
+
+    #[test]
+    fn test_deserialize() -> Result<(), String> {
+        //taken from the versia protocol examples
+        let key = Ed25519Public { key: generate_verifying_key()};
+        let key = serde_json::to_string(&key);
+        let key = match key {
+            Ok(x) => x,
+            Err(x) => return Err(format!("failed to deserialize key {}", x)),
+        };
+        let versia_user = format!(r#"
+{{
+    "id": "018ec082-0ae1-761c-b2c5-22275a611771",
+    "type": "User",
+    "uri": "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771",
+    "created_at": "2024-04-09T01:38:51.743Z",
+    "avatar": {{ // [!code focus:100]
+        "image/png": {{
+            "content": "https://avatars.githubusercontent.com/u/30842467?v=4"
+        }}
+    }},
+    "bio": {{
+        "text/html": {{
+            "content": "<p>🌸🌸🌸</p>"
+        }},
+        "text/plain": {{
+            "content": "🌸🌸🌸"
+        }}
+    }},
+    "collections": {{
+        "featured": "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771/featured",
+        "followers": "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771/followers",
+        "following": "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771/following",
+        "pub.versia:likes/Dislikes": "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771/dislikes",
+        "pub.versia:likes/Likes": "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771/likes",
+        "outbox": "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771/outbox",
+    }},
+    "display_name": "April The Pink (limited Sand Edition)",
+    "extensions": {{
+        "pub.versia:custom_emojis": {{
+            "emojis": []
+        }}
+    }},
+    "fields": [
+        {{
+            "key": {{
+                "text/html": {{
+                    "content": "<p>Pronouns</p>"
+                }}
+            }},
+            "value": {{
+                "text/html": {{
+                    "content": "<p>It/its</p>"
+                }}
+            }}
+        }}
+    ],
+    "header": null,
+    "inbox": "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771/inbox",
+    "indexable": false,
+    "manually_approves_followers": false,
+    "public_key": {{
+        "actor": "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771",
+        "algorithm": "ed25519",
+        "key": {}
+    }},
+    "username": "aprl"
+}}
+        "#, key);
+        println!("{}", &versia_user);
+        let deserialized: Result<User, serde_json::Error> =
+            serde_json::from_str(&versia_user);
+        match deserialized {
+            Ok(_) => Ok(()),
+            Err(x) => Err(format!("user deserialize failed: {}", x)),
+        }
+    }
+}
+

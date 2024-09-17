@@ -22,7 +22,7 @@ use url::Url;
 
 use crate::cryptography::digest;
 
-fn generate_signing_key() -> SigningKey {
+fn generate_signing_key() -> ed25519_dalek::SigningKey {
     let mut csprng = OsRng;
     SigningKey::generate(&mut csprng)
 }
