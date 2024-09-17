@@ -20,7 +20,7 @@ where
     let Some(time) = DateTime::from_timestamp_millis(*x) else {
         return Err(S::Error::custom("timestamp out of range"));
     };
-    s.serialize_str(&time.to_rfc3339_opts(SecondsFormat::Secs, true))
+    s.serialize_str(&time.to_rfc3339_opts(SecondsFormat::Millis, true))
 }
 
 pub fn default_true() -> bool {
