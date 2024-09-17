@@ -205,7 +205,7 @@ mod tests {
         };
 
         let deserialized: Result<User, _> = serde_json::from_str(&serialized);
-        let deserialized = match deserialized {
+        let _deserialized = match deserialized {
             Ok(ok) => ok,
             Err(err) => return Err(format!("failed to deserialize the serialized value {}", err)),
         };
