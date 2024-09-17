@@ -1,5 +1,6 @@
-use openssl::rsa::Rsa;
 use url::Url;
+
+use crate::cryptography::{key::PrivateKey, openssl::OpenSSLPrivate};
 
 use super::permission::PermissionLevel;
 use argon2::{
@@ -83,9 +84,9 @@ impl NewLocal {
             Some(x) => x,
             None => PermissionLevel::UntrustedUser,
         };
-        let rsa = Rsa::generate(2048).unwrap();
-        let private_key_pem = String::from_utf8(rsa.private_key_to_pem().unwrap()).unwrap();
-        let public_key_pem = String::from_utf8(rsa.public_key_to_pem().unwrap()).unwrap();
+        let rsa = OpenSSLPrivate::generate();
+        let private_key_pem = rsa.private_key_pem().to_string();
+        let public_key_pem = rsa.public_key_pem().to_string();
 
         let salt = SaltString::generate(&mut OsRng);
         let argon2 = Argon2::default();

@@ -1,19 +1,19 @@
 use std::time::SystemTime;
 
-use openssl::{
-    hash::MessageDigest,
-    pkey::{PKey, Private},
-};
+// use openssl::{
+//     hash::MessageDigest,
+//     pkey::{PKey, Private},
+// };
 
-use crate::cryptography::digest::sha256_hash;
+use crate::cryptography::{digest::sha256_hash, key::PrivateKey};
 
-pub async fn post_to_inbox(
+pub async fn post_to_inbox<T: PrivateKey>(
     // activity: &ActivityStream,
     activity: &str,
     from_id: &str,
     to_domain: &str,
     to_inbox: &str,
-    keypair: &PKey<Private>,
+    keypair: &T,
 ) {
     // let keypair: PKey<Private> = PKey::from_rsa(private_key).unwrap();
 
@@ -25,9 +25,10 @@ pub async fn post_to_inbox(
 
     //string to be signed
     let signed_string = format!("(request-target): post /inbox\nhost: {to_domain}\ndate: {date}\ndigest: SHA-256={digest_base64}");
-    let mut signer = openssl::sign::Signer::new(MessageDigest::sha256(), keypair).unwrap();
-    signer.update(signed_string.as_bytes()).unwrap();
-    let signature = openssl::base64::encode_block(&signer.sign_to_vec().unwrap());
+    let signature = keypair.sign(&signed_string);
+    // let mut signer = openssl::sign::Signer::new(MessageDigest::sha256(), keypair).unwrap();
+    // signer.update(signed_string.as_bytes()).unwrap();
+    // let signature = openssl::base64::encode_block(&signer.sign_to_vec().unwrap());
 
     // dbg!(&from_id);
 

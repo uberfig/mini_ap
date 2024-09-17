@@ -5,9 +5,7 @@ use crate::{
     activitystream_objects::{
         activities::{Activity, ExtendsIntransitive},
         core_types::ActivityStream,
-    },
-    ap_protocol::outgoing::post_to_inbox,
-    db::conn::Conn,
+    }, ap_protocol::outgoing::post_to_inbox, cryptography::{key::PrivateKey, openssl::OpenSSLPrivate}, db::conn::Conn
 };
 
 pub async fn process_incoming(
@@ -132,8 +130,7 @@ pub async fn handle_follow(
         };
 
         let key = conn.get_local_user_private_key_db_id(to).await;
-        let key = openssl::rsa::Rsa::private_key_from_pem(key.as_bytes()).unwrap();
-        let key = openssl::pkey::PKey::from_rsa(key).unwrap();
+        let key = OpenSSLPrivate::from_pem(&key).unwrap();
 
         let local_user =
             Url::parse(&format!("https://{}/users/{}", state.instance_domain, to)).unwrap();

@@ -4,13 +4,10 @@ use actix_web::{
     web::{self, Data},
     HttpResponse,
 };
-use openssl::pkey::PKey;
 use url::Url;
 
 use crate::{
-    activitystream_objects::object::{Object, ObjectType},
-    ap_protocol::outgoing::post_to_inbox,
-    db::conn::Conn,
+    activitystream_objects::object::{Object, ObjectType}, ap_protocol::outgoing::post_to_inbox, cryptography::{key::PrivateKey, openssl::OpenSSLPrivate}, db::conn::Conn
 };
 
 #[post("/users/{preferred_username}/outbox/ap")]
@@ -62,8 +59,10 @@ pub async fn create_post(
 
     let key = conn.get_local_user_private_key_db_id(uid).await;
 
-    let key = openssl::rsa::Rsa::private_key_from_pem(key.as_bytes()).unwrap();
-    let key = PKey::from_rsa(key).unwrap();
+    let key = OpenSSLPrivate::from_pem(&key).unwrap();
+
+    // let key = openssl::rsa::Rsa::private_key_from_pem(key.as_bytes()).unwrap();
+    // let key = PKey::from_rsa(key).unwrap();
 
     let activity = object.unwrap().to_create_activitystream();
     let activity_str = serde_json::to_string(&activity).unwrap();
