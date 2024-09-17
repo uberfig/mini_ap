@@ -1,6 +1,6 @@
-// use std::collections::HashMap;
-
 use serde::{Deserialize, Serialize};
+use crate::versia_types::serde_fns::{default_true, default_false};
+
 use url::Url;
 
 /// The ContentFormat structure is used to represent content with metadata.
@@ -87,6 +87,7 @@ pub enum TextOption {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TextContent {
     pub content: TextOption,
+    #[serde(default = "default_false")]
     pub remote: bool,
     pub description: Option<String>,
     pub size: Option<u64>,
@@ -96,6 +97,7 @@ pub struct TextContent {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ImageContent {
     pub content: Url,
+    #[serde(default = "default_true")]
     pub remote: bool, //should always be true
     pub description: Option<String>,
     pub size: Option<u64>,
@@ -108,6 +110,7 @@ pub struct ImageContent {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct VideoContent {
     pub content: Url,
+    #[serde(default = "default_true")]
     pub remote: bool, //should always be false
     pub description: Option<String>,
     pub size: Option<u64>,
@@ -122,6 +125,7 @@ pub struct VideoContent {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AudioContent {
     pub content: Url,
+    #[serde(default = "default_true")]
     pub remote: bool, //should always be false
     pub description: Option<String>,
     pub size: Option<u64>,

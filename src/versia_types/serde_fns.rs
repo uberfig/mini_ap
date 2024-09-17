@@ -22,3 +22,11 @@ where
     };
     s.serialize_str(&time.to_rfc3339_opts(SecondsFormat::Secs, true))
 }
+
+pub fn default_true() -> bool {
+    true
+}
+
+pub fn default_false() -> bool {
+    false
+}

@@ -4,7 +4,7 @@ use url::Url;
 
 use super::public_key::PublicKey;
 use crate::versia_types::extensions::emoji::Emoji;
-use crate::versia_types::serde_fns::{deserialize_time, serialize_time};
+use crate::versia_types::serde_fns::{deserialize_time, serialize_time, default_true, default_false};
 use crate::versia_types::structures::content_format::{ImageContentFormat, TextContentFormat};
 
 /// Users are identified by their id property, which is unique within the instance.
@@ -71,14 +71,6 @@ pub enum UserType {
     User,
 }
 
-fn default_true() -> bool {
-    true
-}
-
-fn default_false() -> bool {
-    false
-}
-
 fn deserialize_username<'de, D>(deserializer: D) -> Result<String, D::Error>
 where
     D: Deserializer<'de>,
@@ -142,13 +134,12 @@ pub struct PubVersiaMigration {
     pub target: PrevOrNew,
 }
 
-
 #[cfg(test)]
 mod tests {
     use ed25519_dalek::SigningKey;
     use rand::rngs::OsRng;
 
-    use crate::versia_types::entities::public_key::Ed25519Public;
+    use crate::versia_types::entities::public_key::{AlgorithmsPublicKey, Ed25519Public};
 
     use super::*;
 
@@ -157,24 +148,90 @@ mod tests {
         let key = SigningKey::generate(&mut csprng);
         key.verifying_key()
     }
-    
+
+    #[test]
+    fn test_serialize() -> Result<(), String> {
+        let user = User {
+            id: "018ec082-0ae1-761c-b2c5-22275a611771".to_string(),
+            type_field: UserType::User,
+            uri: Url::parse("https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771")
+                .unwrap(),
+            created_at:  1726590522000,
+            avatar: None,
+            bio: None,
+            display_name: None,
+            fields: None,
+            username: "ivy".to_string(),
+            header: None,
+            public_key: PublicKey {
+                actor: None,
+                key: AlgorithmsPublicKey::Ed25519(Ed25519Public {
+                    key: generate_verifying_key(),
+                }),
+            },
+            manually_approves_followers: true,
+            indexable: true,
+            inbox: Url::parse(
+                "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771/inbox",
+            )
+            .unwrap(),
+            collections: UserCollections {
+                outbox: Url::parse(
+                    "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771/inbox",
+                )
+                .unwrap(),
+                followers: Url::parse(
+                    "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771/inbox",
+                )
+                .unwrap(),
+                following: Url::parse(
+                    "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771/inbox",
+                )
+                .unwrap(),
+                featured: Url::parse(
+                    "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771/inbox",
+                )
+                .unwrap(),
+                pub_versia_likes_dislikes: None,
+                pub_versia_likes_likes: None,
+            },
+            extensions: None,
+        };
+
+        let serialized = serde_json::to_string(&user);
+        let serialized = match serialized {
+            Ok(ok) => ok,
+            Err(err) => return Err(format!("serialize failed {}", err)),
+        };
+
+        let deserialized: Result<User, _> = serde_json::from_str(&serialized);
+        let deserialized = match deserialized {
+            Ok(ok) => ok,
+            Err(err) => return Err(format!("failed to deserialize the serialized value {}", err)),
+        };
+
+        Ok(())
+    }
 
     #[test]
     fn test_deserialize() -> Result<(), String> {
         //taken from the versia protocol examples
-        let key = Ed25519Public { key: generate_verifying_key()};
+        let key = Ed25519Public {
+            key: generate_verifying_key(),
+        };
         let key = serde_json::to_string(&key);
         let key = match key {
             Ok(x) => x,
             Err(x) => return Err(format!("failed to deserialize key {}", x)),
         };
-        let versia_user = format!(r#"
+        let versia_user = format!(
+            r#"
 {{
     "id": "018ec082-0ae1-761c-b2c5-22275a611771",
     "type": "User",
     "uri": "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771",
     "created_at": "2024-04-09T01:38:51.743Z",
-    "avatar": {{ // [!code focus:100]
+    "avatar": {{ 
         "image/png": {{
             "content": "https://avatars.githubusercontent.com/u/30842467?v=4"
         }}
@@ -193,7 +250,7 @@ mod tests {
         "following": "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771/following",
         "pub.versia:likes/Dislikes": "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771/dislikes",
         "pub.versia:likes/Likes": "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771/likes",
-        "outbox": "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771/outbox",
+        "outbox": "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771/outbox"
     }},
     "display_name": "April The Pink (limited Sand Edition)",
     "extensions": {{
@@ -226,14 +283,14 @@ mod tests {
     }},
     "username": "aprl"
 }}
-        "#, key);
-        println!("{}", &versia_user);
-        let deserialized: Result<User, serde_json::Error> =
-            serde_json::from_str(&versia_user);
+        "#,
+            key
+        );
+        // println!("{}", &versia_user);
+        let deserialized: Result<User, serde_json::Error> = serde_json::from_str(&versia_user);
         match deserialized {
             Ok(_) => Ok(()),
             Err(x) => Err(format!("user deserialize failed: {}", x)),
         }
     }
 }
-

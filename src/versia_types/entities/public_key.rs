@@ -66,8 +66,6 @@ impl<'de> Deserialize<'de> for Ed25519Public {
 
 #[cfg(test)]
 mod tests {
-    use std::fmt::format;
-
     use ed25519_dalek::SigningKey;
     use rand::rngs::OsRng;
 
@@ -83,40 +81,46 @@ mod tests {
 
     #[test]
     fn test_serialize() -> Result<(), String> {
-        let key = Ed25519Public { key: generate_verifying_key()};
-        let key = PublicKey { actor: None, key: AlgorithmsPublicKey::Ed25519(key) };
+        let key = Ed25519Public {
+            key: generate_verifying_key(),
+        };
+        let key = PublicKey {
+            actor: None,
+            key: AlgorithmsPublicKey::Ed25519(key),
+        };
         let deserized = serde_json::to_string(&key);
         match deserized {
             Ok(_) => Ok(()),
             Err(x) => Err(format!("deserialize failure: {}", x)),
         }
     }
-    
 
     #[test]
     fn test_deserialize() -> Result<(), String> {
         //taken from the versia protocol examples
-        let key = Ed25519Public { key: generate_verifying_key()};
+        let key = Ed25519Public {
+            key: generate_verifying_key(),
+        };
         let key = serde_json::to_string(&key);
         let key = match key {
             Ok(x) => x,
             Err(x) => return Err(format!("failed to deserialize key {}", x)),
         };
-        let public_key = format!(r#"
+        let public_key = format!(
+            r#"
 {{
     "actor": "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771",
     "algorithm": "ed25519",
     "key": {}
 }}
-        "#, key);
+        "#,
+            key
+        );
         println!("{}", &public_key);
-        let deserialized: Result<PublicKey, serde_json::Error> =
-            serde_json::from_str(&public_key);
+        let deserialized: Result<PublicKey, serde_json::Error> = serde_json::from_str(&public_key);
         match deserialized {
             Ok(_) => Ok(()),
             Err(x) => Err(format!("user deserialize failed: {}", x)),
         }
     }
 }
-
-
