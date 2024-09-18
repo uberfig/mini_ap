@@ -1,4 +1,4 @@
-use ed25519::pkcs8::{spki::der::pem::LineEnding, EncodePublicKey, EncodePrivateKey};
+use ed25519::pkcs8::{spki::der::pem::LineEnding, EncodePrivateKey, EncodePublicKey};
 use ed25519_dalek::SigningKey;
 
 use rand::rngs::OsRng;
@@ -33,7 +33,8 @@ impl PrivateKey for AlgorithmsPrivateKey {
         match self {
             AlgorithmsPrivateKey::Ed25519(signing_key) => {
                 let test = signing_key.to_pkcs8_pem(LineEnding::default());
-                test.expect("for some reason the private key failed to encode").to_string()
+                test.expect("for some reason the private key failed to encode")
+                    .to_string()
             }
         }
     }

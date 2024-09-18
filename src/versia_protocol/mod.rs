@@ -1,3 +1,3 @@
 pub mod discovery;
-pub mod fetch;
+pub mod requests;
 pub mod signatures;
