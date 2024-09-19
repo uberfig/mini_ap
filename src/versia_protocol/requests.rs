@@ -1,13 +1,18 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use actix_web::web::Data;
-use chrono::{DateTime, Utc};
+// use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use textnonce::TextNonce;
 use url::Url;
 
 use crate::{
-    ap_protocol::fetch::FetchErr, cryptography::{digest, key::{PrivateKey, PublicKey}}, db::conn::Conn, versia_types::entities::public_key::AlgorithmsPublicKey
+    ap_protocol::fetch::FetchErr,
+    cryptography::{
+        digest,
+        key::{PrivateKey, PublicKey},
+    },
+    db::conn::Conn,
 };
 
 pub enum HttpMethod {
@@ -54,7 +59,7 @@ fn signature_string(
     // currently versia has made the decision to not include timestamps.
     // I have left this here because I feel that is a design mistake. it
     // can be enabled at any time if they decide to change their decision
-    _timestamp: i64, 
+    _timestamp: i64,
 ) -> String {
     format!(
         "{} {} {} {}",
@@ -83,14 +88,22 @@ impl std::fmt::Display for VerifyRequestErr {
         match self {
             VerifyRequestErr::MissingHeader(x) => write!(f, "MissingHeader: {}", x),
             VerifyRequestErr::InvalidTimestamp => write!(f, "InvalidTimestamp"),
-            VerifyRequestErr::SignatureVerificationFailure => write!(f, "SignatureVerificationFailure"),
+            VerifyRequestErr::SignatureVerificationFailure => {
+                write!(f, "SignatureVerificationFailure")
+            }
             VerifyRequestErr::TooOld => write!(f, "TooOld"),
             VerifyRequestErr::UnableToObtainKey => write!(f, "UnableToObtainKey"),
         }
     }
 }
 
-pub async fn verify_request<T: Headers>(headers: &T, method: HttpMethod, path: &str, hash: &str, conn: &Data<Box<dyn Conn + Sync>>) -> Result<(), VerifyRequestErr> {
+pub async fn verify_request<T: Headers>(
+    headers: &T,
+    method: HttpMethod,
+    path: &str,
+    hash: &str,
+    conn: &Data<Box<dyn Conn + Sync>>,
+) -> Result<(), VerifyRequestErr> {
     let Some(_content_type) = headers.get("Content-Type") else {
         return Err(VerifyRequestErr::MissingHeader("Content-Type".to_string()));
     };
@@ -104,7 +117,7 @@ pub async fn verify_request<T: Headers>(headers: &T, method: HttpMethod, path: &
         return Err(VerifyRequestErr::MissingHeader("X-Nonce".to_string()));
     };
 
-    // see the comment on signature_string 
+    // see the comment on signature_string
     // let Some(signed_milis) = headers.get("Signed-milis") else {
     //     return Err(VerifyRequestErr::MissingHeader("Signed-milis".to_string()));
     // };
@@ -198,7 +211,8 @@ pub async fn versia_post<K: PrivateKey>(
     content: &str,
     signing_key: K,
     signed_by: &str,
-) -> Result<(), ()> {
+    conn: &Data<Box<dyn Conn + Sync>>,
+) -> Result<(), FetchErr> {
     let nonce = TextNonce::new().into_string();
     let path = target.path();
     let hash = digest::sha256_hash(content.as_bytes());
@@ -211,7 +225,7 @@ pub async fn versia_post<K: PrivateKey>(
 
     let client = reqwest::Client::new();
     let client = client
-        .post(target)
+        .post(target.clone())
         .header("Accept", "application/json")
         .header("X-Signature", signature)
         .header("X-Signed-By", signed_by)
@@ -220,15 +234,28 @@ pub async fn versia_post<K: PrivateKey>(
         .header("Signed-milis", signed_at)
         .body("");
 
-    // dbg!(&client);
-
     let res = client.send().await;
-    // dbg!(&res);
 
-    // let res = match res {
-    //     Ok(x) => x,
-    //     Err(x) => return Err(FetchErr::RequestErr(x.to_string())),
-    // };
+    let res = match res {
+        Ok(x) => x,
+        Err(x) => return Err(FetchErr::RequestErr(x.to_string())),
+    };
 
-    todo!()
+    let headers = ReqwestHeaders {
+        headermap: res.headers().clone(),
+    };
+
+    let response = res.text().await;
+    let response = match response {
+        Ok(x) => x,
+        Err(x) => return Err(FetchErr::RequestErr(x.to_string())),
+    };
+
+    let hash = digest::sha256_hash(response.as_bytes());
+
+    if let Err(val) = verify_request(&headers, HttpMethod::Get, path, &hash, conn).await {
+        return Err(FetchErr::VerifyErr(val));
+    }
+
+    Ok(())
 }

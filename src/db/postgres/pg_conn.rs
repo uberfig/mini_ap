@@ -8,7 +8,9 @@ use crate::{
         utility::{instance_actor::InstanceActor, new_actor::NewLocal, protocols::Protocols},
         Follower, Like,
     },
-    versia_types::entities::{instance_metadata::InstanceMetadata, public_key::AlgorithmsPublicKey},
+    versia_types::entities::{
+        instance_metadata::InstanceMetadata, public_key::AlgorithmsPublicKey,
+    },
 };
 
 use super::{acct_mgmt, actors, follows, init, local_users, posts};

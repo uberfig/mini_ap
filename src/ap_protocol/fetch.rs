@@ -3,7 +3,10 @@ use std::{fmt::Display, time::SystemTime};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::{activitystream_objects::core_types::ActivityStream, cryptography::key::PrivateKey, versia_protocol::requests::VerifyRequestErr};
+use crate::{
+    activitystream_objects::core_types::ActivityStream, cryptography::key::PrivateKey,
+    versia_protocol::requests::VerifyRequestErr,
+};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum FetchErr {
@@ -23,7 +26,9 @@ impl Display for FetchErr {
             FetchErr::DeserializationErr(x) => write!(f, "DeserializationErr: {}", x),
             FetchErr::InvalidUrl(x) => write!(f, "InvalidUrl: {}", x),
             FetchErr::MissingHeader(x) => write!(f, "MissingHeader: {}", x),
-            FetchErr::VerifyErr(verify_request_err) => write!(f, "VerifyErr: {}", verify_request_err),
+            FetchErr::VerifyErr(verify_request_err) => {
+                write!(f, "VerifyErr: {}", verify_request_err)
+            }
         }
     }
 }
