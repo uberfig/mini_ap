@@ -11,6 +11,7 @@ pub enum FetchErr {
     RequestErr(String),
     DeserializationErr(String),
     InvalidUrl(String),
+    MissingHeader(String),
 }
 
 impl Display for FetchErr {
@@ -20,6 +21,7 @@ impl Display for FetchErr {
             FetchErr::RequestErr(x) => write!(f, "RequestErr: {}", x),
             FetchErr::DeserializationErr(x) => write!(f, "DeserializationErr: {}", x),
             FetchErr::InvalidUrl(x) => write!(f, "InvalidUrl: {}", x),
+            FetchErr::MissingHeader(x) => write!(f, "MissingHeader: {}", x),
         }
     }
 }
