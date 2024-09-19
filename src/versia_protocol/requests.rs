@@ -4,14 +4,13 @@ use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use textnonce::TextNonce;
 use url::Url;
-use xsd_types::lexical::duration;
 
 use crate::{
     ap_protocol::fetch::FetchErr,
     cryptography::{digest, key::{PrivateKey, PublicKey}}, versia_types::entities::public_key::AlgorithmsPublicKey,
 };
 
-enum HttpMethod {
+pub enum HttpMethod {
     Get,
     Post,
 }
@@ -42,7 +41,7 @@ impl Headers for ReqwestHeaders<'_> {
     }
 }
 
-enum Signer {
+pub enum Signer {
     User(Url),
     Instance(String),
 }
@@ -75,7 +74,7 @@ pub enum VerifyRequestErr {
     UnableToObtainKey,
 }
 
-pub fn get_key(signed_by: &str) -> Option<AlgorithmsPublicKey> {
+pub fn get_key(_signed_by: &str) -> Option<AlgorithmsPublicKey> {
     todo!()
 }
 
@@ -120,7 +119,7 @@ pub fn verify_request<T: Headers>(headers: T, method: HttpMethod, path: &str, ha
     if verifying_key.verify(&verify_string, signature) {
         return Ok(());
     }
-    return Err(VerifyRequestErr::SignatureVerificationFailure);
+    Err(VerifyRequestErr::SignatureVerificationFailure)
 }
 
 pub async fn versia_fetch<T: for<'a> Deserialize<'a>, K: PrivateKey>(
