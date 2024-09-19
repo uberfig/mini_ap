@@ -8,7 +8,7 @@ use crate::{
         utility::{instance_actor::InstanceActor, new_actor::NewLocal, protocols::Protocols},
         Follower, Like,
     },
-    versia_types::entities::instance_metadata::InstanceMetadata,
+    versia_types::entities::{instance_metadata::InstanceMetadata, public_key::AlgorithmsPublicKey},
 };
 
 use super::{acct_mgmt, actors, follows, init, local_users, posts};
@@ -43,6 +43,10 @@ impl Conn for PgConn {
     }
 
     //----------------------actors---------------------------
+
+    async fn get_key(&self, signed_by: &str) -> Option<AlgorithmsPublicKey> {
+        todo!()
+    }
 
     async fn get_actor(&self, uid: i64, instance_domain: &str) -> Option<Actor> {
         actors::get_actor(self, uid, instance_domain).await

@@ -5,7 +5,7 @@ use url::Url;
 use crate::{
     activitystream_objects::actors::Actor,
     ap_protocol::fetch::{authorized_fetch, FetchErr},
-    versia_types::entities::instance_metadata::InstanceMetadata,
+    versia_types::entities::{instance_metadata::InstanceMetadata, public_key::AlgorithmsPublicKey},
 };
 
 use super::{
@@ -46,6 +46,8 @@ pub trait Conn: Sync {
     async fn get_protocol(&self, instance: &str) -> Protocols;
 
     //----------------------actors---------------------------
+
+    async fn get_key(&self, signed_by: &str) -> Option<AlgorithmsPublicKey>;
 
     /// instance_domain must be provided as internal users will
     /// need to have their links generated based on the instance
