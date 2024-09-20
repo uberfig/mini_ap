@@ -9,7 +9,7 @@ use crate::{
         Follower, Like,
     },
     versia_types::entities::{
-        instance_metadata::InstanceMetadata, public_key::AlgorithmsPublicKey,
+        instance_metadata::InstanceMetadata, public_key::AlgorithmsPublicKey, user::User,
     },
 };
 
@@ -45,6 +45,9 @@ impl Conn for PgConn {
     }
 
     //----------------------actors---------------------------
+    async fn get_local_versia_user(&self, uuid: &str, instance_domain: &str) -> Option<User> {
+        todo!()
+    }
 
     async fn get_key(&self, signed_by: &str) -> Option<AlgorithmsPublicKey> {
         todo!()

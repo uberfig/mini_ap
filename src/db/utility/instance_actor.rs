@@ -24,7 +24,11 @@ impl InstanceActor {
     //     }
     // }
     pub fn get_private_key(&self) -> AlgorithmsPrivateKey {
-        AlgorithmsPrivateKey::from_pem(&self.private_key_pem, crate::cryptography::key::KeyType::Ed25519).unwrap()
+        AlgorithmsPrivateKey::from_pem(
+            &self.private_key_pem,
+            crate::cryptography::key::KeyType::Ed25519,
+        )
+        .unwrap()
     }
     pub fn to_actor(&self, domain: &str) -> Actor {
         let links = instance_actor_links(domain);

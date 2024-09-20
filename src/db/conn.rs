@@ -6,7 +6,7 @@ use crate::{
     activitystream_objects::actors::Actor,
     protocol::{ap_protocol::fetch::authorized_fetch, errors::FetchErr},
     versia_types::entities::{
-        instance_metadata::InstanceMetadata, public_key::AlgorithmsPublicKey,
+        instance_metadata::InstanceMetadata, public_key::AlgorithmsPublicKey, user::User,
     },
 };
 
@@ -48,6 +48,8 @@ pub trait Conn: Sync {
     async fn get_protocol(&self, instance: &str) -> Protocols;
 
     //----------------------actors---------------------------
+
+    async fn get_local_versia_user(&self, uuid: &str, instance_domain: &str) -> Option<User>;
 
     async fn get_key(&self, signed_by: &str) -> Option<AlgorithmsPublicKey>;
 
@@ -128,7 +130,8 @@ pub trait Conn: Sync {
         let instance_actor = self.get_instance_actor().await;
         let key_id = InstanceActor::pub_key_id(instance_domain);
 
-        let fetched = authorized_fetch(actor_id, &key_id, &mut instance_actor.get_private_key()).await;
+        let fetched =
+            authorized_fetch(actor_id, &key_id, &mut instance_actor.get_private_key()).await;
         let fetched = match fetched {
             Ok(x) => x,
             Err(x) => return Err(DbErr::FetchErr(x)),

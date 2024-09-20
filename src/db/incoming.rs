@@ -133,7 +133,9 @@ pub async fn handle_follow(
         };
 
         let key = conn.get_local_user_private_key_db_id(to).await;
-        let mut key = AlgorithmsPrivateKey::from_pem(&key, crate::cryptography::key::KeyType::Ed25519).unwrap();
+        let mut key =
+            AlgorithmsPrivateKey::from_pem(&key, crate::cryptography::key::KeyType::Ed25519)
+                .unwrap();
 
         let local_user =
             Url::parse(&format!("https://{}/users/{}", state.instance_domain, to)).unwrap();
