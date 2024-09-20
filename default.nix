@@ -7,14 +7,10 @@ pkgs.rustPlatform.buildRustPackage rec {
   cargoLock.lockFile = ./Cargo.lock;
   src = pkgs.lib.cleanSource ./.;
   nativeBuildInputs = with pkgs; [
-    openssl
-    openssl.dev
     postgresql
     pkg-config
   ];
   buildInputs = with pkgs; [
-    openssl
-    openssl.dev
     postgresql
     pkg-config
   ];
