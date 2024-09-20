@@ -8,9 +8,9 @@ pub enum ShareType {
     Share,
 }
 
-/// The Share Extension lets users share notes they like with others. 
+/// The Share Extension lets users share notes they like with others.
 /// This is the same as Twitter's "retweet" and Mastodon's "boost".
-/// 
+///
 /// https://versia.pub/extensions/share
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Share {
