@@ -4,13 +4,13 @@ use deadpool_postgres::Pool;
 use crate::{
     activitystream_objects::actors::Actor,
     db::{
-        conn::{Conn, DbErr},
+        conn::{Conn, DbErr, PostOrigin},
         utility::{instance_actor::InstanceActor, new_actor::NewLocal, protocols::Protocols},
         Follower, Like,
     },
-    versia_types::entities::{
+    versia_types::{entities::{
         instance_metadata::InstanceMetadata, public_key::AlgorithmsPublicKey, user::User,
-    },
+    }, postable::Postable},
 };
 
 use super::{acct_mgmt, actors, follows, init, local_users, posts};
@@ -23,6 +23,10 @@ pub struct PgConn {
 #[allow(unused_variables)]
 #[async_trait]
 impl Conn for PgConn {
+    async fn get_versia_post(&self, pid: &str, origin: &PostOrigin) -> Option<Postable> {
+        todo!()
+    }
+
     async fn init(&self) -> Result<(), String> {
         init::init(self).await
     }

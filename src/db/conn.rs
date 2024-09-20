@@ -5,9 +5,9 @@ use url::Url;
 use crate::{
     activitystream_objects::actors::Actor,
     protocol::{ap_protocol::fetch::authorized_fetch, errors::FetchErr},
-    versia_types::entities::{
+    versia_types::{entities::{
         instance_metadata::InstanceMetadata, public_key::AlgorithmsPublicKey, user::User,
-    },
+    }, postable::Postable},
 };
 
 use super::{
@@ -33,8 +33,23 @@ impl std::fmt::Display for DbErr {
     }
 }
 
+/// the origin of a post containing its instance domain
+pub enum PostOrigin<'a> {
+    Local(&'a str),
+    Federated(&'a str),
+}
+
 #[async_trait]
 pub trait Conn: Sync {
+    // versia new
+    async fn get_versia_instance_metadata(&self, instance_domain: &str) -> InstanceMetadata;
+    /// get the protocol of the given instance. will backfill if the instance isn't in the db
+    async fn get_protocol(&self, instance: &str) -> Protocols;
+    async fn get_local_versia_user(&self, uuid: &str, instance_domain: &str) -> Option<User>;
+    async fn get_versia_post(&self, pid: &str, origin: &PostOrigin) -> Option<Postable>;
+
+
+
     /// run any prep for the database, for example running migrations
     async fn init(&self) -> Result<(), String>;
 
@@ -43,13 +58,11 @@ pub trait Conn: Sync {
     async fn get_instance_actor(&self) -> InstanceActor;
     // async fn create_instance_actor(&self, private_key_pem: &str, public_key_pem: &str);
 
-    async fn get_versia_instance_metadata(&self, instance_domain: &str) -> InstanceMetadata;
-    /// get the protocol of the given instance. will backfill if the instance isn't in the db
-    async fn get_protocol(&self, instance: &str) -> Protocols;
+    
 
     //----------------------actors---------------------------
 
-    async fn get_local_versia_user(&self, uuid: &str, instance_domain: &str) -> Option<User>;
+    
 
     async fn get_key(&self, signed_by: &str) -> Option<AlgorithmsPublicKey>;
 
