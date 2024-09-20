@@ -6,7 +6,7 @@ use crate::{
         activities::{Activity, ExtendsIntransitive},
         core_types::ActivityStream,
     },
-    cryptography::{key::PrivateKey, openssl::OpenSSLPrivate},
+    cryptography::{key::PrivateKey, private_key::AlgorithmsPrivateKey},
     db::conn::Conn,
     protocol::ap_protocol::outgoing::post_to_inbox,
 };
@@ -133,7 +133,7 @@ pub async fn handle_follow(
         };
 
         let key = conn.get_local_user_private_key_db_id(to).await;
-        let key = OpenSSLPrivate::from_pem(&key).unwrap();
+        let mut key = AlgorithmsPrivateKey::from_pem(&key, crate::cryptography::key::KeyType::Ed25519).unwrap();
 
         let local_user =
             Url::parse(&format!("https://{}/users/{}", state.instance_domain, to)).unwrap();
@@ -147,7 +147,7 @@ pub async fn handle_follow(
             from_id.as_str(),
             &fedi_actor.domain.unwrap(),
             fedi_actor.inbox.as_str(),
-            &key,
+            &mut key,
         )
         .await
     }

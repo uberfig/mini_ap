@@ -10,7 +10,7 @@ use crate::{activitystream_objects::core_types::ActivityStream, cryptography::ke
 pub async fn authorized_fetch<T: PrivateKey>(
     object_id: &Url,
     key_id: &str,
-    private_key: &T,
+    private_key: &mut T,
 ) -> Result<ActivityStream, FetchErr> {
     let path = object_id.path();
     let Some(fetch_domain) = object_id.host_str() else {

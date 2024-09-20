@@ -128,7 +128,7 @@ pub trait Conn: Sync {
         let instance_actor = self.get_instance_actor().await;
         let key_id = InstanceActor::pub_key_id(instance_domain);
 
-        let fetched = authorized_fetch(actor_id, &key_id, &instance_actor.get_private_key()).await;
+        let fetched = authorized_fetch(actor_id, &key_id, &mut instance_actor.get_private_key()).await;
         let fetched = match fetched {
             Ok(x) => x,
             Err(x) => return Err(DbErr::FetchErr(x)),

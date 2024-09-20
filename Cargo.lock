@@ -359,7 +359,6 @@ dependencies = [
  "ed25519",
  "ed25519-dalek",
  "httpdate",
- "openssl",
  "rand 0.8.5",
  "refinery",
  "reqwest",

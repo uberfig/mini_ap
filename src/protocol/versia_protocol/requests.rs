@@ -23,7 +23,7 @@ const SOFTWARE_NAME: &str = env!("CARGO_PKG_NAME");
 
 pub async fn versia_fetch<T: for<'a> Deserialize<'a>, K: PrivateKey>(
     target: Url,
-    signing_key: K,
+    mut signing_key: K,
     signed_by: &str,
     conn: &Data<Box<dyn Conn + Sync>>,
 ) -> Result<T, FetchErr> {
@@ -84,7 +84,7 @@ pub async fn versia_fetch<T: for<'a> Deserialize<'a>, K: PrivateKey>(
 pub async fn versia_post<K: PrivateKey>(
     target: Url,
     content: &str,
-    signing_key: K,
+    mut signing_key: K,
     signed_by: &str,
     conn: &Data<Box<dyn Conn + Sync>>,
 ) -> Result<(), FetchErr> {

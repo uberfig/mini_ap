@@ -13,7 +13,8 @@ use crate::{
     db::{conn::Conn, incoming::process_incoming},
     protocol::{
         ap_protocol::incoming::{verify_incoming, RequestVerificationError},
-        errors::FetchErr, headers::ActixHeaders,
+        errors::FetchErr,
+        headers::ActixHeaders,
     },
 };
 pub struct Inbox {
@@ -64,7 +65,7 @@ async fn handle_inbox(
     conn: Data<Box<dyn Conn + Sync>>,
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse, Error> {
-    let instance_actor_key = conn.get_instance_actor().await.get_private_key();
+    let mut instance_actor_key = conn.get_instance_actor().await.get_private_key();
 
     let Ok(body) = String::from_utf8(body.to_vec()) else {
         return Ok(HttpResponse::Unauthorized()
@@ -75,12 +76,14 @@ async fn handle_inbox(
     let val = request.headers();
 
     let x = verify_incoming(
-        &ActixHeaders { headermap: request.headers().clone() },
+        &ActixHeaders {
+            headermap: request.headers().clone(),
+        },
         &body,
         path,
         &state.instance_domain,
         &format!("https://{}/actor/ap#main-key", &state.instance_domain),
-        &instance_actor_key,
+        &mut instance_actor_key,
     )
     .await;
 

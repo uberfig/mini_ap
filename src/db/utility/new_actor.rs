@@ -2,7 +2,7 @@ use url::Url;
 
 use crate::cryptography::{
     key::{KeyType, PrivateKey},
-    openssl::OpenSSLPrivate,
+    private_key::AlgorithmsPrivateKey,
 };
 
 use super::permission::PermissionLevel;
@@ -87,7 +87,7 @@ impl NewLocal {
             Some(x) => x,
             None => PermissionLevel::UntrustedUser,
         };
-        let rsa = OpenSSLPrivate::generate(KeyType::Ed25519);
+        let rsa = AlgorithmsPrivateKey::generate(KeyType::Ed25519);
         let private_key_pem = rsa.private_key_pem().to_string();
         let public_key_pem = rsa.public_key_pem().to_string();
 

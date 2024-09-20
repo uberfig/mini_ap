@@ -8,7 +8,7 @@ use url::Url;
 
 use crate::{
     activitystream_objects::object::{Object, ObjectType},
-    cryptography::{key::PrivateKey, openssl::OpenSSLPrivate},
+    cryptography::{key::PrivateKey, private_key::AlgorithmsPrivateKey, },
     db::conn::Conn,
     protocol::ap_protocol::outgoing::post_to_inbox,
 };
@@ -62,7 +62,7 @@ pub async fn create_post(
 
     let key = conn.get_local_user_private_key_db_id(uid).await;
 
-    let key = OpenSSLPrivate::from_pem(&key).unwrap();
+    let mut key = AlgorithmsPrivateKey::from_pem(&key, crate::cryptography::key::KeyType::Ed25519).unwrap();
 
     // let key = openssl::rsa::Rsa::private_key_from_pem(key.as_bytes()).unwrap();
     // let key = PKey::from_rsa(key).unwrap();
@@ -82,7 +82,7 @@ pub async fn create_post(
                 .unwrap();
             let domain = actor.get_id().domain().unwrap();
             println!("posting to inbox");
-            post_to_inbox(&activity_str, from_id, domain, actor.inbox.as_str(), &key).await;
+            post_to_inbox(&activity_str, from_id, domain, actor.inbox.as_str(), &mut key).await;
         }
     }
 

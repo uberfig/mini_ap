@@ -27,7 +27,6 @@ async-trait = "0.1.81"
 
 # cryptography stuff
 argon2 = "0.5.3"
-openssl = "0.10.64"
 # we will not be using rsa until the side channel is fixed or its determined not a danger
 # rsa = "0.9.6"
 ed25519 = "2.2.3"

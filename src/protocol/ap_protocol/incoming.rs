@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use url::Url;
 
 use crate::{
@@ -7,9 +7,10 @@ use crate::{
     cryptography::{
         digest::sha256_hash,
         key::{KeyType, PrivateKey, PublicKey},
-        openssl::OpenSSLPublic,
+        // openssl::OpenSSLPublic,
     },
     protocol::{errors::FetchErr, headers::Headers},
+    versia_types::entities::public_key::AlgorithmsPublicKey,
 };
 
 use super::{fetch::authorized_fetch, verification::verify_attribution};
@@ -50,7 +51,7 @@ pub async fn verify_incoming<K: PrivateKey, H: Headers>(
     instance_domain: &str,
     // instance_public_key_pem: String,
     instance_key_id: &str,
-    instance_private_key: &K,
+    instance_private_key: &mut K,
 ) -> Result<ActivityStream, RequestVerificationError> {
     //check digest matches
 
@@ -144,7 +145,7 @@ pub async fn verify_incoming<K: PrivateKey, H: Headers>(
     }
 
     let Ok(actor_public_key) =
-        OpenSSLPublic::from_pem(&actor.public_key.public_key_pem, KeyType::Ed25519)
+        AlgorithmsPublicKey::from_pem(&actor.public_key.public_key_pem, KeyType::Ed25519)
     else {
         return Err(RequestVerificationError::InvalidKey);
     };

@@ -13,7 +13,7 @@ pub async fn post_to_inbox<T: PrivateKey>(
     from_id: &str,
     to_domain: &str,
     to_inbox: &str,
-    keypair: &T,
+    keypair: &mut T,
 ) {
     // let keypair: PKey<Private> = PKey::from_rsa(private_key).unwrap();
 

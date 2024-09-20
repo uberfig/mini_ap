@@ -12,8 +12,8 @@ pub enum KeyType {
 
 pub trait PrivateKey: Clone {
     /// sign the provided content with this key
-    fn sign(&self, content: &str) -> String;
-    fn from_pem(pem: &str) -> Result<Self, ParseErr>;
+    fn sign(&mut self, content: &str) -> String;
+    fn from_pem(pem: &str, algorithm: crate::cryptography::key::KeyType) -> Result<Self, ParseErr>;
     fn generate(algorithm: KeyType) -> Self;
     fn private_key_pem(&self) -> String;
     fn public_key_pem(&self) -> String;

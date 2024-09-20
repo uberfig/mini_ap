@@ -1,4 +1,4 @@
-use ed25519::pkcs8::{spki::der::pem::LineEnding, EncodePrivateKey, EncodePublicKey};
+use ed25519::{pkcs8::{spki::der::pem::LineEnding, EncodePrivateKey, EncodePublicKey, DecodePrivateKey}, signature::SignerMut};
 use ed25519_dalek::SigningKey;
 
 use rand::rngs::OsRng;
@@ -12,12 +12,24 @@ pub enum AlgorithmsPrivateKey {
 }
 
 impl PrivateKey for AlgorithmsPrivateKey {
-    fn sign(&self, content: &str) -> String {
-        todo!()
+    fn sign(&mut self, content: &str) -> String {
+        match self {
+            AlgorithmsPrivateKey::Ed25519(signing_key) => {
+                let signature = signing_key.sign(content.as_bytes());
+                signature.to_string()
+            },
+        }
     }
 
-    fn from_pem(pem: &str) -> Result<Self, super::key::ParseErr> {
-        todo!()
+    fn from_pem(pem: &str, algorithm: crate::cryptography::key::KeyType) -> Result<Self, super::key::ParseErr> {
+        match algorithm {
+            KeyType::Ed25519 => {
+                let Ok(val) = ed25519_dalek::SigningKey::from_pkcs8_pem(pem) else {
+                    return Err(crate::cryptography::key::ParseErr::Failure);
+                };
+                Ok(AlgorithmsPrivateKey::Ed25519(val))
+            },
+        }
     }
 
     fn generate(algorithm: KeyType) -> Self {
