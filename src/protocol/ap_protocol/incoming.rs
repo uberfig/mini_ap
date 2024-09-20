@@ -1,6 +1,4 @@
 use std::collections::HashMap;
-
-use actix_web::HttpRequest;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -11,7 +9,7 @@ use crate::{
         key::{KeyType, PrivateKey, PublicKey},
         openssl::OpenSSLPublic,
     },
-    protocol::errors::FetchErr,
+    protocol::{errors::FetchErr, headers::Headers},
 };
 
 use super::{fetch::authorized_fetch, verification::verify_attribution};
@@ -44,25 +42,20 @@ pub enum RequestVerificationError {
 }
 
 ///verifys a request and returns the message body if its valid
-pub async fn verify_incoming<T: PrivateKey>(
-    request: HttpRequest,
+pub async fn verify_incoming<K: PrivateKey, H: Headers>(
+    // request: HttpRequest,
+    request_headers: &H,
     body: &str,
     path: &str,
     instance_domain: &str,
     // instance_public_key_pem: String,
     instance_key_id: &str,
-    instance_private_key: &T,
+    instance_private_key: &K,
 ) -> Result<ActivityStream, RequestVerificationError> {
-    let request_headers = request.headers();
-
     //check digest matches
 
     let Some(digest) = request_headers.get("Digest") else {
         return Err(RequestVerificationError::NoMessageDigest);
-    };
-
-    let Ok(digest) = String::from_utf8(digest.as_bytes().to_vec()) else {
-        return Err(RequestVerificationError::BadMessageDigest);
     };
 
     let object: Result<ActivityStream, _> = serde_json::from_str(body);
@@ -87,10 +80,6 @@ pub async fn verify_incoming<T: PrivateKey>(
 
     let Some(signature_header) = request_headers.get("Signature") else {
         return Err(RequestVerificationError::NoMessageSignature);
-    };
-
-    let Ok(signature_header) = String::from_utf8(signature_header.as_bytes().to_vec()) else {
-        return Err(RequestVerificationError::BadMessageSignature);
     };
 
     let signature_header: HashMap<String, String> = signature_header
@@ -178,8 +167,6 @@ pub async fn verify_incoming<T: PrivateKey>(
             "host" => Some(format!("host: {instance_domain}")),
             _ => {
                 let value = request_headers.get(signed_header_name)?;
-
-                let value = String::from_utf8(value.as_bytes().to_vec()).unwrap();
                 let x = format!("{signed_header_name}: {value}",);
                 // dbg!(&x);
                 Some(x)

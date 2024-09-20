@@ -46,12 +46,12 @@ pub async fn verify_request<T: Headers>(
     //     return Err(VerifyRequestErr::TooOld);
     // }
 
-    let Some(verifying_key) = conn.get_key(signed_by).await else {
+    let Some(verifying_key) = conn.get_key(&signed_by).await else {
         return Err(VerifyRequestErr::UnableToObtainKey);
     };
 
-    let verify_string = signature_string(method, path, nonce, hash, 0);
-    if verifying_key.verify(&verify_string, signature) {
+    let verify_string = signature_string(method, path, &nonce, hash, 0);
+    if verifying_key.verify(&verify_string, &signature) {
         return Ok(());
     }
     Err(VerifyRequestErr::SignatureVerificationFailure)

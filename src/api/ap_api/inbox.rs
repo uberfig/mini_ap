@@ -13,7 +13,7 @@ use crate::{
     db::{conn::Conn, incoming::process_incoming},
     protocol::{
         ap_protocol::incoming::{verify_incoming, RequestVerificationError},
-        errors::FetchErr,
+        errors::FetchErr, headers::ActixHeaders,
     },
 };
 pub struct Inbox {
@@ -72,9 +72,10 @@ async fn handle_inbox(
     };
 
     // println!("{}", &body);
+    let val = request.headers();
 
     let x = verify_incoming(
-        request,
+        &ActixHeaders { headermap: request.headers().clone() },
         &body,
         path,
         &state.instance_domain,
