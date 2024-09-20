@@ -1,37 +1,8 @@
-use std::{fmt::Display, time::SystemTime};
-
-use serde::{Deserialize, Serialize};
+use crate::protocol::errors::FetchErr;
+use std::time::SystemTime;
 use url::Url;
 
-use crate::{
-    activitystream_objects::core_types::ActivityStream, cryptography::key::PrivateKey,
-    versia_protocol::requests::VerifyRequestErr,
-};
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub enum FetchErr {
-    IsTombstone(String),
-    RequestErr(String),
-    DeserializationErr(String),
-    InvalidUrl(String),
-    MissingHeader(String),
-    VerifyErr(VerifyRequestErr),
-}
-
-impl Display for FetchErr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            FetchErr::IsTombstone(x) => write!(f, "IsTombstone: {}", x),
-            FetchErr::RequestErr(x) => write!(f, "RequestErr: {}", x),
-            FetchErr::DeserializationErr(x) => write!(f, "DeserializationErr: {}", x),
-            FetchErr::InvalidUrl(x) => write!(f, "InvalidUrl: {}", x),
-            FetchErr::MissingHeader(x) => write!(f, "MissingHeader: {}", x),
-            FetchErr::VerifyErr(verify_request_err) => {
-                write!(f, "VerifyErr: {}", verify_request_err)
-            }
-        }
-    }
-}
+use crate::{activitystream_objects::core_types::ActivityStream, cryptography::key::PrivateKey};
 
 /// key_id and private_key are the properties of the key
 /// being used to perform the fetch. usually done by the

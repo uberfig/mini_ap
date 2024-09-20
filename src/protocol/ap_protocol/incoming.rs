@@ -6,15 +6,15 @@ use url::Url;
 
 use crate::{
     activitystream_objects::core_types::ActivityStream,
-    ap_protocol::{fetch::authorized_fetch, verification::verify_attribution},
     cryptography::{
         digest::sha256_hash,
         key::{KeyType, PrivateKey, PublicKey},
         openssl::OpenSSLPublic,
     },
+    protocol::errors::FetchErr,
 };
 
-use super::fetch::FetchErr;
+use super::{fetch::authorized_fetch, verification::verify_attribution};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum RequestVerificationError {

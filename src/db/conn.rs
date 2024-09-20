@@ -4,7 +4,7 @@ use url::Url;
 
 use crate::{
     activitystream_objects::actors::Actor,
-    ap_protocol::fetch::{authorized_fetch, FetchErr},
+    protocol::{ap_protocol::fetch::authorized_fetch, errors::FetchErr},
     versia_types::entities::{
         instance_metadata::InstanceMetadata, public_key::AlgorithmsPublicKey,
     },

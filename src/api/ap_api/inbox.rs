@@ -10,11 +10,11 @@ use actix_web::{
 };
 
 use crate::{
-    ap_protocol::{
-        fetch::FetchErr,
-        incoming::{verify_incoming, RequestVerificationError},
-    },
     db::{conn::Conn, incoming::process_incoming},
+    protocol::{
+        ap_protocol::incoming::{verify_incoming, RequestVerificationError},
+        errors::FetchErr,
+    },
 };
 pub struct Inbox {
     pub inbox: Mutex<Vec<String>>,

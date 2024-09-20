@@ -3,10 +3,10 @@ use serial_test::serial;
 use url::Url;
 
 use crate::{
-    ap_protocol::fetch::authorized_fetch,
     app::start_application,
     config::get_config,
     db::utility::{instance_actor::InstanceActor, new_actor::NewLocal},
+    protocol::ap_protocol::fetch::authorized_fetch,
 };
 
 #[actix_web::test]
