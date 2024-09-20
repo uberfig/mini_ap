@@ -73,7 +73,6 @@ async fn handle_inbox(
     };
 
     // println!("{}", &body);
-    let val = request.headers();
 
     let x = verify_incoming(
         &ActixHeaders {
