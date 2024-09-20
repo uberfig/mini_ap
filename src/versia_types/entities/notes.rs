@@ -52,7 +52,7 @@ pub struct Note {
     #[serde(serialize_with = "serialize_time")]
     pub created_at: i64,
     /// Media attachments to the note. May be any format. Must be remote.
-    pub attachments: Vec<ContentFormat>,
+    pub attachments: Option<Vec<ContentFormat>>,
     /// URI of the User considered the author of the note.
     pub author: Url,
     /// Category of the note. Useful for clients to render
@@ -117,4 +117,65 @@ pub struct Expiry {
     #[serde(deserialize_with = "deserialize_time")]
     #[serde(serialize_with = "serialize_time")]
     pub expires_at: i64,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_deserialize_poll() -> Result<(), String> {
+        //taken from the versia protocol examples
+        let poll = r#"
+{
+    "id": "01902e09-0f8b-72de-8ee3-9afc0cf5eae1",
+    "type": "Note", 
+    "uri": "https://versia.social/notes/01902e09-0f8b-72de-8ee3-9afc0cf5eae1",
+    "created_at": "2024-06-19T01:07:44.139Z",
+    "author": "https://versia.social/users/018eb863-753f-76ff-83d6-fd590de7740a",
+    "category": "microblog",
+    "content": {
+        "text/plain": {
+            "content": "What is your favourite color?"
+        }
+    },
+    "extensions": { 
+        "pub.versia:polls": {
+            "options": [
+                {
+                    "text/plain": {
+                        "content": "Red"
+                    }
+                },
+                {
+                    "text/plain": {
+                        "content": "Blue"
+                    }
+                },
+                {
+                    "text/plain": {
+                        "content": "Green"
+                    }
+                }
+            ],
+            "votes": [
+                9,
+                5,
+                0
+            ],
+            "multiple_choice": false,
+            "expires_at": "2021-01-04T00:00:00.000Z"
+        }
+    },
+    "group": "public",
+    "is_sensitive": false,
+    "mentions": []
+}
+"#;
+        let deserialized: Result<Note, serde_json::Error> = serde_json::from_str(poll);
+        match deserialized {
+            Ok(_) => Ok(()),
+            Err(x) => Err(format!("poll deserialize failed: {}", x)),
+        }
+    }
 }
