@@ -11,6 +11,7 @@ fn to_follower(row: Row) -> Follower {
     Follower {
         uid: row.get("follower"),
         is_local: row.get("is_local"),
+        protocol: serde_json::from_str(row.get("protocol")).expect("failed to deserialize protocol"),
     }
 }
 

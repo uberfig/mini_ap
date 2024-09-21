@@ -37,7 +37,7 @@ impl std::fmt::Display for DbErr {
 }
 
 /// the origin of a post containing its instance domain
-pub enum PostOrigin<'a> {
+pub enum EntityOrigin<'a> {
     Local(&'a str),
     Federated(&'a str),
 }
@@ -49,7 +49,14 @@ pub trait Conn: Sync {
     /// get the protocol of the given instance. will backfill if the instance isn't in the db
     async fn get_protocol(&self, instance: &str) -> Protocols;
     async fn get_local_versia_user(&self, uuid: &str, instance_domain: &str) -> Option<User>;
-    async fn get_versia_post(&self, pid: &str, origin: &PostOrigin) -> Option<Postable>;
+    async fn get_versia_post(&self, post_id: &str, origin: &EntityOrigin) -> Option<Postable>;
+    /// create a post and return the post
+    async fn create_versia_post(
+        &self,
+        post: Postable,
+        origin: &EntityOrigin,
+    ) -> Result<Postable, ()>;
+    async fn delete_post(&self, post_id: &str, origin: &EntityOrigin) -> Result<(), ()>;
 
     /// run any prep for the database, for example running migrations
     async fn init(&self) -> Result<(), String>;
@@ -108,7 +115,7 @@ pub trait Conn: Sync {
         is_local: bool,
         in_reply_to: Option<i64>,
     ) -> i64;
-    async fn delete_post(&self, uid: i64) -> Result<(), ()>;
+
     async fn get_post(&self, object_id: i64) -> Option<PostType>;
 
     //------------------------------likes-----------------------------------

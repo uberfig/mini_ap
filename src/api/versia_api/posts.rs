@@ -1,6 +1,6 @@
 use crate::{
     cryptography::digest::sha256_hash,
-    db::conn::{Conn, PostOrigin},
+    db::conn::{Conn, EntityOrigin},
     protocol::{
         headers::ActixHeaders,
         versia_protocol::{signatures::HttpMethod, verify::verify_request},
@@ -45,7 +45,7 @@ pub async fn versia_posts(
     }
 
     let post = conn
-        .get_versia_post(&pid, &PostOrigin::Local(&state.instance_domain))
+        .get_versia_post(&pid, &EntityOrigin::Local(&state.instance_domain))
         .await;
 
     match post {

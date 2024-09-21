@@ -9,10 +9,13 @@ use chrono::DateTime;
 use std::time::{SystemTime, UNIX_EPOCH};
 use utility::{permission::PermissionLevel, post_types::PostType};
 
+use crate::protocol::protocols::Protocols;
+
 #[derive(Debug, Clone, Copy)]
 pub struct Follower {
     pub uid: i64,
     pub is_local: bool,
+    pub protocol: Protocols,
 }
 
 #[derive(Debug, Clone, Copy)]

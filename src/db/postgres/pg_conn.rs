@@ -5,7 +5,7 @@ use url::Url;
 use crate::{
     activitystream_objects::actors::Actor,
     db::{
-        conn::{Conn, DbErr, PostOrigin},
+        conn::{Conn, DbErr, EntityOrigin},
         utility::{instance_actor::InstanceActor, new_actor::NewLocal, protocols::Protocols},
         Follower, Like,
     },
@@ -27,7 +27,17 @@ pub struct PgConn {
 #[allow(unused_variables)]
 #[async_trait]
 impl Conn for PgConn {
-    async fn get_versia_post(&self, pid: &str, origin: &PostOrigin) -> Option<Postable> {
+    async fn get_versia_post(&self, pid: &str, origin: &EntityOrigin) -> Option<Postable> {
+        todo!()
+    }
+    async fn create_versia_post(
+        &self,
+        post: Postable,
+        origin: &EntityOrigin,
+    ) -> Result<Postable, ()> {
+        todo!()
+    }
+    async fn delete_post(&self, post_id: &str, origin: &EntityOrigin) -> Result<(), ()> {
         todo!()
     }
 
@@ -115,9 +125,6 @@ impl Conn for PgConn {
         in_reply_to: Option<i64>,
     ) -> i64 {
         posts::create_new_post(self, post, instance_domain, uid, is_local, in_reply_to).await
-    }
-    async fn delete_post(&self, uid: i64) -> Result<(), ()> {
-        todo!()
     }
     async fn get_post(&self, object_id: i64) -> Option<crate::db::PostType> {
         posts::get_post(self, object_id).await

@@ -16,7 +16,7 @@ pub enum Postable {
 }
 
 impl Postable {
-    pub fn get_user(&self) -> &url::Url {
+    pub fn get_author(&self) -> &url::Url {
         match self {
             Postable::Note(note) => &note.author,
             Postable::Share(share) => &share.author,

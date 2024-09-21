@@ -1,6 +1,6 @@
 use crate::{
     cryptography::digest::sha256_hash,
-    db::conn::Conn,
+    db::conn::{Conn, EntityOrigin},
     protocol::{
         headers::ActixHeaders,
         versia_protocol::{signatures::HttpMethod, verify::verify_request},
@@ -8,19 +8,15 @@ use crate::{
     versia_types::{
         entities::{
             change_follow::ChangeFollowing, delete::Delete, follow_response::FollowResponse,
-            instance_metadata::InstanceMetadata, notes::Note, user::User,
+            instance_metadata::InstanceMetadata, user::User,
         },
-        extensions::share::Share, postable::Postable,
+        postable::Postable,
     },
 };
 use actix_web::{error::ErrorBadRequest, rt::spawn};
 
 use actix_web::{
-    dev::ResourcePath,
-    error::ErrorUnauthorized,
-    post,
-    web::Data,
-    HttpRequest, HttpResponse, Result,
+    dev::ResourcePath, error::ErrorUnauthorized, post, web::Data, HttpRequest, HttpResponse, Result,
 };
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -104,10 +100,32 @@ pub async fn handle_inbox(
     state: Data<crate::config::Config>,
     conn: Data<Box<dyn Conn + Sync>>,
 ) {
-    let authoratative_domain = signer.domain();
+    // all signers should have a domain. federation with an ip address will
+    // never be supported as they can 1. be dynamic, 2. be used to skirt defeds
+    let Some(authoratative_domain) = signer.domain() else {
+        return;
+    };
     match entity {
-        VersiaInboxItem::Post(postable) => todo!(),
-        VersiaInboxItem::Delete(delete) => todo!(),
+        VersiaInboxItem::Post(postable) => {
+            // another instance is trying to impersonate this user
+            // we could log this in the future
+            if postable.get_author().domain().ne(&signer.domain()) {
+                return;
+            }
+            let post = conn
+                .create_versia_post(postable, &EntityOrigin::Federated(authoratative_domain))
+                .await
+                .expect("failed to insert post");
+        }
+        VersiaInboxItem::Delete(delete) => match delete.deleted_type {
+            crate::versia_types::entities::delete::DeletedType::Note
+            | crate::versia_types::entities::delete::DeletedType::Share => {
+                conn.delete_post(&delete.id, &EntityOrigin::Federated(authoratative_domain))
+                    .await
+                    .expect("failed to delete post");
+            }
+            crate::versia_types::entities::delete::DeletedType::User => todo!(),
+        },
         VersiaInboxItem::ChangeFollowing(change_following) => todo!(),
         VersiaInboxItem::FollowResponse(follow_response) => todo!(),
         VersiaInboxItem::User(user) => todo!(),

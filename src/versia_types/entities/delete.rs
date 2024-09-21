@@ -19,7 +19,7 @@ pub enum DeletedType {
 /// Implementations must ensure that the author of the Delete entity has the authorization to delete the target entity.
 /// - The author is the creator of the target entity (including [delegation](https://versia.pub/federation/delegation)).
 /// - The author is the instance.
-/// 
+///
 /// https://versia.pub/entities/delete
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Delete {
