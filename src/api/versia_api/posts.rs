@@ -49,11 +49,9 @@ pub async fn versia_posts(
         .await;
 
     match post {
-        Some(x) => {
-            Ok(HttpResponse::Ok()
+        Some(x) => Ok(HttpResponse::Ok()
             .content_type("application/json; charset=UTF-8")
-            .body(serde_json::to_string(&x).unwrap()))
-        },
+            .body(serde_json::to_string(&x).unwrap())),
         None => Err(ErrorNotFound(r#"{"error":"Not Found"}"#)),
     }
 }

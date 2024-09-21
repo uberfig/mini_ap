@@ -5,9 +5,12 @@ use url::Url;
 use crate::{
     activitystream_objects::actors::Actor,
     protocol::{ap_protocol::fetch::authorized_fetch, errors::FetchErr},
-    versia_types::{entities::{
-        instance_metadata::InstanceMetadata, public_key::AlgorithmsPublicKey, user::User,
-    }, postable::Postable},
+    versia_types::{
+        entities::{
+            instance_metadata::InstanceMetadata, public_key::AlgorithmsPublicKey, user::User,
+        },
+        postable::Postable,
+    },
 };
 
 use super::{
@@ -48,8 +51,6 @@ pub trait Conn: Sync {
     async fn get_local_versia_user(&self, uuid: &str, instance_domain: &str) -> Option<User>;
     async fn get_versia_post(&self, pid: &str, origin: &PostOrigin) -> Option<Postable>;
 
-
-
     /// run any prep for the database, for example running migrations
     async fn init(&self) -> Result<(), String>;
 
@@ -58,13 +59,9 @@ pub trait Conn: Sync {
     async fn get_instance_actor(&self) -> InstanceActor;
     // async fn create_instance_actor(&self, private_key_pem: &str, public_key_pem: &str);
 
-    
-
     //----------------------actors---------------------------
 
-    
-
-    async fn get_key(&self, signed_by: &str) -> Option<AlgorithmsPublicKey>;
+    async fn get_key(&self, signed_by: &Url) -> Option<AlgorithmsPublicKey>;
 
     /// instance_domain must be provided as internal users will
     /// need to have their links generated based on the instance

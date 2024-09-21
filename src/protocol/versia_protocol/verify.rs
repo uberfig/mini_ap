@@ -1,4 +1,5 @@
 use actix_web::web::Data;
+use url::Url;
 
 use crate::{
     cryptography::key::PublicKey,
@@ -8,13 +9,14 @@ use crate::{
 
 use super::signatures::{signature_string, HttpMethod};
 
+/// returns the signer if
 pub async fn verify_request<T: Headers>(
     headers: &T,
     method: HttpMethod,
     path: &str,
     hash: &str,
     conn: &Data<Box<dyn Conn + Sync>>,
-) -> Result<(), VerifyRequestErr> {
+) -> Result<Url, VerifyRequestErr> {
     let Some(_content_type) = headers.get("Content-Type") else {
         return Err(VerifyRequestErr::MissingHeader("Content-Type".to_string()));
     };
@@ -23,6 +25,9 @@ pub async fn verify_request<T: Headers>(
     };
     let Some(signed_by) = headers.get("X-Signed-By") else {
         return Err(VerifyRequestErr::MissingHeader("X-Signed-By".to_string()));
+    };
+    let Ok(signed_by) = Url::parse(&signed_by) else {
+        return Err(VerifyRequestErr::InvalidSigner);
     };
     let Some(nonce) = headers.get("X-Nonce") else {
         return Err(VerifyRequestErr::MissingHeader("X-Nonce".to_string()));
@@ -52,7 +57,7 @@ pub async fn verify_request<T: Headers>(
 
     let verify_string = signature_string(method, path, &nonce, hash, 0);
     if verifying_key.verify(&verify_string, &signature) {
-        return Ok(());
+        return Ok(signed_by);
     }
     Err(VerifyRequestErr::SignatureVerificationFailure)
 }
