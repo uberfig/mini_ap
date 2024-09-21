@@ -104,6 +104,7 @@ pub async fn handle_inbox(
     state: Data<crate::config::Config>,
     conn: Data<Box<dyn Conn + Sync>>,
 ) {
+    let authoratative_domain = signer.domain();
     match entity {
         VersiaInboxItem::Post(postable) => todo!(),
         VersiaInboxItem::Delete(delete) => todo!(),

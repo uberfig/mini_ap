@@ -29,6 +29,9 @@ pub async fn verify_request<T: Headers>(
     let Ok(signed_by) = Url::parse(&signed_by) else {
         return Err(VerifyRequestErr::InvalidSigner);
     };
+    if signed_by.domain().is_none() {
+        return Err(VerifyRequestErr::NoDomain);
+    }
     let Some(nonce) = headers.get("X-Nonce") else {
         return Err(VerifyRequestErr::MissingHeader("X-Nonce".to_string()));
     };

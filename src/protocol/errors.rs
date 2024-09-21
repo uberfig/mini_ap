@@ -35,6 +35,7 @@ pub enum VerifyRequestErr {
     TooOld,
     UnableToObtainKey,
     InvalidSigner,
+    NoDomain,
 }
 
 impl std::fmt::Display for VerifyRequestErr {
@@ -48,6 +49,7 @@ impl std::fmt::Display for VerifyRequestErr {
             VerifyRequestErr::TooOld => write!(f, "TooOld"),
             VerifyRequestErr::UnableToObtainKey => write!(f, "UnableToObtainKey"),
             VerifyRequestErr::InvalidSigner => write!(f, "InvalidSigner"),
+            VerifyRequestErr::NoDomain => write!(f, "NoDomain"),
         }
     }
 }
