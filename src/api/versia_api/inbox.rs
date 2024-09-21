@@ -10,7 +10,7 @@ use crate::{
             change_follow::ChangeFollowing, delete::Delete, follow_response::FollowResponse,
             instance_metadata::InstanceMetadata, notes::Note, user::User,
         },
-        extensions::share::Share,
+        extensions::share::Share, postable::Postable,
     },
 };
 use actix_web::{error::ErrorBadRequest, rt::spawn};
@@ -29,14 +29,13 @@ use url::Url;
 #[serde(untagged)]
 #[allow(clippy::large_enum_variant)]
 pub enum VersiaInboxItem {
-    Note(Box<Note>),
-    Share(Share),
+    Post(Postable),
     Delete(Delete),
     ChangeFollowing(ChangeFollowing),
     FollowResponse(FollowResponse),
     /// used when a user updates their profile
-    User(User),
-    InstanceMetadata(InstanceMetadata),
+    User(Box<User>),
+    InstanceMetadata(Box<InstanceMetadata>),
 }
 
 #[post("/users/{uuid}/inbox/versia")]
@@ -105,4 +104,12 @@ pub async fn handle_inbox(
     state: Data<crate::config::Config>,
     conn: Data<Box<dyn Conn + Sync>>,
 ) {
+    match entity {
+        VersiaInboxItem::Post(postable) => todo!(),
+        VersiaInboxItem::Delete(delete) => todo!(),
+        VersiaInboxItem::ChangeFollowing(change_following) => todo!(),
+        VersiaInboxItem::FollowResponse(follow_response) => todo!(),
+        VersiaInboxItem::User(user) => todo!(),
+        VersiaInboxItem::InstanceMetadata(instance_metadata) => todo!(),
+    }
 }
