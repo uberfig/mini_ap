@@ -14,7 +14,7 @@ pub trait VersiaVerificationCache {
     async fn get_key(&self, signed_by: &Url) -> Option<AlgorithmsPublicKey>;
 }
 
-/// returns the signer if
+/// returns the signer if successful 
 pub async fn verify_request<H: Headers, V: VersiaVerificationCache>(
     headers: &H,
     method: HttpMethod,
