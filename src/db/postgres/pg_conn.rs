@@ -27,6 +27,12 @@ pub struct PgConn {
 #[allow(unused_variables)]
 #[async_trait]
 impl Conn for PgConn {
+    async fn get_versia_user(&self, uuid: &str, origin: &EntityOrigin) -> Option<User> {
+        todo!()
+    }
+    async fn delete_user(&self, uuid: &str, origin: &EntityOrigin) -> Result<(), ()> {
+        todo!()
+    }
     async fn get_versia_post(&self, pid: &str, origin: &EntityOrigin) -> Option<Postable> {
         todo!()
     }
@@ -63,9 +69,6 @@ impl Conn for PgConn {
     }
 
     //----------------------actors---------------------------
-    async fn get_local_versia_user(&self, uuid: &str, instance_domain: &str) -> Option<User> {
-        todo!()
-    }
 
     async fn get_key(&self, signed_by: &Url) -> Option<AlgorithmsPublicKey> {
         todo!()

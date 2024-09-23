@@ -48,7 +48,7 @@ pub trait Conn: Sync {
     async fn get_versia_instance_metadata(&self, instance_domain: &str) -> InstanceMetadata;
     /// get the protocol of the given instance. will backfill if the instance isn't in the db
     async fn get_protocol(&self, instance: &str) -> Protocols;
-    async fn get_local_versia_user(&self, uuid: &str, instance_domain: &str) -> Option<User>;
+    async fn get_versia_user(&self, uuid: &str, origin: &EntityOrigin) -> Option<User>;
     async fn get_versia_post(&self, post_id: &str, origin: &EntityOrigin) -> Option<Postable>;
     /// create a post and return the post
     async fn create_versia_post(
@@ -57,6 +57,7 @@ pub trait Conn: Sync {
         origin: &EntityOrigin,
     ) -> Result<Postable, ()>;
     async fn delete_post(&self, post_id: &str, origin: &EntityOrigin) -> Result<(), ()>;
+    async fn delete_user(&self, uuid: &str, origin: &EntityOrigin) -> Result<(), ()>;
 
     /// run any prep for the database, for example running migrations
     async fn init(&self) -> Result<(), String>;

@@ -1,6 +1,6 @@
 use crate::{
     cryptography::digest::sha256_hash,
-    db::conn::Conn,
+    db::conn::{Conn, EntityOrigin},
     protocol::{
         headers::ActixHeaders,
         versia_protocol::{signatures::HttpMethod, verify::verify_request},
@@ -46,7 +46,7 @@ pub async fn versia_user(
     }
 
     let user = conn
-        .get_local_versia_user(&uuid, &state.instance_domain)
+        .get_versia_user(&uuid, &EntityOrigin::Local(&state.instance_domain))
         .await;
 
     match user {
