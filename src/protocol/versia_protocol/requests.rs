@@ -94,7 +94,6 @@ pub async fn versia_fetch<T: for<'a> Deserialize<'a>, K: PrivateKey, V: VersiaVe
     Ok(object)
 }
 
-/// if signed by the instance, use instance for the signed by header
 pub async fn versia_post<K: PrivateKey, V: VersiaVerificationCache>(
     target: Url,
     content: &str,
