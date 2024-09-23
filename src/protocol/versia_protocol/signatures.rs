@@ -16,9 +16,9 @@ pub fn signature_string(
     path: &str,
     nonce: &str,
     hash: &str,
-    // currently versia has made the decision to not include timestamps.
-    // I have left this here because I feel that is a design mistake. it
-    // can be enabled at any time if they decide to change their decision
+    // currently versia does not include timestamps but it will in the future
+    // once its added to the protocol, we should just need to add _timestamp
+    // the _timestamp field is here to ensure a smooth transition for when its time
     _timestamp: i64,
 ) -> String {
     format!(

@@ -1,20 +1,17 @@
 use async_trait::async_trait;
 use deadpool_postgres::Pool;
-use url::Url;
 
 use crate::{
-    activitystream_objects::actors::Actor,
-    db::{
+    activitystream_objects::actors::Actor, db::{
         conn::{Conn, DbErr, EntityOrigin},
         utility::{instance_actor::InstanceActor, new_actor::NewLocal, protocols::Protocols},
         Follower, Like,
-    },
-    versia_types::{
+    }, protocol::versia_protocol::requests::Signer, versia_types::{
         entities::{
             instance_metadata::InstanceMetadata, public_key::AlgorithmsPublicKey, user::User,
         },
         postable::Postable,
-    },
+    }
 };
 
 use super::{acct_mgmt, actors, follows, init, local_users, posts};
@@ -82,7 +79,7 @@ impl Conn for PgConn {
 
     //----------------------actors---------------------------
 
-    async fn get_key(&self, signed_by: &Url) -> Option<AlgorithmsPublicKey> {
+    async fn get_key(&self, signed_by: &Signer) -> Option<AlgorithmsPublicKey> {
         todo!()
     }
 

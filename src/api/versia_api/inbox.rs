@@ -3,7 +3,7 @@ use crate::{
     db::conn::{Conn, EntityOrigin, VersiaConn},
     protocol::{
         headers::ActixHeaders,
-        versia_protocol::{signatures::HttpMethod, verify::verify_request},
+        versia_protocol::{requests::Signer, signatures::HttpMethod, verify::verify_request},
     },
     versia_types::{
         entities::{
@@ -19,7 +19,6 @@ use actix_web::{
     dev::ResourcePath, error::ErrorUnauthorized, post, web::Data, HttpRequest, HttpResponse, Result,
 };
 use serde::{Deserialize, Serialize};
-use url::Url;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -102,7 +101,7 @@ pub async fn inbox(
 
 #[allow(unused_variables)]
 pub async fn handle_inbox(
-    signer: Url,
+    signer: Signer,
     entity: VersiaInboxItem,
     state: Data<crate::config::Config>,
     conn: Data<Box<dyn Conn + Sync>>,

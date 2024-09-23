@@ -2,6 +2,7 @@ use crate::db::utility::instance_actor::InstanceActor;
 
 use super::pg_conn::PgConn;
 
+#[allow(dead_code)]
 pub async fn get_instance_actor(conn: &PgConn) -> Option<InstanceActor> {
     let client = conn.db.get().await.expect("failed to get client");
     let stmt = r#"

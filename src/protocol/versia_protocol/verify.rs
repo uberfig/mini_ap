@@ -5,13 +5,13 @@ use crate::{
     protocol::{errors::VerifyRequestErr, headers::Headers}, versia_types::entities::public_key::AlgorithmsPublicKey,
 };
 
-use super::signatures::{signature_string, HttpMethod};
+use super::{requests::Signer, signatures::{signature_string, HttpMethod}};
 
 /// note that the warning is junk as following it breaks everything with 
 /// the use of async trait and trait objects with async 
 #[allow(async_fn_in_trait)]
 pub trait VersiaVerificationCache {
-    async fn get_key(&self, signed_by: &Url) -> Option<AlgorithmsPublicKey>;
+    async fn get_key(&self, signed_by: &Signer) -> Option<AlgorithmsPublicKey>;
 }
 
 /// returns the signer if successful 
@@ -21,7 +21,7 @@ pub async fn verify_request<H: Headers, V: VersiaVerificationCache>(
     path: &str,
     hash: &str,
     conn: &V,
-) -> Result<Url, VerifyRequestErr> {
+) -> Result<Signer, VerifyRequestErr> {
     let Some(_content_type) = headers.get("Content-Type") else {
         return Err(VerifyRequestErr::MissingHeader("Content-Type".to_string()));
     };
@@ -31,12 +31,20 @@ pub async fn verify_request<H: Headers, V: VersiaVerificationCache>(
     let Some(signed_by) = headers.get("X-Signed-By") else {
         return Err(VerifyRequestErr::MissingHeader("X-Signed-By".to_string()));
     };
-    let Ok(signed_by) = Url::parse(&signed_by) else {
-        return Err(VerifyRequestErr::InvalidSigner);
+
+    let signed_by = match signed_by.strip_prefix("instance ") {
+        Some(x) => Signer::Instance(x.to_string()),
+        None => {
+            let Ok(signed_by) = Url::parse(&signed_by) else {
+                return Err(VerifyRequestErr::InvalidSigner);
+            };
+            if signed_by.domain().is_none() {
+                return Err(VerifyRequestErr::NoDomain);
+            }
+            Signer::User(signed_by)
+        },
     };
-    if signed_by.domain().is_none() {
-        return Err(VerifyRequestErr::NoDomain);
-    }
+    
     let Some(nonce) = headers.get("X-Nonce") else {
         return Err(VerifyRequestErr::MissingHeader("X-Nonce".to_string()));
     };

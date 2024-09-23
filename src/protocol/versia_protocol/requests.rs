@@ -15,6 +15,14 @@ pub enum Signer {
     User(Url),
     Instance(String),
 }
+impl Signer {
+    pub fn domain(&self) -> Option<&str> {
+        match self {
+            Signer::User(url) => url.domain(),
+            Signer::Instance(x) => Some(x),
+        }
+    }
+}
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const SOFTWARE_NAME: &str = env!("CARGO_PKG_NAME");
