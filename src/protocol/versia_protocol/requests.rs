@@ -23,6 +23,14 @@ impl Signer {
         }
     }
 }
+impl std::fmt::Display for Signer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Signer::User(url) => write!(f, "{}", url),
+            Signer::Instance(x) => write!(f, "{}", x),
+        }
+    }
+}
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const SOFTWARE_NAME: &str = env!("CARGO_PKG_NAME");
@@ -30,7 +38,7 @@ const SOFTWARE_NAME: &str = env!("CARGO_PKG_NAME");
 pub async fn versia_fetch<T: for<'a> Deserialize<'a>, K: PrivateKey, V: VersiaVerificationCache>(
     target: Url,
     mut signing_key: K,
-    signed_by: &str,
+    signed_by: &Signer,
     conn: &V,
 ) -> Result<T, FetchErr> {
     let nonce = TextNonce::new().into_string();
@@ -48,7 +56,7 @@ pub async fn versia_fetch<T: for<'a> Deserialize<'a>, K: PrivateKey, V: VersiaVe
         .get(target.clone())
         .header("Accept", "application/json")
         .header("X-Signature", signature)
-        .header("X-Signed-By", signed_by)
+        .header("X-Signed-By", signed_by.to_string())
         .header("X-Nonce", nonce)
         .header("User-Agent", format!("{}/{}", SOFTWARE_NAME, VERSION))
         .header("Signed-milis", signed_at)
@@ -91,7 +99,7 @@ pub async fn versia_post<K: PrivateKey, V: VersiaVerificationCache>(
     target: Url,
     content: &str,
     mut signing_key: K,
-    signed_by: &str,
+    signed_by: &Signer,
     conn: &V,
 ) -> Result<(), FetchErr> {
     let nonce = TextNonce::new().into_string();
@@ -109,7 +117,7 @@ pub async fn versia_post<K: PrivateKey, V: VersiaVerificationCache>(
         .post(target.clone())
         .header("Accept", "application/json")
         .header("X-Signature", signature)
-        .header("X-Signed-By", signed_by)
+        .header("X-Signed-By", signed_by.to_string())
         .header("X-Nonce", nonce)
         .header("User-Agent", format!("{}/{}", SOFTWARE_NAME, VERSION))
         .header("Signed-milis", signed_at)
