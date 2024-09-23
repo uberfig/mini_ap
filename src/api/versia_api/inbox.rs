@@ -1,6 +1,6 @@
 use crate::{
     cryptography::digest::sha256_hash,
-    db::conn::{Conn, EntityOrigin},
+    db::conn::{Conn, EntityOrigin, VersiaConn},
     protocol::{
         headers::ActixHeaders,
         versia_protocol::{signatures::HttpMethod, verify::verify_request},
@@ -73,7 +73,14 @@ pub async fn inbox(
         headermap: request.headers().clone(),
     };
 
-    let authorized = verify_request(&headers, HttpMethod::Get, &path, &hash, &conn).await;
+    let authorized = verify_request(
+        &headers,
+        HttpMethod::Get,
+        &path,
+        &hash,
+        &VersiaConn { conn: &conn },
+    )
+    .await;
 
     let signer = match authorized {
         Ok(x) => x,

@@ -27,6 +27,18 @@ pub struct PgConn {
 #[allow(unused_variables)]
 #[async_trait]
 impl Conn for PgConn {
+    async fn get_user_post_count(&self, uuid: &str, origin: &EntityOrigin) -> Option<u64> {
+        todo!()
+    }
+    async fn get_user_posts_versia(
+        &self,
+        uuid: &str,
+        origin: &EntityOrigin,
+        page_size: u64,
+        ofset: u64,
+    ) -> Option<Vec<Postable>> {
+        todo!()
+    }
     async fn get_versia_user(&self, uuid: &str, origin: &EntityOrigin) -> Option<User> {
         todo!()
     }

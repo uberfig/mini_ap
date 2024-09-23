@@ -10,6 +10,7 @@ pub struct Config {
     pub bind_address: String,
     pub contact_email: String,
     pub port: u16,
+    pub outbox_pagnation_size: u64,
 
     pub pg_user: String,
     pub pg_password: String,

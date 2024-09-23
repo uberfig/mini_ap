@@ -1,6 +1,6 @@
 use crate::{
     cryptography::digest::sha256_hash,
-    db::conn::{Conn, EntityOrigin},
+    db::conn::{Conn, EntityOrigin, VersiaConn},
     protocol::{
         headers::ActixHeaders,
         versia_protocol::{signatures::HttpMethod, verify::verify_request},
@@ -37,7 +37,7 @@ pub async fn versia_user(
         HttpMethod::Get,
         &path,
         &hash,
-        &conn,
+        &VersiaConn { conn: &conn },
     )
     .await;
 

@@ -17,3 +17,62 @@ pub struct Collection<T: Clone + PartialEq> {
     pub previous: Option<Url>,
     pub items: Vec<T>,
 }
+
+impl<T: Clone + PartialEq + Serialize + for<'a> Deserialize<'a>> Collection<T> {
+    /// current page should never be 0
+    ///
+    /// https://{instance_domain}/{path}?page={}
+    pub fn new(
+        items: Vec<T>,
+        total: u64,
+        pagnation_size: u64,
+        current_page: u64,
+        author: Option<Url>,
+        instance_domain: &str,
+        path: &str,
+    ) -> Collection<T> {
+        let first = Url::parse(&format!("https://{}/{}?page=1", instance_domain, path)).unwrap();
+        let last_page = total.div_ceil(pagnation_size);
+        let last = match total > pagnation_size {
+            true => Url::parse(&format!(
+                "https://{}/{}?page={}",
+                instance_domain, path, last_page
+            ))
+            .unwrap(),
+            false => first.clone(),
+        };
+        let next = match current_page.eq(&last_page) {
+            true => None,
+            false => Some(
+                Url::parse(&format!(
+                    "https://{}/{}?page={}",
+                    instance_domain,
+                    path,
+                    current_page + 1
+                ))
+                .unwrap(),
+            ),
+        };
+        let previous = match current_page.eq(&1) {
+            true => None,
+            false => Some(
+                Url::parse(&format!(
+                    "https://{}/{}?page={}",
+                    instance_domain,
+                    path,
+                    current_page - 1
+                ))
+                .unwrap(),
+            ),
+        };
+        Collection {
+            author,
+            first,
+            last,
+            total,
+            next,
+            previous,
+            items,
+        }
+    }
+}

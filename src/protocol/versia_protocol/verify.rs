@@ -1,21 +1,27 @@
 use actix_web::web::Data;
+use async_trait::async_trait;
 use url::Url;
 
 use crate::{
     cryptography::key::PublicKey,
     db::conn::Conn,
     protocol::{errors::VerifyRequestErr, headers::Headers},
+    versia_types::entities::public_key::AlgorithmsPublicKey,
 };
 
 use super::signatures::{signature_string, HttpMethod};
 
+pub trait VersiaVerificationCache {
+    async fn get_key(&self, signed_by: &Url) -> Option<AlgorithmsPublicKey>;
+}
+
 /// returns the signer if
-pub async fn verify_request<T: Headers>(
-    headers: &T,
+pub async fn verify_request<H: Headers, V: VersiaVerificationCache>(
+    headers: &H,
     method: HttpMethod,
     path: &str,
     hash: &str,
-    conn: &Data<Box<dyn Conn + Sync>>,
+    conn: &V,
 ) -> Result<Url, VerifyRequestErr> {
     let Some(_content_type) = headers.get("Content-Type") else {
         return Err(VerifyRequestErr::MissingHeader("Content-Type".to_string()));

@@ -1,10 +1,14 @@
+use actix_web::web::Data;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
 use crate::{
     activitystream_objects::actors::Actor,
-    protocol::{ap_protocol::fetch::authorized_fetch, errors::FetchErr},
+    protocol::{
+        ap_protocol::fetch::authorized_fetch, errors::FetchErr,
+        versia_protocol::verify::VersiaVerificationCache,
+    },
     versia_types::{
         entities::{
             instance_metadata::InstanceMetadata, public_key::AlgorithmsPublicKey, user::User,
@@ -42,9 +46,29 @@ pub enum EntityOrigin<'a> {
     Federated(&'a str),
 }
 
+pub struct VersiaConn<'a> {
+    pub conn: &'a Data<Box<dyn Conn + Sync>>,
+}
+
+impl VersiaVerificationCache for VersiaConn<'_> {
+    async fn get_key(&self, signed_by: &Url) -> Option<AlgorithmsPublicKey> {
+        self.conn.get_key(signed_by).await
+    }
+}
+
 #[async_trait]
 pub trait Conn: Sync {
     // versia new
+    async fn get_user_post_count(&self, uuid: &str, origin: &EntityOrigin) -> Option<u64>;
+    /// ofset is one based
+    async fn get_user_posts_versia(
+        &self,
+        uuid: &str,
+        origin: &EntityOrigin,
+        page_size: u64,
+        ofset: u64,
+    ) -> Option<Vec<Postable>>;
+    async fn get_key(&self, signed_by: &Url) -> Option<AlgorithmsPublicKey>;
     async fn get_versia_instance_metadata(&self, instance_domain: &str) -> InstanceMetadata;
     /// get the protocol of the given instance. will backfill if the instance isn't in the db
     async fn get_protocol(&self, instance: &str) -> Protocols;
@@ -69,7 +93,7 @@ pub trait Conn: Sync {
 
     //----------------------actors---------------------------
 
-    async fn get_key(&self, signed_by: &Url) -> Option<AlgorithmsPublicKey>;
+    // async fn get_key(&self, signed_by: &Url) -> Option<AlgorithmsPublicKey>;
 
     /// instance_domain must be provided as internal users will
     /// need to have their links generated based on the instance

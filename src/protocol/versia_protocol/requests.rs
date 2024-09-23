@@ -1,13 +1,11 @@
 use super::{
     signatures::{signature_string, HttpMethod},
-    verify::verify_request,
+    verify::{verify_request, VersiaVerificationCache},
 };
 use crate::{
     cryptography::{digest, key::PrivateKey},
-    db::conn::Conn,
     protocol::{errors::FetchErr, headers::ReqwestHeaders},
 };
-use actix_web::web::Data;
 use serde::Deserialize;
 use std::time::{SystemTime, UNIX_EPOCH};
 use textnonce::TextNonce;
@@ -21,11 +19,11 @@ pub enum Signer {
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const SOFTWARE_NAME: &str = env!("CARGO_PKG_NAME");
 
-pub async fn versia_fetch<T: for<'a> Deserialize<'a>, K: PrivateKey>(
+pub async fn versia_fetch<T: for<'a> Deserialize<'a>, K: PrivateKey, V: VersiaVerificationCache>(
     target: Url,
     mut signing_key: K,
     signed_by: &str,
-    conn: &Data<Box<dyn Conn + Sync>>,
+    conn: &V,
 ) -> Result<T, FetchErr> {
     let nonce = TextNonce::new().into_string();
     let path = target.path();
@@ -81,12 +79,12 @@ pub async fn versia_fetch<T: for<'a> Deserialize<'a>, K: PrivateKey>(
 }
 
 /// if signed by the instance, use instance for the signed by header
-pub async fn versia_post<K: PrivateKey>(
+pub async fn versia_post<K: PrivateKey, V: VersiaVerificationCache>(
     target: Url,
     content: &str,
     mut signing_key: K,
     signed_by: &str,
-    conn: &Data<Box<dyn Conn + Sync>>,
+    conn: &V,
 ) -> Result<(), FetchErr> {
     let nonce = TextNonce::new().into_string();
     let path = target.path();
