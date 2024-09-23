@@ -76,3 +76,45 @@ impl<T: Clone + PartialEq + Serialize + for<'a> Deserialize<'a>> Collection<T> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::versia_types::postable::Postable;
+
+    use super::*;
+
+    #[test]
+    fn test_deserialize() -> Result<(), String> {
+        //taken from the versia protocol examples
+        let collection = r#"
+{
+    "author": "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771",
+    "first": "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771/outbox?page=1",
+    "last": "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771/outbox?page=3",
+    "total": 46,
+    "next": "https://versia.social/users/018ec082-0ae1-761c-b2c5-22275a611771/outbox?page=2",
+    "previous": null,
+    "items": [
+        {
+            "id": "456df8ed-daf1-4062-abab-491071c7b8dd",
+            "type": "Note",
+            "uri": "https://versia.social/notes/456df8ed-daf1-4062-abab-491071c7b8dd",
+            "created_at": "2024-04-09T01:38:51.743Z",
+            "author": "https://versia.social/users/018eb863-753f-76ff-83d6-fd590de7740a",
+            "content": {
+                "text/plain": {
+                    "content": "Hello, world!"
+                }
+            }
+        }
+    ]
+}
+"#;
+        let deserialized: Result<Collection<Postable>, serde_json::Error> =
+            serde_json::from_str(collection);
+        match deserialized {
+            Ok(_) => Ok(()),
+            Err(x) => Err(format!("collection deserialize failed: {}", x)),
+        }
+    }
+}

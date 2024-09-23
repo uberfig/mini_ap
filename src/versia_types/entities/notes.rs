@@ -75,7 +75,7 @@ pub struct Note {
     /// Similar to Twitter's @ mentions. The note may also
     /// contain mentions in the content, however only the
     /// mentions in this field should trigger notifications.
-    pub mentions: Vec<Url>,
+    pub mentions: Option<Vec<Url>>,
     /// used with [`Note::is_sensitive`] as a "content warning" feature.
     pub subject: Option<String>,
 }

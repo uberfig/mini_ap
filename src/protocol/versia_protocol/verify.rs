@@ -1,16 +1,15 @@
-use actix_web::web::Data;
-use async_trait::async_trait;
 use url::Url;
 
 use crate::{
     cryptography::key::PublicKey,
-    db::conn::Conn,
-    protocol::{errors::VerifyRequestErr, headers::Headers},
-    versia_types::entities::public_key::AlgorithmsPublicKey,
+    protocol::{errors::VerifyRequestErr, headers::Headers}, versia_types::entities::public_key::AlgorithmsPublicKey,
 };
 
 use super::signatures::{signature_string, HttpMethod};
 
+/// note that the warning is junk as following it breaks everything with 
+/// the use of async trait and trait objects with async 
+#[allow(async_fn_in_trait)]
 pub trait VersiaVerificationCache {
     async fn get_key(&self, signed_by: &Url) -> Option<AlgorithmsPublicKey>;
 }
