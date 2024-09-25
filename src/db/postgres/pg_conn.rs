@@ -1,8 +1,10 @@
 use async_trait::async_trait;
 use deadpool_postgres::Pool;
+use url::Url;
 
 use crate::{
     activitystream_objects::actors::Actor,
+    cryptography::openssl::OpenSSLPublic,
     db::{
         conn::{Conn, DbErr, EntityOrigin},
         utility::{instance_actor::InstanceActor, new_actor::NewLocal, protocols::Protocols},
@@ -10,9 +12,7 @@ use crate::{
     },
     protocol::versia_protocol::requests::Signer,
     versia_types::{
-        entities::{
-            instance_metadata::InstanceMetadata, public_key::AlgorithmsPublicKey, user::User,
-        },
+        entities::{instance_metadata::InstanceMetadata, user::User},
         postable::Postable,
     },
 };
@@ -27,6 +27,16 @@ pub struct PgConn {
 #[allow(unused_variables)]
 #[async_trait]
 impl Conn for PgConn {
+    async fn load_new_federated_actor(
+        &self,
+        actor_id: &Url,
+        instance_domain: &str,
+    ) -> Result<i64, DbErr> {
+        todo!()
+    }
+    async fn get_key(&self, signed_by: &Signer) -> Option<OpenSSLPublic> {
+        todo!()
+    }
     async fn get_user_post_count(&self, uuid: &str, origin: &EntityOrigin) -> Option<u64> {
         todo!()
     }
@@ -81,10 +91,6 @@ impl Conn for PgConn {
     }
 
     //----------------------actors---------------------------
-
-    async fn get_key(&self, signed_by: &Signer) -> Option<AlgorithmsPublicKey> {
-        todo!()
-    }
 
     async fn get_actor(&self, uid: i64, instance_domain: &str) -> Option<Actor> {
         actors::get_actor(self, uid, instance_domain).await

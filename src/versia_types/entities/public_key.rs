@@ -29,35 +29,35 @@ pub enum AlgorithmsPublicKey {
     Ed25519(Ed25519Public),
 }
 
-impl crate::cryptography::key::PublicKey for AlgorithmsPublicKey {
-    fn verify(&self, plain_content: &str, signature: &str) -> bool {
-        match self {
-            AlgorithmsPublicKey::Ed25519(ed25519_public) => {
-                let Ok(signature) = Signature::from_slice(signature.as_bytes()) else {
-                    return false;
-                };
-                ed25519_public
-                    .key
-                    .verify(plain_content.as_bytes(), &signature)
-                    .is_ok()
-            }
-        }
-    }
+// impl crate::cryptography::key::PublicKey for AlgorithmsPublicKey {
+//     fn verify(&self, plain_content: &str, signature: &str) -> bool {
+//         match self {
+//             AlgorithmsPublicKey::Ed25519(ed25519_public) => {
+//                 let Ok(signature) = Signature::from_slice(signature.as_bytes()) else {
+//                     return false;
+//                 };
+//                 ed25519_public
+//                     .key
+//                     .verify(plain_content.as_bytes(), &signature)
+//                     .is_ok()
+//             }
+//         }
+//     }
 
-    fn from_pem(
-        pem: &str,
-        algorithm: crate::cryptography::key::KeyType,
-    ) -> Result<Self, crate::cryptography::key::ParseErr> {
-        match algorithm {
-            crate::cryptography::key::KeyType::Ed25519 => {
-                let Ok(val) = ed25519_dalek::VerifyingKey::from_public_key_pem(pem) else {
-                    return Err(crate::cryptography::key::ParseErr::Failure);
-                };
-                Ok(AlgorithmsPublicKey::Ed25519(Ed25519Public { key: val }))
-            }
-        }
-    }
-}
+//     fn from_pem(
+//         pem: &str,
+//         algorithm: crate::cryptography::key::KeyType,
+//     ) -> Result<Self, crate::cryptography::key::ParseErr> {
+//         match algorithm {
+//             crate::cryptography::key::KeyType::Ed25519 => {
+//                 let Ok(val) = ed25519_dalek::VerifyingKey::from_public_key_pem(pem) else {
+//                     return Err(crate::cryptography::key::ParseErr::Failure);
+//                 };
+//                 Ok(AlgorithmsPublicKey::Ed25519(Ed25519Public { key: val }))
+//             }
+//         }
+//     }
+// }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Ed25519Public {

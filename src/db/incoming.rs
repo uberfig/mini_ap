@@ -133,9 +133,9 @@ pub async fn handle_follow(
         };
 
         let key = conn.get_local_user_private_key_db_id(to).await;
-        let mut key =
-            AlgorithmsPrivateKey::from_pem(&key, crate::cryptography::key::KeyType::Ed25519)
-                .unwrap();
+        // let mut key =
+        //     AlgorithmsPrivateKey::from_pem(&key, crate::cryptography::key::KeyType::Ed25519)
+        //         .unwrap();
 
         let local_user =
             Url::parse(&format!("https://{}/users/{}", state.instance_domain, to)).unwrap();
@@ -144,13 +144,13 @@ pub async fn handle_follow(
             activity.extends_intransitive.id,
             &state.instance_domain,
         );
-        post_to_inbox(
-            &serde_json::to_string(&accept.to_activitystream()).unwrap(),
-            from_id.as_str(),
-            &fedi_actor.domain.unwrap(),
-            fedi_actor.inbox.as_str(),
-            &mut key,
-        )
-        .await
+        // post_to_inbox(
+        //     &serde_json::to_string(&accept.to_activitystream()).unwrap(),
+        //     from_id.as_str(),
+        //     &fedi_actor.domain.unwrap(),
+        //     fedi_actor.inbox.as_str(),
+        //     &mut key,
+        // )
+        // .await
     }
 }

@@ -4,78 +4,70 @@ use openssl::{
     rsa::Rsa,
 };
 
-use super::key::{KeyType, ParseErr, PrivateKey, PublicKey};
+use super::key::{Key, KeyType, PrivateKey, PublicKey};
 
 #[derive(Debug, Clone)]
-pub struct OpenSSLPrivate {
-    pub key: PKey<Private>,
-    private_key_pem: String,
-    public_key_pem: String,
+pub struct OpenSSLPrivate(PKey<Private>);
+
+impl Key for OpenSSLPrivate {
+    fn from_pem(pem: &[u8]) -> Result<Self, super::error::Error> {
+        Ok(OpenSSLPrivate(PKey::private_key_from_pem(pem)?))
+    }
+
+    fn to_pem(&self) -> Result<String, super::error::Error> {
+        let bytes = self.0.private_key_to_pem_pkcs8()?;
+        let pem = String::from_utf8(bytes)?;
+        Ok(pem)
+    }
 }
 
 impl PrivateKey for OpenSSLPrivate {
-    fn sign(&self, content: &str) -> String {
-        let mut signer = openssl::sign::Signer::new(MessageDigest::sha256(), &self.key).unwrap();
+    fn sign(&mut self, content: &str) -> String {
+        let mut signer = openssl::sign::Signer::new(MessageDigest::sha256(), &self.0).unwrap();
         signer.update(content.as_bytes()).unwrap();
         openssl::base64::encode_block(&signer.sign_to_vec().unwrap())
     }
 
-    fn from_pem(pem: &str) -> Result<Self, ParseErr> {
-        let Ok(key) = openssl::rsa::Rsa::private_key_from_pem(pem.as_bytes()) else {
-            return Err(ParseErr::Failure);
-        };
-        let private_key_pem = pem.to_string();
-        let public_key_pem = String::from_utf8(key.public_key_to_pem().unwrap()).unwrap();
-        Ok(OpenSSLPrivate {
-            key: PKey::from_rsa(key).unwrap(),
-            private_key_pem,
-            public_key_pem,
-        })
-    }
-
     fn generate(algorithm: KeyType) -> Self {
-        let rsa = Rsa::generate(2048).unwrap();
-        let private_key_pem = String::from_utf8(rsa.private_key_to_pem().unwrap()).unwrap();
-        let public_key_pem = String::from_utf8(rsa.public_key_to_pem().unwrap()).unwrap();
-        OpenSSLPrivate {
-            key: PKey::from_rsa(rsa).unwrap(),
-            private_key_pem,
-            public_key_pem,
+        match algorithm {
+            KeyType::Rsa256 => {
+                let rsa = Rsa::generate(2048).unwrap();
+                OpenSSLPrivate(PKey::from_rsa(rsa).unwrap())
+            }
+            KeyType::Ed25519 => OpenSSLPrivate(openssl::pkey::PKey::generate_ed25519().unwrap()),
         }
     }
 
-    fn private_key_pem(&self) -> String {
-        self.private_key_pem.to_string()
-    }
-
-    fn public_key_pem(&self) -> String {
-        self.public_key_pem.to_string()
+    fn public_key_pem(&self) -> Result<String, super::error::Error> {
+        let bytes = self.0.public_key_to_pem()?;
+        let pem = String::from_utf8(bytes)?;
+        Ok(pem)
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct OpenSSLPublic {
-    pub key: PKey<Public>,
+pub struct OpenSSLPublic(PKey<Public>);
+
+impl Key for OpenSSLPublic {
+    fn from_pem(pem: &[u8]) -> Result<Self, super::error::Error> {
+        Ok(OpenSSLPublic(PKey::public_key_from_pem(pem)?))
+    }
+
+    fn to_pem(&self) -> Result<String, super::error::Error> {
+        let bytes = self.0.public_key_to_pem()?;
+        let pem = String::from_utf8(bytes)?;
+        Ok(pem)
+    }
 }
 
 impl PublicKey for OpenSSLPublic {
     fn verify(&self, plain_content: &str, signature: &str) -> bool {
         let mut verifier =
-            openssl::sign::Verifier::new(openssl::hash::MessageDigest::sha256(), &self.key)
-                .unwrap();
+            openssl::sign::Verifier::new(openssl::hash::MessageDigest::sha256(), &self.0).unwrap();
         let input = &plain_content;
         verifier.update(input.as_bytes()).unwrap();
 
         let signature = openssl::base64::decode_block(signature).unwrap();
         verifier.verify(&signature).unwrap()
-    }
-
-    fn from_pem(pem: &str, algorithm: KeyType) -> Result<Self, ParseErr> {
-        let Ok(key) = openssl::rsa::Rsa::public_key_from_pem(pem.as_bytes()) else {
-            return Err(ParseErr::Failure);
-        };
-        Ok(OpenSSLPublic {
-            key: openssl::pkey::PKey::from_rsa(key).unwrap(),
-        })
     }
 }

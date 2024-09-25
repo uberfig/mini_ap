@@ -21,6 +21,8 @@ ok mastodon actually documented some stuff yayy
 delicious finally some documentation
 https://swicg.github.io/activitypub-http-signature/
 
+alr we're following along with https://github.com/astro/sigh and we're going back to openssl
+
 down the road there may be support for other databases, but for the time being postgres is the main focus. since this project is still very very under development there will be frequent changes the database without migrations until we have the first alpha release.
 
 for setting up your environment to run, check [environment setup](environment_setup.md)

@@ -5,6 +5,7 @@ use url::Url;
 
 use crate::{
     activitystream_objects::actors::Actor,
+    cryptography::openssl::OpenSSLPublic,
     protocol::{
         ap_protocol::fetch::authorized_fetch,
         errors::FetchErr,
@@ -52,7 +53,7 @@ pub struct VersiaConn<'a> {
 }
 
 impl VersiaVerificationCache for VersiaConn<'_> {
-    async fn get_key(&self, signed_by: &Signer) -> Option<AlgorithmsPublicKey> {
+    async fn get_key(&self, signed_by: &Signer) -> Option<OpenSSLPublic> {
         self.conn.get_key(signed_by).await
     }
 }
@@ -69,7 +70,7 @@ pub trait Conn: Sync {
         page_size: u64,
         ofset: u64,
     ) -> Option<Vec<Postable>>;
-    async fn get_key(&self, signed_by: &Signer) -> Option<AlgorithmsPublicKey>;
+    async fn get_key(&self, signed_by: &Signer) -> Option<OpenSSLPublic>;
     async fn get_versia_instance_metadata(&self, instance_domain: &str) -> InstanceMetadata;
     /// get the protocol of the given instance. will backfill if the instance isn't in the db
     async fn get_protocol(&self, instance: &str) -> Protocols;
@@ -169,25 +170,7 @@ pub trait Conn: Sync {
         &self,
         actor_id: &Url,
         instance_domain: &str,
-    ) -> Result<i64, DbErr> {
-        let instance_actor = self.get_instance_actor().await;
-        let key_id = InstanceActor::pub_key_id(instance_domain);
-
-        let fetched =
-            authorized_fetch(actor_id, &key_id, &mut instance_actor.get_private_key()).await;
-        let fetched = match fetched {
-            Ok(x) => x,
-            Err(x) => return Err(DbErr::FetchErr(x)),
-        };
-
-        let actor = fetched.get_actor();
-        let actor = match actor {
-            Some(x) => x,
-            None => return Err(DbErr::InvalidType),
-        };
-
-        Ok(self.create_federated_actor(&actor).await)
-    }
+    ) -> Result<i64, DbErr>;
 
     //--------------------followers---------------------------------
 

@@ -1,24 +1,11 @@
-use std::collections::HashMap;
-use base64::Engine;
-use serde::{de::Error as DeError, Deserializer, Serializer};
+use serde::{de::Error as DeError, ser::Error as SerError, Deserializer, Serializer};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use url::Url;
 
-use crate::{
-    cryptography::{key::KeyType, private_key::AlgorithmsPrivateKey},
-    versia_types::entities::public_key::AlgorithmsPublicKey,
-};
+use crate::cryptography::{key::Key, openssl::OpenSSLPublic};
 
 use super::{core_types::*, link::RangeLinkItem};
-
-impl RangeLinkItem<Actor> {
-    pub fn get_id(&self) -> &Url {
-        match self {
-            RangeLinkItem::Item(x) => x.get_id(),
-            RangeLinkItem::Link(x) => x.get_id(),
-        }
-    }
-}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum ActorType {
@@ -47,18 +34,6 @@ pub enum ActorType {
 }
 
 //-------------------types--------------------
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct PublicKey {
-    pub id: Url,    //https://my-example.com/actor#main-key
-    pub owner: Url, //"https://my-example.com/actor"
-    pub public_key_pem: String,
-}
-impl From<String> for PublicKey {
-    fn from(value: String) -> Self {
-        serde_json::from_str(&value).unwrap()
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -93,18 +68,44 @@ pub struct Actor {
     pub outbox: Url,
     pub followers: Url,
     pub following: Url,
-
-    // #[serde(skip)]
-    // pub ap_user_id: Option<i64>,
-    #[serde(skip)]
-    pub domain: Option<String>,
-    #[serde(skip)]
-    pub liked: Option<Url>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum ApPublicKey {
-	
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PublicKey {
+    pub id: Url,    //https://my-example.com/actor#main-key
+    pub owner: Url, //"https://my-example.com/actor"
+    #[serde(deserialize_with = "deserialize_public")]
+    #[serde(serialize_with = "serialize_public")]
+    pub public_key_pem: OpenSSLPublic,
+}
+
+pub fn deserialize_public<'de, D>(deserializer: D) -> Result<OpenSSLPublic, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let input = <&str>::deserialize(deserializer)?;
+    match OpenSSLPublic::from_pem(input.as_bytes()) {
+        Ok(ok) => Ok(ok),
+        Err(err) => Err(D::Error::custom(err)),
+    }
+}
+
+pub fn serialize_public<S>(x: &OpenSSLPublic, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    let pem = x.to_pem();
+    match pem {
+        Ok(ok) => s.serialize_str(&ok),
+        Err(x) => Err(S::Error::custom(x)),
+    }
+}
+
+impl From<String> for PublicKey {
+    fn from(value: String) -> Self {
+        serde_json::from_str(&value).unwrap()
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -127,80 +128,6 @@ pub enum ContextMapItem {
     String(String),
     Map(HashMap<String, String>),
 }
-
-impl Actor {
-    // pub fn to_activitystream(self) -> ActivityStream {
-    //     // let mut test: HashMap<String, ContextMapItem> = HashMap::new();
-    //     // let mut item: HashMap<String, String> = HashMap::new();
-    //     // item.insert("@id".to_string(), "toot:featuredTags".to_string());
-    //     // item.insert("@type".to_string(), "@id".to_string());
-    //     // test.insert("featuredTags".to_string(), ContextMapItem::Map(item));
-    //     // test.insert("manuallyApprovesFollowers".to_string(), ContextMapItem::String("as:manuallyApprovesFollowers".to_string()));
-    //     ActivityStream {
-    //         content: ContextWrap {
-    //             context: Context::Array(vec![
-    //                 ContextItem::String("https://www.w3.org/ns/activitystreams".to_owned()),
-    //                 ContextItem::String("https://w3id.org/security/v1".to_owned()),
-    //                 // ContextItem::Map(test)
-    //             ]),
-    //             activity_stream: ExtendsObject::Actor(Box::new(self)),
-    //         },
-    //     }
-    // }
-    pub fn get_id(&self) -> &Url {
-        &self.id
-    }
-	pub fn get_key_type(&self) -> Option<KeyType> {
-		let input = match &self.context {
-			Context::Array(vec) => vec,
-			Context::Single(_) => return None,
-		};
-		for i in input.iter() {
-			if let ContextItem::Map(map) = i {
-				let val = map.get("Ed25519Key");
-				if val.is_some() {
-					return Some(KeyType::Ed25519);
-				}
-			}
-		}
-		None
-	}
-    pub fn get_public_key(&self) -> Result<AlgorithmsPublicKey, ()> {
-		use crate::cryptography::key::PublicKey;
-		let Some(keytype) = self.get_key_type() else {
-			return Err(());
-		};
-		match keytype {
-			KeyType::Ed25519 => {
-				match AlgorithmsPublicKey::from_pem(&self.public_key.public_key_pem, KeyType::Ed25519) {
-						Ok(x) => Ok(x),
-						Err(_) => Err(()),
-					}
-			},
-		}
-    }
-}
-
-// impl From<Actor> for ActivityStream {
-//     fn from(value: Actor) -> ActivityStream {
-//         value.to_activitystream()
-//     }
-// }
-
-// impl From<Box<Actor>> for ActivityStream {
-//     fn from(value: Box<Actor>) -> ActivityStream {
-//         ActivityStream {
-//             content: ContextWrap {
-//                 context: Context::Array(vec![
-//                     ContextItem::String("https://www.w3.org/ns/activitystreams".to_owned()),
-//                     ContextItem::String("https://w3id.org/security/v1".to_owned()),
-//                 ]),
-//                 // activity_stream: RangeLinkExtendsObject::Object(ExtendsObject::Actor(value)),
-//                 activity_stream: ExtendsObject::Actor(value),
-//             },
-//         }
-//     }
-// }
 
 #[cfg(test)]
 mod tests {

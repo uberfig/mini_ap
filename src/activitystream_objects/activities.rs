@@ -139,23 +139,23 @@ pub struct Activity {
 }
 
 impl Activity {
-    pub fn new_create(object: ObjectWrapper) -> Self {
-        let intransitive = IntransitiveActivity {
-            id: Url::parse(&format!("{}/activity", object.object.id.as_str())).unwrap(),
-            actor: RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(
-                object.object.get_attributed_to().clone(),
-            )),
-            target: None,
-            result: None,
-            origin: None,
-            instrument: None,
-        };
-        Activity {
-            type_field: ActivityType::Create,
-            object: RangeLinkItem::Item(ExtendsObject::Object(Box::new(object))),
-            extends_intransitive: intransitive,
-        }
-    }
+    // pub fn new_create(object: ObjectWrapper) -> Self {
+    //     let intransitive = IntransitiveActivity {
+    //         id: Url::parse(&format!("{}/activity", object.object.id.as_str())).unwrap(),
+    //         actor: RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(
+    //             object.object.get_attributed_to().clone(),
+    //         )),
+    //         target: None,
+    //         result: None,
+    //         origin: None,
+    //         instrument: None,
+    //     };
+    //     Activity {
+    //         type_field: ActivityType::Create,
+    //         object: RangeLinkItem::Item(ExtendsObject::Object(Box::new(object))),
+    //         extends_intransitive: intransitive,
+    //     }
+    // }
     pub fn new_accept(actor: Url, object: Url, domain: &str) -> Self {
         let intransitive = IntransitiveActivity {
             id: Url::parse(&format!("https://{}/accept", domain)).unwrap(),

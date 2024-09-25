@@ -3,20 +3,12 @@ use std::sync::Mutex;
 use actix_web::{
     error::Error,
     get,
-    http::StatusCode,
     post,
     web::{self, Data},
     HttpRequest, HttpResponse, Result,
 };
 
-use crate::{
-    db::{conn::Conn, incoming::process_incoming},
-    protocol::{
-        ap_protocol::incoming::{verify_incoming, RequestVerificationError},
-        errors::FetchErr,
-        headers::ActixHeaders,
-    },
-};
+use crate::db::conn::Conn;
 pub struct Inbox {
     pub inbox: Mutex<Vec<String>>,
 }
@@ -65,61 +57,62 @@ async fn handle_inbox(
     conn: Data<Box<dyn Conn + Sync>>,
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse, Error> {
-    let mut instance_actor_key = conn.get_instance_actor().await.get_private_key();
+    todo!()
+    // let mut instance_actor_key = conn.get_instance_actor().await.get_private_key();
 
-    let Ok(body) = String::from_utf8(body.to_vec()) else {
-        return Ok(HttpResponse::Unauthorized()
-            .body(serde_json::to_string(&RequestVerificationError::BadMessageBody).unwrap()));
-    };
+    // let Ok(body) = String::from_utf8(body.to_vec()) else {
+    //     return Ok(HttpResponse::Unauthorized()
+    //         .body(serde_json::to_string(&RequestVerificationError::BadMessageBody).unwrap()));
+    // };
 
-    // println!("{}", &body);
+    // // println!("{}", &body);
 
-    let x = verify_incoming(
-        &ActixHeaders {
-            headermap: request.headers().clone(),
-        },
-        &body,
-        path,
-        &state.instance_domain,
-        &format!("https://{}/actor/ap#main-key", &state.instance_domain),
-        &mut instance_actor_key,
-    )
-    .await;
+    // let x = verify_incoming(
+    //     &ActixHeaders {
+    //         headermap: request.headers().clone(),
+    //     },
+    //     &body,
+    //     path,
+    //     &state.instance_domain,
+    //     &format!("https://{}/actor/ap#main-key", &state.instance_domain),
+    //     &mut instance_actor_key,
+    // )
+    // .await;
 
-    match x {
-        Ok(x) => {
-            // println!("{}", &x);
+    // match x {
+    //     Ok(x) => {
+    //         // println!("{}", &x);
 
-            {
-                let mut guard = inbox.inbox.lock().unwrap();
-                let data = &mut *guard;
-                let deserialized = serde_json::to_string(&x).unwrap();
-                data.push(format!("Success:\n{}", deserialized));
-            }
+    //         {
+    //             let mut guard = inbox.inbox.lock().unwrap();
+    //             let data = &mut *guard;
+    //             let deserialized = serde_json::to_string(&x).unwrap();
+    //             data.push(format!("Success:\n{}", deserialized));
+    //         }
 
-            process_incoming(conn, state, x).await;
+    //         process_incoming(conn, state, x).await;
 
-            return Ok(HttpResponse::Ok()
-                .status(StatusCode::OK)
-                .body("OK".to_string()));
-        }
-        Err(x) => {
-            if matches!(
-                &x,
-                RequestVerificationError::ActorFetchFailed(FetchErr::IsTombstone(_))
-            ) {
-                println!("another tombstone");
-                return Ok(HttpResponse::Ok()
-                    .status(StatusCode::OK)
-                    .body("OK".to_string()));
-            }
-            {
-                let mut guard = inbox.inbox.lock().unwrap();
-                let data = &mut *guard;
-                let deserialized = serde_json::to_string(&x).unwrap();
-                data.push(format!("failure:{}\n{}", deserialized, body));
-            }
-            Ok(HttpResponse::Unauthorized().body(serde_json::to_string(&x).unwrap()))
-        }
-    }
+    //         return Ok(HttpResponse::Ok()
+    //             .status(StatusCode::OK)
+    //             .body("OK".to_string()));
+    //     }
+    //     Err(x) => {
+    //         if matches!(
+    //             &x,
+    //             RequestVerificationError::ActorFetchFailed(FetchErr::IsTombstone(_))
+    //         ) {
+    //             println!("another tombstone");
+    //             return Ok(HttpResponse::Ok()
+    //                 .status(StatusCode::OK)
+    //                 .body("OK".to_string()));
+    //         }
+    //         {
+    //             let mut guard = inbox.inbox.lock().unwrap();
+    //             let data = &mut *guard;
+    //             let deserialized = serde_json::to_string(&x).unwrap();
+    //             data.push(format!("failure:{}\n{}", deserialized, body));
+    //         }
+    //         Ok(HttpResponse::Unauthorized().body(serde_json::to_string(&x).unwrap()))
+    //     }
+    // }
 }

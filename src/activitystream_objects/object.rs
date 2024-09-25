@@ -81,21 +81,21 @@ impl ObjectWrapper {
             },
         }
     }
-    pub fn to_create_activitystream(self) -> ActivityStream {
-        ActivityStream {
-            content: ContextWrap {
-                context: Context::Single("https://www.w3.org/ns/activitystreams".to_string()),
-                // activity_stream: RangeLinkExtendsObject::Object(
-                //     ExtendsObject::ExtendsIntransitive(Box::new(
-                //         ExtendsIntransitive::ExtendsActivity(Activity::new_create(self)),
-                //     )),
-                // ),
-                activity_stream: ExtendsObject::ExtendsIntransitive(Box::new(
-                    ExtendsIntransitive::ExtendsActivity(Activity::new_create(self)),
-                )),
-            },
-        }
-    }
+    // pub fn to_create_activitystream(self) -> ActivityStream {
+    //     ActivityStream {
+    //         content: ContextWrap {
+    //             context: Context::Single("https://www.w3.org/ns/activitystreams".to_string()),
+    //             // activity_stream: RangeLinkExtendsObject::Object(
+    //             //     ExtendsObject::ExtendsIntransitive(Box::new(
+    //             //         ExtendsIntransitive::ExtendsActivity(Activity::new_create(self)),
+    //             //     )),
+    //             // ),
+    //             activity_stream: ExtendsObject::ExtendsIntransitive(Box::new(
+    //                 ExtendsIntransitive::ExtendsActivity(Activity::new_create(self)),
+    //             )),
+    //         },
+    //     }
+    // }
 }
 
 impl RangeLinkItem<ExtendsObject> {
@@ -213,12 +213,12 @@ impl Object {
             replies: None,
         }
     }
-    pub fn get_attributed_to(&self) -> &Url {
-        match &self.attributed_to {
-            RangeLinkItem::Item(x) => x.get_id(),
-            RangeLinkItem::Link(x) => x.get_id(),
-        }
-    }
+    // pub fn get_attributed_to(&self) -> &Url {
+    //     match &self.attributed_to {
+    //         RangeLinkItem::Item(x) => x.get_id(),
+    //         RangeLinkItem::Link(x) => x.get_id(),
+    //     }
+    // }
     pub fn set_attributed_to(mut self, attributed_to: Url) -> Self {
         self.attributed_to = RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(attributed_to));
         self

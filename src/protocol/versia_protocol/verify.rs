@@ -1,7 +1,7 @@
 use url::Url;
 
 use crate::{
-    cryptography::key::PublicKey,
+    cryptography::{key::PublicKey, openssl::OpenSSLPublic},
     protocol::{errors::VerifyRequestErr, headers::Headers},
     versia_types::entities::public_key::AlgorithmsPublicKey,
 };
@@ -15,7 +15,7 @@ use super::{
 /// the use of async trait and trait objects with async
 #[allow(async_fn_in_trait)]
 pub trait VersiaVerificationCache {
-    async fn get_key(&self, signed_by: &Signer) -> Option<AlgorithmsPublicKey>;
+    async fn get_key(&self, signed_by: &Signer) -> Option<OpenSSLPublic>;
 }
 
 /// returns the signer if successful

@@ -24,41 +24,41 @@ impl std::fmt::Display for ActivityStream {
 }
 
 impl ActivityStream {
-    pub fn get_actor(self) -> Option<Box<Actor>> {
-        match self.content.activity_stream {
-            ExtendsObject::Actor(x) => Some(x),
-            _ => None,
-        }
-    }
-    pub fn get_activity(self) -> Option<Box<ExtendsIntransitive>> {
-        match self.content.activity_stream {
-            ExtendsObject::ExtendsIntransitive(x) => Some(x),
-            _ => None,
-        }
-    }
-    pub fn get_object(self) -> Option<Box<ObjectWrapper>> {
-        match self.content.activity_stream {
-            ExtendsObject::Object(x) => Some(x),
-            _ => None,
-        }
-    }
-    pub fn get_extends_object(self) -> ExtendsObject {
-        self.content.activity_stream
-    }
-    pub fn is_activity(&self) -> bool {
-        matches!(
-            &self.content.activity_stream,
-            ExtendsObject::ExtendsIntransitive(_)
-        )
-    }
-    pub fn get_owner(&self) -> Option<&Url> {
-        match &self.content.activity_stream {
-            ExtendsObject::Object(x) => Some(x.object.get_attributed_to()),
-            ExtendsObject::ExtendsIntransitive(x) => Some(x.get_actor()),
-            ExtendsObject::ExtendsCollection(_) => None,
-            ExtendsObject::Actor(x) => Some(x.get_id()),
-        }
-    }
+    // pub fn get_actor(self) -> Option<Box<Actor>> {
+    //     match self.content.activity_stream {
+    //         ExtendsObject::Actor(x) => Some(x),
+    //         _ => None,
+    //     }
+    // }
+    // pub fn get_activity(self) -> Option<Box<ExtendsIntransitive>> {
+    //     match self.content.activity_stream {
+    //         ExtendsObject::ExtendsIntransitive(x) => Some(x),
+    //         _ => None,
+    //     }
+    // }
+    // pub fn get_object(self) -> Option<Box<ObjectWrapper>> {
+    //     match self.content.activity_stream {
+    //         ExtendsObject::Object(x) => Some(x),
+    //         _ => None,
+    //     }
+    // }
+    // pub fn get_extends_object(self) -> ExtendsObject {
+    //     self.content.activity_stream
+    // }
+    // pub fn is_activity(&self) -> bool {
+    //     matches!(
+    //         &self.content.activity_stream,
+    //         ExtendsObject::ExtendsIntransitive(_)
+    //     )
+    // }
+    // pub fn get_owner(&self) -> Option<&Url> {
+    //     match &self.content.activity_stream {
+    //         ExtendsObject::Object(x) => Some(x.object.get_attributed_to()),
+    //         ExtendsObject::ExtendsIntransitive(x) => Some(x.get_actor()),
+    //         ExtendsObject::ExtendsCollection(_) => None,
+    //         ExtendsObject::Actor(x) => Some(x.get_id()),
+    //     }
+    // }
 }
 
 //-------------------glue--------------

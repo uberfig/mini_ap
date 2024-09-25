@@ -6,11 +6,10 @@ use crate::{
     activitystream_objects::core_types::ActivityStream,
     cryptography::{
         digest::sha256_hash,
-        key::{KeyType, PrivateKey, PublicKey},
+        key::{Key, KeyType, PrivateKey, PublicKey}, openssl::OpenSSLPublic,
         // openssl::OpenSSLPublic,
     },
     protocol::{errors::FetchErr, headers::Headers},
-    versia_types::entities::public_key::AlgorithmsPublicKey,
 };
 
 use super::{fetch::authorized_fetch, verification::verify_attribution};
@@ -145,7 +144,7 @@ pub async fn verify_incoming<K: PrivateKey, H: Headers>(
     }
 
     let Ok(actor_public_key) =
-        AlgorithmsPublicKey::from_pem(&actor.public_key.public_key_pem, KeyType::Ed25519)
+        OpenSSLPublic::from_pem(actor.public_key.public_key_pem.as_bytes())
     else {
         return Err(RequestVerificationError::InvalidKey);
     };

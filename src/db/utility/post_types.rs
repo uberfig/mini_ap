@@ -25,12 +25,12 @@ pub enum PostType {
     Question(Question),
 }
 impl PostType {
-    pub fn to_create_activitystream(self) -> ActivityStream {
-        match self {
-            PostType::Object(x) => x.to_create_activitystream(),
-            PostType::Question(_) => todo!(),
-        }
-    }
+    // pub fn to_create_activitystream(self) -> ActivityStream {
+    //     match self {
+    //         PostType::Object(x) => x.to_create_activitystream(),
+    //         PostType::Question(_) => todo!(),
+    //     }
+    // }
     pub fn get_surtype(&self) -> String {
         match self {
             PostType::Object(_) => serde_json::to_string(&PostSupertype::Object).unwrap(),

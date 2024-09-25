@@ -83,28 +83,29 @@ impl NewLocal {
         custom_domain: Option<String>,
         permission_level: Option<PermissionLevel>,
     ) -> Self {
-        let permission_level = match permission_level {
-            Some(x) => x,
-            None => PermissionLevel::UntrustedUser,
-        };
-        let rsa = AlgorithmsPrivateKey::generate(KeyType::Ed25519);
-        let private_key_pem = rsa.private_key_pem().to_string();
-        let public_key_pem = rsa.public_key_pem().to_string();
+        todo!()
+        // let permission_level = match permission_level {
+        //     Some(x) => x,
+        //     None => PermissionLevel::UntrustedUser,
+        // };
+        // let rsa = AlgorithmsPrivateKey::generate(KeyType::Ed25519);
+        // let private_key_pem = rsa.private_key_pem().to_string();
+        // let public_key_pem = rsa.public_key_pem().to_string();
 
-        let salt = SaltString::generate(&mut OsRng);
-        let argon2 = Argon2::default();
-        let password_hash = argon2
-            .hash_password(password.as_bytes(), &salt)
-            .unwrap()
-            .to_string();
-        NewLocal {
-            username,
-            password: password_hash,
-            email,
-            permission_level,
-            private_key_pem,
-            public_key_pem,
-            custom_domain,
-        }
+        // let salt = SaltString::generate(&mut OsRng);
+        // let argon2 = Argon2::default();
+        // let password_hash = argon2
+        //     .hash_password(password.as_bytes(), &salt)
+        //     .unwrap()
+        //     .to_string();
+        // NewLocal {
+        //     username,
+        //     password: password_hash,
+        //     email,
+        //     permission_level,
+        //     private_key_pem,
+        //     public_key_pem,
+        //     custom_domain,
+        // }
     }
 }

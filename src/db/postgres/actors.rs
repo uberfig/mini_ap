@@ -3,6 +3,7 @@ use url::Url;
 
 use crate::{
     activitystream_objects::actors::{Actor, ActorType, PublicKey},
+    cryptography::{key::Key, openssl::OpenSSLPublic},
     db::utility::new_actor::generate_ap_links,
 };
 
@@ -49,11 +50,12 @@ fn fedi_user_from_row(result: Row) -> Actor {
     let outbox: String = result.get("outbox");
     let followers: String = result.get("followers");
     let following: String = result.get("following");
+    let pem: &str = result.get("public_key_pem");
 
     let key = PublicKey {
         id: Url::parse(&public_key_id).unwrap(),
         owner: id.clone(),
-        public_key_pem: result.get("public_key_pem"),
+        public_key_pem: OpenSSLPublic::from_pem(pem.as_bytes()).unwrap(),
     };
 
     todo!()
@@ -227,7 +229,7 @@ pub async fn create_federated_actor(conn: &PgConn, actor: &Actor) -> i64 {
                 &actor.name,
                 &actor.summary,
                 &url,
-                &actor.public_key.public_key_pem,
+                &actor.public_key.public_key_pem.to_pem().unwrap(),
                 &actor.public_key.id.as_str(),
                 &actor.inbox.as_str(),
                 &actor.outbox.as_str(),

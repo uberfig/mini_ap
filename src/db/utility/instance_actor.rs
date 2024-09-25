@@ -2,7 +2,7 @@ use url::Url;
 
 use crate::{
     activitystream_objects::actors::{Actor, PublicKey},
-    cryptography::{key::PrivateKey, private_key::AlgorithmsPrivateKey},
+    cryptography::{key::PrivateKey, openssl::OpenSSLPrivate, private_key::AlgorithmsPrivateKey},
 };
 
 use super::new_actor::instance_actor_links;
@@ -23,12 +23,13 @@ impl InstanceActor {
     //             .await;
     //     }
     // }
-    pub fn get_private_key(&self) -> AlgorithmsPrivateKey {
-        AlgorithmsPrivateKey::from_pem(
-            &self.private_key_pem,
-            crate::cryptography::key::KeyType::Ed25519,
-        )
-        .unwrap()
+    pub fn get_private_key(&self) -> OpenSSLPrivate {
+        // AlgorithmsPrivateKey::from_pem(
+        //     &self.private_key_pem,
+        //     crate::cryptography::key::KeyType::Ed25519,
+        // )
+        // .unwrap()
+        todo!()
     }
     pub fn to_actor(&self, domain: &str) -> Actor {
         let links = instance_actor_links(domain);

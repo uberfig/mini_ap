@@ -43,24 +43,25 @@ pub async fn get_object_create(
     request: HttpRequest,
     body: web::Bytes,
 ) -> Result<HttpResponse> {
-    println!("getting an object");
+    todo!()
+    // println!("getting an object");
 
-    dbg!(request);
-    dbg!(&body);
+    // dbg!(request);
+    // dbg!(&body);
 
-    let (_preferred_username, object_id) = path.into_inner();
+    // let (_preferred_username, object_id) = path.into_inner();
 
-    let object = conn.get_post(object_id).await;
+    // let object = conn.get_post(object_id).await;
 
-    let object = match object {
-        Some(x) => x,
-        None => {
-            return Err(ErrorNotFound(r#"{"error":"Not Found"}"#));
-        }
-    };
-    let object: ActivityStream = object.to_create_activitystream();
+    // let object = match object {
+    //     Some(x) => x,
+    //     None => {
+    //         return Err(ErrorNotFound(r#"{"error":"Not Found"}"#));
+    //     }
+    // };
+    // let object: ActivityStream = object.to_create_activitystream();
 
-    Ok(HttpResponse::Ok()
-        .content_type("application/activity+json; charset=utf-8")
-        .body(serde_json::to_string(&object).unwrap()))
+    // Ok(HttpResponse::Ok()
+    //     .content_type("application/activity+json; charset=utf-8")
+    //     .body(serde_json::to_string(&object).unwrap()))
 }
