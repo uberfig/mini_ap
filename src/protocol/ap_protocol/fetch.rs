@@ -1,17 +1,18 @@
 use crate::protocol::errors::FetchErr;
 use std::time::SystemTime;
+use serde::Deserialize;
 use url::Url;
 
-use crate::{activitystream_objects::core_types::ActivityStream, cryptography::key::PrivateKey};
+use crate::cryptography::key::PrivateKey;
 
 /// key_id and private_key are the properties of the key
 /// being used to perform the fetch. usually done by the
 /// instance actor
-pub async fn authorized_fetch<T: PrivateKey>(
+pub async fn authorized_fetch<T: PrivateKey, F: for<'a> Deserialize<'a>>(
     object_id: &Url,
     key_id: &str,
     private_key: &mut T,
-) -> Result<ActivityStream, FetchErr> {
+) -> Result<F, FetchErr> {
     let path = object_id.path();
     let Some(fetch_domain) = object_id.host_str() else {
         return Err(FetchErr::InvalidUrl(object_id.as_str().to_string()));
@@ -58,7 +59,7 @@ pub async fn authorized_fetch<T: PrivateKey>(
     }
     // println!("auth fetch got:\n{}", &response);
 
-    let object: Result<ActivityStream, serde_json::Error> = serde_json::from_str(&response);
+    let object: Result<F, serde_json::Error> = serde_json::from_str(&response);
     let object = match object {
         Ok(x) => x,
         Err(x) => return Err(FetchErr::DeserializationErr(x.to_string())),

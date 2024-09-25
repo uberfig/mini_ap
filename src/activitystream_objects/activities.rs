@@ -4,9 +4,7 @@ use url::Url;
 
 use super::{
     actors::Actor,
-    core_types::{ActivityStream, Context, ContextWrap, ExtendsObject},
-    link::{LinkSimpleOrExpanded, RangeLinkItem},
-    object::ObjectWrapper,
+    link::{LinkSimpleOrExpanded, RangeLinkItem}, object::Object,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -135,7 +133,7 @@ pub struct Activity {
     #[serde(flatten)]
     pub extends_intransitive: IntransitiveActivity,
 
-    pub object: RangeLinkItem<ExtendsObject>,
+    pub object: RangeLinkItem<Object>,
 }
 
 impl Activity {
@@ -169,16 +167,6 @@ impl Activity {
             type_field: ActivityType::Accept,
             object: RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(object)),
             extends_intransitive: intransitive,
-        }
-    }
-    pub fn to_activitystream(self) -> ActivityStream {
-        ActivityStream {
-            content: ContextWrap {
-                context: Context::Single("https://www.w3.org/ns/activitystreams".to_string()),
-                activity_stream: ExtendsObject::ExtendsIntransitive(Box::new(
-                    ExtendsIntransitive::ExtendsActivity(self),
-                )),
-            },
         }
     }
 }
@@ -420,7 +408,9 @@ pub enum ActivityType {
 
 #[cfg(test)]
 mod tests {
-    use crate::activitystream_objects::core_types::ActivityStream;
+    use crate::activitystream_objects::context::ContextWrap;
+
+    use super::Activity;
 
     #[test]
     fn deserialize_delete() -> Result<(), String> {
@@ -443,7 +433,7 @@ mod tests {
 }
         "##;
 
-        let deserialized: Result<ActivityStream, serde_json::Error> = serde_json::from_str(example);
+        let deserialized: Result<ContextWrap<Activity>, serde_json::Error> = serde_json::from_str(example);
         match deserialized {
             Ok(_) => Ok(()),
             Err(x) => Err(format!(
@@ -593,7 +583,7 @@ mod tests {
 	}
 }
         "##;
-        let deserialized: Result<ActivityStream, serde_json::Error> =
+        let deserialized: Result<ContextWrap<Activity>, serde_json::Error> =
             serde_json::from_str(test_create);
         match deserialized {
             Ok(_) => Ok(()),

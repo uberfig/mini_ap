@@ -58,7 +58,9 @@ pub struct CollectionPage {
 
 #[cfg(test)]
 mod tests {
-    use crate::activitystream_objects::core_types::ActivityStream;
+    use crate::activitystream_objects::context::ContextWrap;
+
+    use super::{Collection, CollectionPage};
 
     #[test]
     fn test_deserialize_index() -> Result<(), String> {
@@ -72,7 +74,7 @@ mod tests {
 	"first": "https://mastodon.social/users/Mastodon/followers?page=1"
 }
         "#;
-        let deserialized: Result<ActivityStream, serde_json::Error> =
+        let deserialized: Result<ContextWrap<Collection>, serde_json::Error> =
             serde_json::from_str(index_page);
         match deserialized {
             Ok(_) => Ok(()),
@@ -109,7 +111,7 @@ mod tests {
 	]
 }
         "#;
-        let deserialized: Result<ActivityStream, serde_json::Error> =
+        let deserialized: Result<ContextWrap<CollectionPage>, serde_json::Error> =
             serde_json::from_str(index_page);
         match deserialized {
             Ok(_) => Ok(()),

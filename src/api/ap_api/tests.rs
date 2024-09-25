@@ -3,10 +3,7 @@ use serial_test::serial;
 use url::Url;
 
 use crate::{
-    app::start_application,
-    config::get_config,
-    db::utility::{instance_actor::InstanceActor, new_actor::NewLocal},
-    protocol::ap_protocol::fetch::authorized_fetch,
+    activitystream_objects::{actors::Actor, context::ContextWrap}, app::start_application, config::get_config, db::utility::{instance_actor::InstanceActor, new_actor::NewLocal}, protocol::ap_protocol::fetch::authorized_fetch
 };
 
 #[actix_web::test]
@@ -49,7 +46,7 @@ async fn test_actor_endpoint() -> Result<(), String> {
     ))
     .unwrap();
     println!("local url: {}", &local_url);
-    let result = authorized_fetch(
+    let result: Result<ContextWrap<Actor>, crate::protocol::errors::FetchErr> = authorized_fetch(
         local_url,
         &InstanceActor::pub_key_id(&config.instance_domain),
         &mut instance_actor.get_private_key(),

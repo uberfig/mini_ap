@@ -1,12 +1,12 @@
-use chrono::{DateTime, SecondsFormat};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+use crate::versia_types::serde_fns::{deserialize_time, serialize_time};
+
 use super::{
-    activities::{Activity, ExtendsIntransitive},
     actors::Actor,
     collections::ExtendsCollection,
-    core_types::{ActivityStream, Context, ContextWrap, ExtendsObject, OptionalArray},
+    core_types::OptionalArray,
     link::{LinkSimpleOrExpanded, RangeLinkItem},
 };
 
@@ -53,63 +53,9 @@ pub enum ObjectType {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ObjectWrapper {
+pub struct Object {
     #[serde(rename = "type")]
     pub type_field: ObjectType,
-    #[serde(flatten)]
-    pub object: Object,
-}
-
-impl ObjectWrapper {
-    pub fn get_id(&self) -> &Url {
-        &self.object.id
-    }
-    pub fn get_reply_to(&self) -> Option<&Url> {
-        match &self.object.in_reply_to {
-            Some(x) => Some(x.get_id()),
-            None => None,
-        }
-    }
-    pub fn to_activitystream(self) -> ActivityStream {
-        ActivityStream {
-            content: ContextWrap {
-                context: Context::Single("https://www.w3.org/ns/activitystreams".to_string()),
-                // activity_stream: RangeLinkExtendsObject::Object(ExtendsObject::Object(Box::new(
-                //     self,
-                // ))),
-                activity_stream: ExtendsObject::Object(Box::new(self)),
-            },
-        }
-    }
-    // pub fn to_create_activitystream(self) -> ActivityStream {
-    //     ActivityStream {
-    //         content: ContextWrap {
-    //             context: Context::Single("https://www.w3.org/ns/activitystreams".to_string()),
-    //             // activity_stream: RangeLinkExtendsObject::Object(
-    //             //     ExtendsObject::ExtendsIntransitive(Box::new(
-    //             //         ExtendsIntransitive::ExtendsActivity(Activity::new_create(self)),
-    //             //     )),
-    //             // ),
-    //             activity_stream: ExtendsObject::ExtendsIntransitive(Box::new(
-    //                 ExtendsIntransitive::ExtendsActivity(Activity::new_create(self)),
-    //             )),
-    //         },
-    //     }
-    // }
-}
-
-impl RangeLinkItem<ExtendsObject> {
-    pub fn get_id(&self) -> &Url {
-        match self {
-            RangeLinkItem::Item(x) => x.get_id(),
-            RangeLinkItem::Link(x) => x.get_id(),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Object {
     pub id: Url,
 
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -129,10 +75,11 @@ pub struct Object {
     pub generator: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub in_reply_to: Option<RangeLinkItem<ExtendsObject>>,
+    pub in_reply_to: Option<Url>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub published: Option<String>,
+    #[serde(deserialize_with = "deserialize_time")]
+    #[serde(serialize_with = "serialize_time")]
+    pub published: i64,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub to: Option<OptionalArray<RangeLinkItem<Actor>>>,
@@ -178,115 +125,15 @@ pub struct Object {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub duration: Option<String>,
 
-    // #[serde(skip_serializing_if = "Option::is_none")]
-    // pub location: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub preview: Option<RangeLinkItem<ExtendsObject>>,
-
     #[serde(skip_serializing_if = "Option::is_none")]
     pub replies: Option<ExtendsCollection>,
 }
 
-impl Object {
-    pub fn new(id: Url, attributed_to: Url) -> Object {
-        Object {
-            id,
-            attributed_to: RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(attributed_to)),
-            name: None,
-            content: None,
-            media_type: None,
-            generator: None,
-            in_reply_to: None,
-            published: None,
-            to: None,
-            updated: None,
-            summary: None,
-            tag: None,
-            url: None,
-            icon: None,
-            image: None,
-            bto: None,
-            cc: None,
-            bcc: None,
-            duration: None,
-            preview: None,
-            replies: None,
-        }
-    }
-    // pub fn get_attributed_to(&self) -> &Url {
-    //     match &self.attributed_to {
-    //         RangeLinkItem::Item(x) => x.get_id(),
-    //         RangeLinkItem::Link(x) => x.get_id(),
-    //     }
-    // }
-    pub fn set_attributed_to(mut self, attributed_to: Url) -> Self {
-        self.attributed_to = RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(attributed_to));
-        self
-    }
-    pub fn name(mut self, name: Option<String>) -> Self {
-        self.name = name;
-        self
-    }
-    pub fn content(mut self, content: Option<String>) -> Self {
-        self.content = content;
-        self
-    }
-    pub fn set_id(mut self, id: Url) -> Self {
-        self.id = id;
-        self
-    }
-    // pub fn in_reply_to(mut self, in_reply_to: Option<RangeLinkItem<ExtendsObject>>) -> Self {
-    //     self.in_reply_to = in_reply_to;
-    //     self
-    // }
-    pub fn in_reply_to(mut self, in_reply_to: Option<String>) -> Self {
-        let in_reply_to = in_reply_to
-            .map(|x| RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(Url::parse(&x).unwrap())));
-        self.in_reply_to = in_reply_to;
-        self
-    }
-    pub fn published_milis(mut self, published: i64) -> Self {
-        let test = DateTime::from_timestamp_millis(published).unwrap();
-        let time = test.to_rfc3339_opts(SecondsFormat::Secs, true);
-        self.published = Some(time);
-        self
-    }
-    pub fn to_public(mut self) -> Self {
-        self.to = Some(OptionalArray::Multiple(vec![RangeLinkItem::Link(
-            super::link::LinkSimpleOrExpanded::Simple(
-                Url::parse("https://www.w3.org/ns/activitystreams#Public").unwrap(),
-            ),
-        )]));
-        self
-    }
-    pub fn wrap(self, obj_type: ObjectType) -> ObjectWrapper {
-        ObjectWrapper {
-            type_field: obj_type,
-            object: self.to_public(),
-        }
-    }
-    pub fn to_activitystream(self, obj_type: ObjectType) -> ActivityStream {
-        ActivityStream {
-            content: ContextWrap {
-                context: Context::Single("https://www.w3.org/ns/activitystreams".to_string()),
-                // activity_stream: RangeLinkExtendsObject::Object(ExtendsObject::Object(Box::new(
-                //     ObjectWrapper {
-                //         type_field: obj_type,
-                //         object: self,
-                //     },
-                // ))),
-                activity_stream: ExtendsObject::Object(Box::new(ObjectWrapper {
-                    type_field: obj_type,
-                    object: self,
-                })),
-            },
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use crate::activitystream_objects::{core_types::ActivityStream, object::ObjectType};
+    use crate::activitystream_objects::{context::ContextWrap, object::ObjectType};
+
+    use super::Object;
 
     #[test]
     fn test_deserialize_note() -> Result<(), String> {
@@ -414,7 +261,7 @@ mod tests {
 	}
 }
         "##;
-        let deserialized: Result<ActivityStream, serde_json::Error> =
+        let deserialized: Result<ContextWrap<Object>, serde_json::Error> =
             serde_json::from_str(test_note);
         let deserialized = match deserialized {
             Ok(x) => x,
@@ -426,15 +273,10 @@ mod tests {
             }
         };
 
-        let deserialized = match deserialized.content.activity_stream {
-            crate::activitystream_objects::core_types::ExtendsObject::Object(x) => x,
-            _ => return Err("not of type object".to_string()),
-        };
-
-        if !matches!(deserialized.type_field, ObjectType::Note) {
+        if !matches!(deserialized.item.type_field, ObjectType::Note) {
             return Err(format!(
                 "incorrect object type, givent type: {}",
-                serde_json::to_string(&deserialized.type_field).unwrap()
+                serde_json::to_string(&deserialized.item.type_field).unwrap()
             ));
         }
 

@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::activitystream_objects::{
-    activities::Question, core_types::ActivityStream, object::ObjectWrapper,
-};
+use crate::activitystream_objects::{activities::Question, object::Object};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PostSupertype {
@@ -21,7 +19,7 @@ impl PostSupertype {
 /// surtype of either object or question, then subtypes of their
 /// respective types, eg note, or for a question multi or single select
 pub enum PostType {
-    Object(ObjectWrapper),
+    Object(Object),
     Question(Question),
 }
 impl PostType {
@@ -43,27 +41,18 @@ impl PostType {
             PostType::Question(x) => serde_json::to_string(&x.type_field).unwrap(),
         }
     }
-    pub fn get_published(&self) -> &Option<String> {
-        match self {
-            PostType::Object(x) => &x.object.published,
-            PostType::Question(_) => todo!(),
-        }
-    }
-    pub fn get_id(&self) -> &str {
-        match self {
-            PostType::Object(x) => x.get_id().as_str(),
-            PostType::Question(_) => todo!(),
-        }
-    }
-}
-
-impl From<PostType> for ActivityStream {
-    fn from(value: PostType) -> Self {
-        match value {
-            PostType::Object(x) => x.to_activitystream(),
-            PostType::Question(_x) => todo!(),
-        }
-    }
+    // pub fn get_published(&self) -> &Option<String> {
+    //     match self {
+    //         PostType::Object(x) => &x.object.published,
+    //         PostType::Question(_) => todo!(),
+    //     }
+    // }
+    // pub fn get_id(&self) -> &str {
+    //     match self {
+    //         PostType::Object(x) => x.get_id().as_str(),
+    //         PostType::Question(_) => todo!(),
+    //     }
+    // }
 }
 
 impl From<PostType> for String {

@@ -5,8 +5,6 @@ use url::Url;
 
 use crate::cryptography::{key::Key, openssl::OpenSSLPublic};
 
-use super::{core_types::*, link::RangeLinkItem};
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum ActorType {
     // Actor,
@@ -48,8 +46,6 @@ pub enum ActorType {
 ///
 /// https://www.w3.org/TR/activitystreams-vocabulary/#actor-types
 pub struct Actor {
-    #[serde(rename = "@context")]
-    pub context: Context,
     #[serde(rename = "type")]
     pub type_field: ActorType,
     pub id: Url,
