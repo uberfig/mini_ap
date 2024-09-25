@@ -9,10 +9,12 @@ The lack of documentation on the extensions to activitypub by mastodon and vario
 reasons implimenting activitypub sucks
  - we just have a little [blog post](https://blog.joinmastodon.org/2018/06/how-to-implement-a-basic-activitypub-server/) to go off for signing unless we want to read the source code for mastodon
  - the blog post is incorrect as mastodon requires the message digest be signed
- - no one mentons anywhere that the algorithm needs to be inferred from the silly @context instead of making the sane design decision to just list the algorithm used beside the pem
+ - no one mentons anywhere that the algorithm needs to be inferred from the silly @context instead of making the sane design decision to just list the algorithm used beside the pem (fun fact I just found out that mastodon appearently uses spki for keys)
  - infinitely nested objects is valid within activitypub
  - when you unfollow someone your instance sends an undo. when you follow them again it undoes the undo, you can see how silly this is
  - follow requests need to have an id that can be accessed like comon this is silly
+
+ok mastodon actually documented some stuff yayy https://docs.joinmastodon.org/spec/security/#http-sign
 
 down the road there may be support for other databases, but for the time being postgres is the main focus. since this project is still very very under development there will be frequent changes the database without migrations until we have the first alpha release.
 
