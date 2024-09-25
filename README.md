@@ -18,6 +18,9 @@ ok mastodon actually documented some stuff yayy
  - https://docs.joinmastodon.org/spec/security/#http-sign
  - https://docs.joinmastodon.org/spec/activitypub/#publicKey
 
+delicious finally some documentation
+https://swicg.github.io/activitypub-http-signature/
+
 down the road there may be support for other databases, but for the time being postgres is the main focus. since this project is still very very under development there will be frequent changes the database without migrations until we have the first alpha release.
 
 for setting up your environment to run, check [environment setup](environment_setup.md)
