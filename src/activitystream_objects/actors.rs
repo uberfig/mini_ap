@@ -4,7 +4,6 @@ use serde::{de::Error as DeError, Deserializer, Serializer};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::cryptography::key::PublicKey;
 use crate::{
     cryptography::{key::KeyType, private_key::AlgorithmsPrivateKey},
     versia_types::entities::public_key::AlgorithmsPublicKey,
@@ -88,7 +87,7 @@ pub struct Actor {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<Url>,
 
-    pub public_key: Pu,
+    pub public_key: PublicKey,
 
     pub inbox: Url,
     pub outbox: Url,
@@ -167,12 +166,16 @@ impl Actor {
 		None
 	}
     pub fn get_public_key(&self) -> Result<AlgorithmsPublicKey, ()> {
+		use crate::cryptography::key::PublicKey;
 		let Some(keytype) = self.get_key_type() else {
 			return Err(());
 		};
 		match keytype {
 			KeyType::Ed25519 => {
-				AlgorithmsPublicKey::from_pem(self.public_key., algorithm)
+				match AlgorithmsPublicKey::from_pem(&self.public_key.public_key_pem, KeyType::Ed25519) {
+						Ok(x) => Ok(x),
+						Err(_) => Err(()),
+					}
 			},
 		}
     }
