@@ -4,57 +4,16 @@ use url::Url;
 
 use super::{
     actors::Actor,
-    link::{LinkSimpleOrExpanded, RangeLinkItem}, object::Object,
+    link::RangeLinkItem,
+    object::Object,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(untagged)]
-#[allow(clippy::large_enum_variant)]
-pub enum ExtendsIntransitive {
-    ExtendsActivity(Activity),
-    // IntransitiveActivity(IntransitiveActivity),
-    Question(Question),
-}
-
-impl ExtendsIntransitive {
-    pub fn get_actor(&self) -> &Url {
-        match self {
-            ExtendsIntransitive::ExtendsActivity(x) => &x.extends_intransitive.id,
-            // ExtendsIntransitive::IntransitiveActivity(x) => &x.extends_object.id.id,
-            ExtendsIntransitive::Question(x) => &x.extends_intransitive.id,
-        }
-    }
-    pub fn get_id(&self) -> &Url {
-        match self {
-            ExtendsIntransitive::ExtendsActivity(x) => &x.extends_intransitive.id,
-            // ExtendsIntransitive::IntransitiveActivity(x) => &x.extends_object.id.id,
-            ExtendsIntransitive::Question(x) => &x.extends_intransitive.id,
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-/// we are not using these for this project
-pub enum IntransitiveType {
-    IntransitiveActivity,
-    /// An [`IntransitiveActivity`] that indicates that the actor has
-    /// arrived at the location. The origin can be used to identify the
-    /// context from which the actor originated. The target typically
-    /// has no defined meaning.
-    ///
-    /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-arrive
-    Arrive,
-    /// Indicates that the actor is traveling to target from origin.
-    /// Travel is an IntransitiveObject whose actor specifies the direct object.
-    /// If the target or origin are not specified, either can be determined by context.  
-    ///
-    /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-travel
-    Travel,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct IntransitiveActivity {
+pub struct Activity {
+    #[serde(rename = "type")]
+    pub type_field: ActivityType,
+
     pub id: Url,
     // #[serde(rename = "type")]
     // pub type_field: IntransitiveType,
@@ -69,141 +28,13 @@ pub struct IntransitiveActivity {
     pub origin: Option<String>, //TODO
     #[serde(skip_serializing_if = "Option::is_none")]
     pub instrument: Option<String>, //TODO
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum QuestionType {
-    Question,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-pub enum ChoiceType {
-    AnyOf(Vec<QuestionOption>),
-    OneOf(Vec<QuestionOption>),
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum QuestionOptionType {
-    Note,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct QuestionOption {
-    pub name: String,
-    #[serde(rename = "type")]
-    pub type_field: QuestionOptionType,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-/// Represents a question being asked.
-/// Question objects are an extension of [`IntransitiveActivity`]. That is,
-/// the Question object is an Activity, but the direct object is the question
-/// itself and therefore it would not contain an object property.
-///
-/// Either of the anyOf and oneOf properties MAY be used to express possible answers,
-/// but a Question object MUST NOT have both properties.
-///
-/// Commonly used for polls
-///
-/// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-question
-pub struct Question {
-    #[serde(rename = "type")]
-    pub type_field: QuestionType,
-    #[serde(flatten)]
-    pub extends_intransitive: IntransitiveActivity,
-    #[serde(flatten)]
-    pub options: ChoiceType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    /// indicates that a poll can only be voted on by local users
-    pub local_only: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub closed: Option<String>, //TODO
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct Activity {
-    #[serde(rename = "type")]
-    pub type_field: ActivityType,
-
-    ///gets id from intransitive
-    #[serde(flatten)]
-    pub extends_intransitive: IntransitiveActivity,
 
     pub object: RangeLinkItem<Object>,
-}
-
-impl Activity {
-    // pub fn new_create(object: ObjectWrapper) -> Self {
-    //     let intransitive = IntransitiveActivity {
-    //         id: Url::parse(&format!("{}/activity", object.object.id.as_str())).unwrap(),
-    //         actor: RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(
-    //             object.object.get_attributed_to().clone(),
-    //         )),
-    //         target: None,
-    //         result: None,
-    //         origin: None,
-    //         instrument: None,
-    //     };
-    //     Activity {
-    //         type_field: ActivityType::Create,
-    //         object: RangeLinkItem::Item(ExtendsObject::Object(Box::new(object))),
-    //         extends_intransitive: intransitive,
-    //     }
-    // }
-    pub fn new_accept(actor: Url, object: Url, domain: &str) -> Self {
-        let intransitive = IntransitiveActivity {
-            id: Url::parse(&format!("https://{}/accept", domain)).unwrap(),
-            actor: RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(actor)),
-            target: None,
-            result: None,
-            origin: None,
-            instrument: None,
-        };
-        Activity {
-            type_field: ActivityType::Accept,
-            object: RangeLinkItem::Link(LinkSimpleOrExpanded::Simple(object)),
-            extends_intransitive: intransitive,
-        }
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum ActivityType {
     Activity,
-    /// Indicates that the actor accepts the object. The target property
-    /// can be used in certain circumstances to indicate the context into
-    /// which the object has been accepted.
-    ///
-    /// example of an [`ActivityType::Follow`] accept
-    ///
-    /// ```json
-    /// {
-    ///   "@context": "https://www.w3.org/ns/activitystreams",
-    ///   "summary": "sally accepts john's follow request",
-    ///   "type": "Accept",
-    ///   "actor": {
-    ///     "type": "Person",
-    ///     "name": "Sally"
-    ///   },
-    ///   "object": {
-    ///     "type": "Follow",
-    ///     "actor": "http://john.example.org",
-    ///     "object": {
-    ///       "id": "https://example.com",
-    ///       "type": "Person",
-    ///       "name": "Sally"
-    ///     }
-    ///   }
-    /// }
-    ///
-    /// ```
-    ///
-    /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-accept
-    Accept,
     /// A specialization of [`Accept`] indicating that the acceptance is tentative.
     ///
     /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-tentativeaccept
@@ -215,77 +46,6 @@ pub enum ActivityType {
     ///
     /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-add
     Add,
-    /// Indicates that the actor has created the object.
-    ///
-    /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-create
-    Create,
-    /// Indicates that the actor has deleted the object. If specified,
-    /// the origin indicates the context from which the object was deleted.
-    ///
-    /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-delete
-    ///
-    ///  The Delete activity is used to delete an already existing object.
-    /// The side effect of this is that the server MAY replace the object
-    /// with a [`super::object::ObjectType::Tombstone`] of the object that
-    /// will be displayed in activities which reference the deleted object.
-    /// If the deleted object is requested the server SHOULD respond with
-    /// either the HTTP 410 Gone status code if a Tombstone object is presented
-    /// as the response body, otherwise respond with a HTTP 404 Not Found.
-    ///
-    /// A deleted object:
-    ///
-    /// ```json
-    /// {
-    ///   "@context": "https://www.w3.org/ns/activitystreams",
-    ///   "id": "https://example.com/~alice/note/72",
-    ///   "type": "Tombstone",
-    ///   "published": "2015-02-10T15:04:55Z",
-    ///   "updated": "2015-02-10T15:04:55Z",
-    ///   "deleted": "2015-02-10T15:04:55Z"
-    /// }
-    /// ```
-    ///
-    /// https://www.w3.org/TR/activitypub/#delete-activity-outbox
-    Delete,
-    /// Indicates that the actor is "following" the object. Following
-    /// is defined in the sense typically used within Social systems in
-    /// which the actor is interested in any activity performed by or on
-    /// the object. The target and origin typically have no defined meaning.
-    ///
-    /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-follow
-    ///
-    /// The side effect of receiving this in an inbox is that the server
-    /// SHOULD generate either an [`ActivityType::Accept`] or
-    /// [`ActivityType::Reject`] activity with the Follow as the object
-    /// and deliver it to the actor of the Follow.
-    ///
-    /// The Accept or Reject MAY be generated automatically, or MAY be the result of
-    /// user input (possibly after some delay in which the user reviews).
-    /// Servers MAY choose to not explicitly send a Reject in response to
-    /// a Follow, this would typically be represented as pending
-    ///
-    /// https://www.w3.org/TR/activitypub/#follow-activity-inbox
-    ///
-    /// example from activitystreams:
-    ///
-    /// ```json
-    /// {
-    ///   "@context": "https://www.w3.org/ns/activitystreams",
-    ///   "summary": "Sally followed John",
-    ///   "type": "Follow",
-    ///   "actor": {
-    ///     "id": "https://example.com",
-    ///     "type": "Person",
-    ///     "name": "Sally"
-    ///   },
-    ///   "object": {
-    ///     "id": "https://example.com",
-    ///     "type": "Person",
-    ///     "name": "John"
-    ///   }
-    /// }
-    /// ```
-    Follow,
     /// Indicates that the actor is ignoring the object.
     /// The target and origin typically have no defined meaning.
     ///
@@ -315,11 +75,6 @@ pub enum ActivityType {
     ///
     /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-invite
     Invite,
-    /// Indicates that the actor is rejecting the object.
-    /// The target and origin typically have no defined meaning.
-    ///
-    /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-reject
-    Reject,
     /// A specialization of [`Reject`] in which the rejection is considered tentative.
     ///
     /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-tentativereject
@@ -433,7 +188,8 @@ mod tests {
 }
         "##;
 
-        let deserialized: Result<ContextWrap<Activity>, serde_json::Error> = serde_json::from_str(example);
+        let deserialized: Result<ContextWrap<Activity>, serde_json::Error> =
+            serde_json::from_str(example);
         match deserialized {
             Ok(_) => Ok(()),
             Err(x) => Err(format!(

@@ -1,6 +1,6 @@
 use crate::protocol::errors::FetchErr;
-use std::time::SystemTime;
 use serde::Deserialize;
+use std::time::SystemTime;
 use url::Url;
 
 use crate::cryptography::key::PrivateKey;

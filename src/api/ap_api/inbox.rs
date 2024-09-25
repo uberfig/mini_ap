@@ -2,8 +2,7 @@ use std::sync::Mutex;
 
 use actix_web::{
     error::Error,
-    get,
-    post,
+    get, post,
     web::{self, Data},
     HttpRequest, HttpResponse, Result,
 };

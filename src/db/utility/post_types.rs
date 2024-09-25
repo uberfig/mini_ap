@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::activitystream_objects::{activities::Question, object::Object};
+use crate::activitystream_objects::{object::Object, question::Question};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PostSupertype {

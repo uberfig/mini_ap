@@ -15,7 +15,6 @@ pub async fn get_object(
     // body: web::Bytes,
     // state: Data<crate::config::Config>,
 ) -> Result<HttpResponse> {
-
     todo!()
     // dbg!(request);
     // dbg!(&body);

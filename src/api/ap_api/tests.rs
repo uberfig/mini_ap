@@ -3,7 +3,11 @@ use serial_test::serial;
 use url::Url;
 
 use crate::{
-    activitystream_objects::{actors::Actor, context::ContextWrap}, app::start_application, config::get_config, db::utility::{instance_actor::InstanceActor, new_actor::NewLocal}, protocol::ap_protocol::fetch::authorized_fetch
+    activitystream_objects::{actors::Actor, context::ContextWrap},
+    app::start_application,
+    config::get_config,
+    db::utility::{instance_actor::InstanceActor, new_actor::NewLocal},
+    protocol::ap_protocol::fetch::authorized_fetch,
 };
 
 #[actix_web::test]
