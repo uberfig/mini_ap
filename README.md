@@ -14,7 +14,9 @@ reasons implimenting activitypub sucks
  - when you unfollow someone your instance sends an undo. when you follow them again it undoes the undo, you can see how silly this is
  - follow requests need to have an id that can be accessed like comon this is silly
 
-ok mastodon actually documented some stuff yayy https://docs.joinmastodon.org/spec/security/#http-sign
+ok mastodon actually documented some stuff yayy 
+ - https://docs.joinmastodon.org/spec/security/#http-sign
+ - https://docs.joinmastodon.org/spec/activitypub/#publicKey
 
 down the road there may be support for other databases, but for the time being postgres is the main focus. since this project is still very very under development there will be frequent changes the database without migrations until we have the first alpha release.
 
