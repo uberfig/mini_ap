@@ -33,7 +33,7 @@ pub async fn get_actor(
             return Err(ErrorNotFound(r#"{"error":"Not Found"}"#));
         }
     };
-    let actor = actor.to_activitystream();
+    // let actor = actor.to_activitystream();
 
     Ok(HttpResponse::Ok()
         .content_type("application/activity+json; charset=utf-8")
@@ -67,16 +67,17 @@ pub async fn get_instance_actor(
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse> {
     println!("getting the instance actor");
-    Ok(HttpResponse::Ok()
-        .content_type("application/activity+json; charset=utf-8")
-        .body(
-            serde_json::to_string(
-                &conn
-                    .get_instance_actor()
-                    .await
-                    .to_actor(&state.instance_domain)
-                    .to_activitystream(),
-            )
-            .unwrap(),
-        ))
+    todo!()
+    // Ok(HttpResponse::Ok()
+    //     .content_type("application/activity+json; charset=utf-8")
+    //     .body(
+    //         serde_json::to_string(
+    //             &conn
+    //                 .get_instance_actor()
+    //                 .await
+    //                 .to_actor(&state.instance_domain)
+    //                 .to_activitystream(),
+    //         )
+    //         .unwrap(),
+    //     ))
 }

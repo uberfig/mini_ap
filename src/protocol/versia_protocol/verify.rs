@@ -2,19 +2,23 @@ use url::Url;
 
 use crate::{
     cryptography::key::PublicKey,
-    protocol::{errors::VerifyRequestErr, headers::Headers}, versia_types::entities::public_key::AlgorithmsPublicKey,
+    protocol::{errors::VerifyRequestErr, headers::Headers},
+    versia_types::entities::public_key::AlgorithmsPublicKey,
 };
 
-use super::{requests::Signer, signatures::{signature_string, HttpMethod}};
+use super::{
+    requests::Signer,
+    signatures::{signature_string, HttpMethod},
+};
 
-/// note that the warning is junk as following it breaks everything with 
-/// the use of async trait and trait objects with async 
+/// note that the warning is junk as following it breaks everything with
+/// the use of async trait and trait objects with async
 #[allow(async_fn_in_trait)]
 pub trait VersiaVerificationCache {
     async fn get_key(&self, signed_by: &Signer) -> Option<AlgorithmsPublicKey>;
 }
 
-/// returns the signer if successful 
+/// returns the signer if successful
 pub async fn verify_request<H: Headers, V: VersiaVerificationCache>(
     headers: &H,
     method: HttpMethod,
@@ -42,9 +46,9 @@ pub async fn verify_request<H: Headers, V: VersiaVerificationCache>(
                 return Err(VerifyRequestErr::NoDomain);
             }
             Signer::User(signed_by)
-        },
+        }
     };
-    
+
     let Some(nonce) = headers.get("X-Nonce") else {
         return Err(VerifyRequestErr::MissingHeader("X-Nonce".to_string()));
     };

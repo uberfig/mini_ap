@@ -1,5 +1,14 @@
+use std::collections::HashMap;
+use base64::Engine;
+use serde::{de::Error as DeError, Deserializer, Serializer};
 use serde::{Deserialize, Serialize};
 use url::Url;
+
+use crate::cryptography::key::PublicKey;
+use crate::{
+    cryptography::{key::KeyType, private_key::AlgorithmsPrivateKey},
+    versia_types::entities::public_key::AlgorithmsPublicKey,
+};
 
 use super::{core_types::*, link::RangeLinkItem};
 
@@ -65,6 +74,8 @@ impl From<String> for PublicKey {
 ///
 /// https://www.w3.org/TR/activitystreams-vocabulary/#actor-types
 pub struct Actor {
+    #[serde(rename = "@context")]
+    pub context: Context,
     #[serde(rename = "type")]
     pub type_field: ActorType,
     pub id: Url,
@@ -77,7 +88,7 @@ pub struct Actor {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<Url>,
 
-    pub public_key: PublicKey,
+    pub public_key: Pu,
 
     pub inbox: Url,
     pub outbox: Url,
@@ -92,50 +103,101 @@ pub struct Actor {
     pub liked: Option<Url>,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum ApPublicKey {
+	
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(untagged)]
+pub enum Context {
+    Array(Vec<ContextItem>),
+    Single(Url),
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(untagged)]
+pub enum ContextItem {
+    String(String),
+    Map(HashMap<String, ContextMapItem>),
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(untagged)]
+pub enum ContextMapItem {
+    String(String),
+    Map(HashMap<String, String>),
+}
+
 impl Actor {
-    pub fn to_activitystream(self) -> ActivityStream {
-        // let mut test: HashMap<String, ContextMapItem> = HashMap::new();
-        // let mut item: HashMap<String, String> = HashMap::new();
-        // item.insert("@id".to_string(), "toot:featuredTags".to_string());
-        // item.insert("@type".to_string(), "@id".to_string());
-        // test.insert("featuredTags".to_string(), ContextMapItem::Map(item));
-        // test.insert("manuallyApprovesFollowers".to_string(), ContextMapItem::String("as:manuallyApprovesFollowers".to_string()));
-        ActivityStream {
-            content: ContextWrap {
-                context: Context::Array(vec![
-                    ContextItem::String("https://www.w3.org/ns/activitystreams".to_owned()),
-                    ContextItem::String("https://w3id.org/security/v1".to_owned()),
-                    // ContextItem::Map(test)
-                ]),
-                activity_stream: ExtendsObject::Actor(Box::new(self)),
-            },
-        }
-    }
+    // pub fn to_activitystream(self) -> ActivityStream {
+    //     // let mut test: HashMap<String, ContextMapItem> = HashMap::new();
+    //     // let mut item: HashMap<String, String> = HashMap::new();
+    //     // item.insert("@id".to_string(), "toot:featuredTags".to_string());
+    //     // item.insert("@type".to_string(), "@id".to_string());
+    //     // test.insert("featuredTags".to_string(), ContextMapItem::Map(item));
+    //     // test.insert("manuallyApprovesFollowers".to_string(), ContextMapItem::String("as:manuallyApprovesFollowers".to_string()));
+    //     ActivityStream {
+    //         content: ContextWrap {
+    //             context: Context::Array(vec![
+    //                 ContextItem::String("https://www.w3.org/ns/activitystreams".to_owned()),
+    //                 ContextItem::String("https://w3id.org/security/v1".to_owned()),
+    //                 // ContextItem::Map(test)
+    //             ]),
+    //             activity_stream: ExtendsObject::Actor(Box::new(self)),
+    //         },
+    //     }
+    // }
     pub fn get_id(&self) -> &Url {
         &self.id
     }
-}
-
-impl From<Actor> for ActivityStream {
-    fn from(value: Actor) -> ActivityStream {
-        value.to_activitystream()
+	pub fn get_key_type(&self) -> Option<KeyType> {
+		let input = match &self.context {
+			Context::Array(vec) => vec,
+			Context::Single(_) => return None,
+		};
+		for i in input.iter() {
+			if let ContextItem::Map(map) = i {
+				let val = map.get("Ed25519Key");
+				if val.is_some() {
+					return Some(KeyType::Ed25519);
+				}
+			}
+		}
+		None
+	}
+    pub fn get_public_key(&self) -> Result<AlgorithmsPublicKey, ()> {
+		let Some(keytype) = self.get_key_type() else {
+			return Err(());
+		};
+		match keytype {
+			KeyType::Ed25519 => {
+				AlgorithmsPublicKey::from_pem(self.public_key., algorithm)
+			},
+		}
     }
 }
 
-impl From<Box<Actor>> for ActivityStream {
-    fn from(value: Box<Actor>) -> ActivityStream {
-        ActivityStream {
-            content: ContextWrap {
-                context: Context::Array(vec![
-                    ContextItem::String("https://www.w3.org/ns/activitystreams".to_owned()),
-                    ContextItem::String("https://w3id.org/security/v1".to_owned()),
-                ]),
-                // activity_stream: RangeLinkExtendsObject::Object(ExtendsObject::Actor(value)),
-                activity_stream: ExtendsObject::Actor(value),
-            },
-        }
-    }
-}
+// impl From<Actor> for ActivityStream {
+//     fn from(value: Actor) -> ActivityStream {
+//         value.to_activitystream()
+//     }
+// }
+
+// impl From<Box<Actor>> for ActivityStream {
+//     fn from(value: Box<Actor>) -> ActivityStream {
+//         ActivityStream {
+//             content: ContextWrap {
+//                 context: Context::Array(vec![
+//                     ContextItem::String("https://www.w3.org/ns/activitystreams".to_owned()),
+//                     ContextItem::String("https://w3id.org/security/v1".to_owned()),
+//                 ]),
+//                 // activity_stream: RangeLinkExtendsObject::Object(ExtendsObject::Actor(value)),
+//                 activity_stream: ExtendsObject::Actor(value),
+//             },
+//         }
+//     }
+// }
 
 #[cfg(test)]
 mod tests {
@@ -263,10 +325,14 @@ mod tests {
 	}
 }
         "#;
-        let deserialized: Result<ActivityStream, serde_json::Error> =
-            serde_json::from_str(mastodon_account);
+        let deserialized: Result<Actor, serde_json::Error> = serde_json::from_str(mastodon_account);
+
         match deserialized {
-            Ok(_) => Ok(()),
+            Ok(x) => {
+                dbg!(x);
+                // Ok(())
+                Err("hi".to_string())
+            }
             Err(x) => Err(format!("actor deserialize failed with response: {}", x)),
         }
     }

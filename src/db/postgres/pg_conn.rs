@@ -2,16 +2,19 @@ use async_trait::async_trait;
 use deadpool_postgres::Pool;
 
 use crate::{
-    activitystream_objects::actors::Actor, db::{
+    activitystream_objects::actors::Actor,
+    db::{
         conn::{Conn, DbErr, EntityOrigin},
         utility::{instance_actor::InstanceActor, new_actor::NewLocal, protocols::Protocols},
         Follower, Like,
-    }, protocol::versia_protocol::requests::Signer, versia_types::{
+    },
+    protocol::versia_protocol::requests::Signer,
+    versia_types::{
         entities::{
             instance_metadata::InstanceMetadata, public_key::AlgorithmsPublicKey, user::User,
         },
         postable::Postable,
-    }
+    },
 };
 
 use super::{acct_mgmt, actors, follows, init, local_users, posts};

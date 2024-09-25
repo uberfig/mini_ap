@@ -9,30 +9,31 @@ use crate::{
 use super::pg_conn::PgConn;
 
 fn local_user_from_row(result: Row, instance_domain: &str) -> Actor {
-    let preferred_username: String = result.get("preferred_username");
-    let links = generate_ap_links(instance_domain, &preferred_username);
+    todo!()
+    // let preferred_username: String = result.get("preferred_username");
+    // let links = generate_ap_links(instance_domain, &preferred_username);
 
-    let key = PublicKey {
-        id: links.pub_key_id,
-        owner: links.id.clone(),
-        public_key_pem: result.get("public_key_pem"),
-    };
+    // let key = PublicKey {
+    //     id: links.pub_key_id,
+    //     owner: links.id.clone(),
+    //     public_key_pem: result.get("public_key_pem"),
+    // };
 
-    Actor {
-        type_field: ActorType::Person,
-        id: links.id,
-        preferred_username,
-        summary: result.get("summary"),
-        name: result.get("display_name"),
-        url: Some(links.url),
-        public_key: key,
-        inbox: links.inbox,
-        outbox: links.outbox,
-        followers: links.followers,
-        following: links.following,
-        domain: Some(instance_domain.to_string()),
-        liked: Some(links.liked),
-    }
+    // Actor {
+    //     type_field: ActorType::Person,
+    //     id: links.id,
+    //     preferred_username,
+    //     summary: result.get("summary"),
+    //     name: result.get("display_name"),
+    //     url: Some(links.url),
+    //     public_key: key,
+    //     inbox: links.inbox,
+    //     outbox: links.outbox,
+    //     followers: links.followers,
+    //     following: links.following,
+    //     domain: Some(instance_domain.to_string()),
+    //     liked: Some(links.liked),
+    // }
 }
 
 fn fedi_user_from_row(result: Row) -> Actor {
@@ -55,21 +56,23 @@ fn fedi_user_from_row(result: Row) -> Actor {
         public_key_pem: result.get("public_key_pem"),
     };
 
-    Actor {
-        type_field,
-        id,
-        preferred_username,
-        summary: result.get("summary"),
-        name: result.get("name"),
-        url: Some(url),
-        public_key: key,
-        inbox: Url::parse(&inbox).unwrap(),
-        outbox: Url::parse(&outbox).unwrap(),
-        followers: Url::parse(&followers).unwrap(),
-        following: Url::parse(&following).unwrap(),
-        domain: result.get("domain"),
-        liked: None,
-    }
+    todo!()
+
+    // Actor {
+    //     type_field,
+    //     id,
+    //     preferred_username,
+    //     summary: result.get("summary"),
+    //     name: result.get("name"),
+    //     url: Some(url),
+    //     public_key: key,
+    //     inbox: Url::parse(&inbox).unwrap(),
+    //     outbox: Url::parse(&outbox).unwrap(),
+    //     followers: Url::parse(&followers).unwrap(),
+    //     following: Url::parse(&following).unwrap(),
+    //     domain: result.get("domain"),
+    //     liked: None,
+    // }
 }
 
 pub async fn get_local_user_actor(

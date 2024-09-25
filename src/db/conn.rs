@@ -6,7 +6,8 @@ use url::Url;
 use crate::{
     activitystream_objects::actors::Actor,
     protocol::{
-        ap_protocol::fetch::authorized_fetch, errors::FetchErr,
+        ap_protocol::fetch::authorized_fetch,
+        errors::FetchErr,
         versia_protocol::{requests::Signer, verify::VersiaVerificationCache},
     },
     versia_types::{
