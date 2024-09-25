@@ -80,7 +80,7 @@ pub fn deserialize_public<'de, D>(deserializer: D) -> Result<OpenSSLPublic, D::E
 where
     D: Deserializer<'de>,
 {
-    let input = <&str>::deserialize(deserializer)?;
+    let input = String::deserialize(deserializer)?;
     match OpenSSLPublic::from_pem(input.as_bytes()) {
         Ok(ok) => Ok(ok),
         Err(err) => Err(D::Error::custom(err)),
@@ -255,9 +255,7 @@ mod tests {
 
         match deserialized {
             Ok(x) => {
-                dbg!(x);
-                // Ok(())
-                Err("hi".to_string())
+                Ok(())
             }
             Err(x) => Err(format!("actor deserialize failed with response: {}", x)),
         }
