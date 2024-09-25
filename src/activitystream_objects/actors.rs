@@ -254,7 +254,7 @@ mod tests {
         let deserialized: Result<Actor, serde_json::Error> = serde_json::from_str(mastodon_account);
 
         match deserialized {
-            Ok(x) => {
+            Ok(_x) => {
                 Ok(())
             }
             Err(x) => Err(format!("actor deserialize failed with response: {}", x)),

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use super::{actors::Actor, link::RangeLinkItem, postable::Postable, question::Question};
+use super::{actors::Actor, link::RangeLinkItem, postable::Postable};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum CreateType {
