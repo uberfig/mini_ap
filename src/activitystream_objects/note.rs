@@ -1,7 +1,12 @@
+use super::{
+    actors::Actor,
+    collections::ExtendsCollection,
+    core_types::OptionalArray,
+    link::{LinkSimpleOrExpanded, RangeLinkItem},
+};
+use crate::versia_types::serde_fns::{deserialize_time, serialize_time};
 use serde::{Deserialize, Serialize};
 use url::Url;
-use crate::versia_types::serde_fns::{deserialize_time, serialize_time};
-use super::{actors::Actor, collections::ExtendsCollection, core_types::OptionalArray, link::{LinkSimpleOrExpanded, RangeLinkItem}};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum MediaType {
@@ -215,12 +220,7 @@ mod tests {
             serde_json::from_str(test_note);
         let _deserialized = match deserialized {
             Ok(x) => x,
-            Err(x) => {
-                return Err(format!(
-                    "note deserialize failed with response: {}",
-                    x
-                ))
-            }
+            Err(x) => return Err(format!("note deserialize failed with response: {}", x)),
         };
 
         Ok(())

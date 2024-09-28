@@ -2,11 +2,7 @@
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use super::{
-    actors::Actor,
-    link::RangeLinkItem,
-    object::Object,
-};
+use super::{actors::Actor, link::RangeLinkItem, object::Object};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -160,5 +156,3 @@ pub enum ActivityType {
     /// https://www.w3.org/TR/activitystreams-vocabulary/#dfn-dislike
     Dislike,
 }
-
-

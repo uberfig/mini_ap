@@ -3,7 +3,7 @@ use url::Url;
 use crate::{
     cryptography::{key::PublicKey, openssl::OpenSSLPublic},
     protocol::{errors::VerifyRequestErr, headers::Headers},
-    versia_types::entities::public_key::AlgorithmsPublicKey,
+    // versia_types::entities::public_key::AlgorithmsPublicKey,
 };
 
 use super::{

@@ -58,7 +58,8 @@ pub struct Actor {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<Url>,
 
-    pub public_key: PublicKey,
+    #[serde(rename = "public_key")]
+    pub public_key_object: PublicKey,
 
     pub inbox: Url,
     pub outbox: Url,
@@ -73,7 +74,8 @@ pub struct PublicKey {
     pub owner: Url, //"https://my-example.com/actor"
     #[serde(deserialize_with = "deserialize_public")]
     #[serde(serialize_with = "serialize_public")]
-    pub public_key_pem: OpenSSLPublic,
+    #[serde(rename = "public_key_pem")]
+    pub public_key: OpenSSLPublic,
 }
 
 pub fn deserialize_public<'de, D>(deserializer: D) -> Result<OpenSSLPublic, D::Error>
@@ -254,9 +256,7 @@ mod tests {
         let deserialized: Result<Actor, serde_json::Error> = serde_json::from_str(mastodon_account);
 
         match deserialized {
-            Ok(_x) => {
-                Ok(())
-            }
+            Ok(_x) => Ok(()),
             Err(x) => Err(format!("actor deserialize failed with response: {}", x)),
         }
     }

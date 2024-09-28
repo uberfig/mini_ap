@@ -1,7 +1,7 @@
 use base64::Engine;
-use ed25519::pkcs8::DecodePublicKey;
-use ed25519::Signature;
-use ed25519_dalek::Verifier;
+// use ed25519::pkcs8::DecodePublicKey;
+// use ed25519::Signature;
+// use ed25519_dalek::Verifier;
 use serde::{de::Error as DeError, Deserializer, Serializer};
 use serde::{Deserialize, Serialize};
 use url::Url;

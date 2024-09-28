@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use super::{actors::Actor, link::RangeLinkItem};
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum DeleteType {
     Delete,
@@ -58,7 +56,7 @@ pub enum DeleteType {
 pub struct Delete {
     #[serde(rename = "type")]
     pub type_field: DeleteType,
-    pub actor: RangeLinkItem<Actor>, //TODO
+    pub actor: Url, //TODO
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub origin: Option<String>, //TODO

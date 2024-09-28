@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use super::{actors::Actor, link::RangeLinkItem};
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum ResponseType {
     /// Indicates that the actor accepts the object. The target property
@@ -43,17 +41,24 @@ pub enum ResponseType {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct Response {
+pub struct FollowResponse {
     #[serde(rename = "type")]
     pub type_field: ResponseType,
     pub id: Url,
-    pub actor: RangeLinkItem<Actor>,
-    pub object: RangeLinkItem<Follow>,
+    pub actor: Url,
+    pub object: Url,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum FollowType {
     Follow,
+    /// currently activitypub is built around using undos to unfollow,
+    /// however we will also accept a custom unfollow activity as this
+    /// is much simpler. we will still support undos but we will send
+    /// an unfollow as well when a user unfollows so hopefully one day
+    /// the fedi can move to get rid of the undo activity and the
+    /// needless complexity that it introduces
+    Unfollow,
 }
 /// Indicates that the actor is "following" the object. Following
 /// is defined in the sense typically used within Social systems in
@@ -99,6 +104,6 @@ pub struct Follow {
     #[serde(rename = "type")]
     pub type_field: FollowType,
     pub id: Url,
-    pub actor: RangeLinkItem<Actor>,
-    pub object: RangeLinkItem<Actor>,
+    pub actor: Url,
+    pub object: Url,
 }

@@ -55,7 +55,7 @@ fn fedi_user_from_row(result: Row) -> Actor {
     let key = PublicKey {
         id: Url::parse(&public_key_id).unwrap(),
         owner: id.clone(),
-        public_key_pem: OpenSSLPublic::from_pem(pem.as_bytes()).unwrap(),
+        public_key: OpenSSLPublic::from_pem(pem.as_bytes()).unwrap(),
     };
 
     todo!()
@@ -229,8 +229,8 @@ pub async fn create_federated_actor(conn: &PgConn, actor: &Actor) -> i64 {
                 &actor.name,
                 &actor.summary,
                 &url,
-                &actor.public_key.public_key_pem.to_pem().unwrap(),
-                &actor.public_key.id.as_str(),
+                &actor.public_key_object.public_key.to_pem().unwrap(),
+                &actor.public_key_object.id.as_str(),
                 &actor.inbox.as_str(),
                 &actor.outbox.as_str(),
                 &actor.followers.as_str(),
