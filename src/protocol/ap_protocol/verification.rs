@@ -77,17 +77,7 @@ pub async fn verify_incoming<K: PrivateKey, H: Headers>(
         return Err(RequestVerificationError::NoMessageSignature);
     };
 
-    let signature_header: HashMap<String, String> = signature_header
-        .split(',')
-        .filter_map(|pair| {
-            pair.split_once('=').map(|(key, value)| {
-                (
-                    key.replace("/[^A-Za-z]/", ""),
-                    value.replace("/[^A-Za-z]/", ""),
-                )
-            })
-        })
-        .collect();
+    let signature_header = get_signature_headers(signature_header);
 
     let Some(key_id) = signature_header.get("keyId") else {
         return Err(RequestVerificationError::NoSignatureKey);
@@ -157,4 +147,18 @@ pub async fn verify_incoming<K: PrivateKey, H: Headers>(
     };
 
     Ok(object)
+}
+
+pub fn get_signature_headers(signature_header: String) -> HashMap<String, String> {
+    signature_header
+        .split(',')
+        .filter_map(|pair| {
+            pair.split_once('=').map(|(key, value)| {
+                (
+                    key.replace("/[^A-Za-z]/", ""),
+                    value.replace("/[^A-Za-z]/", ""),
+                )
+            })
+        })
+        .collect()
 }

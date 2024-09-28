@@ -95,17 +95,21 @@ impl Inboxable {
                 Ok(VerifiedInboxable::Delete(delete))
             }
             Inboxable::Follow(follow) => {
-                if follow.actor.domain().ne(&Some(origin_domain)) || follow.id.domain().ne(&Some(origin_domain)) {
+                if follow.actor.domain().ne(&Some(origin_domain))
+                    || follow.id.domain().ne(&Some(origin_domain))
+                {
                     return Err(InboxableVerifyErr::ForgedAttribution);
                 }
                 Ok(VerifiedInboxable::Follow(follow))
-            },
+            }
             Inboxable::FollowResponse(follow_response) => {
-                if follow_response.actor.domain().ne(&Some(origin_domain)) || follow_response.id.domain().ne(&Some(origin_domain)) {
+                if follow_response.actor.domain().ne(&Some(origin_domain))
+                    || follow_response.id.domain().ne(&Some(origin_domain))
+                {
                     return Err(InboxableVerifyErr::ForgedAttribution);
                 }
                 Ok(VerifiedInboxable::FollowResponse(follow_response))
-            },
+            }
         }
     }
 }
