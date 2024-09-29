@@ -1,9 +1,7 @@
-use serde::{de::Error as DeError, ser::Error as SerError, Deserializer, Serializer};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use url::Url;
-
-use crate::cryptography::{key::Key, openssl::OpenSSLPublic};
+use super::public_key::PublicKey;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum ActorType {
@@ -58,52 +56,12 @@ pub struct Actor {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<Url>,
 
-    #[serde(rename = "public_key")]
-    pub public_key_object: PublicKey,
+    pub public_key: PublicKey,
 
     pub inbox: Url,
     pub outbox: Url,
     pub followers: Url,
     pub following: Url,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct PublicKey {
-    pub id: Url,    //https://my-example.com/actor#main-key
-    pub owner: Url, //"https://my-example.com/actor"
-    #[serde(deserialize_with = "deserialize_public")]
-    #[serde(serialize_with = "serialize_public")]
-    #[serde(rename = "public_key_pem")]
-    pub public_key: OpenSSLPublic,
-}
-
-pub fn deserialize_public<'de, D>(deserializer: D) -> Result<OpenSSLPublic, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let input = String::deserialize(deserializer)?;
-    match OpenSSLPublic::from_pem(input.as_bytes()) {
-        Ok(ok) => Ok(ok),
-        Err(err) => Err(D::Error::custom(err)),
-    }
-}
-
-pub fn serialize_public<S>(x: &OpenSSLPublic, s: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    let pem = x.to_pem();
-    match pem {
-        Ok(ok) => s.serialize_str(&ok),
-        Err(x) => Err(S::Error::custom(x)),
-    }
-}
-
-impl From<String> for PublicKey {
-    fn from(value: String) -> Self {
-        serde_json::from_str(&value).unwrap()
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

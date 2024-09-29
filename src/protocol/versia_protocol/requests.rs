@@ -1,10 +1,10 @@
 use super::{
-    signatures::{signature_string, HttpMethod},
+    signatures::signature_string,
     verify::{verify_request, VersiaVerificationCache},
 };
 use crate::{
     cryptography::{digest, key::PrivateKey},
-    protocol::{errors::FetchErr, headers::ReqwestHeaders},
+    protocol::{errors::FetchErr, headers::ReqwestHeaders, http_method::HttpMethod},
 };
 use serde::Deserialize;
 use std::time::{SystemTime, UNIX_EPOCH};

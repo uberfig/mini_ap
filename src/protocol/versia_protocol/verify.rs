@@ -2,14 +2,11 @@ use url::Url;
 
 use crate::{
     cryptography::{key::PublicKey, openssl::OpenSSLPublic},
-    protocol::{errors::VerifyRequestErr, headers::Headers},
+    protocol::{errors::VerifyRequestErr, headers::Headers, http_method::HttpMethod},
     // versia_types::entities::public_key::AlgorithmsPublicKey,
 };
 
-use super::{
-    requests::Signer,
-    signatures::{signature_string, HttpMethod},
-};
+use super::{requests::Signer, signatures::signature_string};
 
 /// note that the warning is junk as following it breaks everything with
 /// the use of async trait and trait objects with async

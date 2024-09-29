@@ -1,8 +1,8 @@
 use url::Url;
 
 use crate::{
-    activitystream_objects::actors::{Actor, PublicKey},
-    cryptography::{key::PrivateKey, openssl::OpenSSLPrivate, private_key::AlgorithmsPrivateKey},
+    activitystream_objects::actors::{Actor},
+    cryptography::openssl::OpenSSLPrivate,
 };
 
 use super::new_actor::instance_actor_links;

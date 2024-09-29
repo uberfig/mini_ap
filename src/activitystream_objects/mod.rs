@@ -13,3 +13,4 @@ pub mod object;
 pub mod postable;
 pub mod question;
 pub mod tombstone;
+pub mod public_key;

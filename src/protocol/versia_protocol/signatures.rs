@@ -1,15 +1,4 @@
-pub enum HttpMethod {
-    Get,
-    Post,
-}
-impl HttpMethod {
-    fn stringify(&self) -> &str {
-        match self {
-            HttpMethod::Get => "get",
-            HttpMethod::Post => "post",
-        }
-    }
-}
+use crate::protocol::http_method::HttpMethod;
 
 pub fn signature_string(
     method: HttpMethod,

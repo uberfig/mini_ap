@@ -130,8 +130,8 @@ pub async fn verify_incoming<K: PrivateKey, H: Headers>(
     // dbg!(&comparison_string);
 
     let accepted = actor
-        .public_key_object
         .public_key
+        .public_key_pem
         .verify(&comparison_string, &signature);
 
     if !accepted {
