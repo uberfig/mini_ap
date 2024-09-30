@@ -23,20 +23,12 @@ pub enum RequestVerificationError {
     BadMessageDigest,
     BadMessageBody,
     DigestDoesNotMatch,
-    NoMessageSignature,
-    BadMessageSignature,
-    NoSignatureKey,
-    NoSignature,
-    // SignatureIncorrectBase64,
+    NoSignatureHeader,
     ActorFetchFailed(FetchErr),
     ActorFetchBodyFailed,
     SignatureVerifyFailed,
-    // NoDate,
-    // MissingSignedHeaderField(String),
     BodyDeserializeErr,
     ContentErr(InboxableVerifyErr),
-    // KeyOwnerDoesNotMatch,
-
     SignatureErr(SignatureErr),
 }
 
@@ -56,9 +48,7 @@ pub async fn verify_post<K: PrivateKey, H: Headers>(
     let Some(digest) = request_headers.get("Digest") else {
         return Err(RequestVerificationError::NoMessageDigest);
     };
-    if !digest.starts_with("SHA-256=") {
-        
-    }
+    if !digest.starts_with("SHA-256=") {}
 
     let object: Result<Inboxable, _> = serde_json::from_str(body);
     let Ok(object) = object else {
@@ -74,7 +64,7 @@ pub async fn verify_post<K: PrivateKey, H: Headers>(
     //get the signature header
 
     let Some(signature_header) = request_headers.get("Signature") else {
-        return Err(RequestVerificationError::NoMessageSignature);
+        return Err(RequestVerificationError::NoSignatureHeader);
     };
 
     let signature = match Signature::from_request(
@@ -109,17 +99,21 @@ pub async fn verify_post<K: PrivateKey, H: Headers>(
         Err(x) => return Err(RequestVerificationError::SignatureErr(x)),
     };
 
-    let accepted = actor
-        .public_key
-        .public_key_pem
-        .verify(comparison_string.as_bytes(), &signature.signature_header.signature);
+    let accepted = actor.public_key.public_key_pem.verify(
+        comparison_string.as_bytes(),
+        &signature.signature_header.signature,
+    );
 
     if !accepted {
         return Err(RequestVerificationError::SignatureVerifyFailed);
     }
 
     let object = match object
-        .verify(&signature.signature_header.key_domain, instance_key_id, instance_private_key)
+        .verify(
+            &signature.signature_header.key_domain,
+            instance_key_id,
+            instance_private_key,
+        )
         .await
     {
         Ok(x) => x,
