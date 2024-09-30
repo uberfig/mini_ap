@@ -1,7 +1,7 @@
+use super::public_key::PublicKey;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use url::Url;
-use super::public_key::PublicKey;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum ActorType {

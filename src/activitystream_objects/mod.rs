@@ -11,6 +11,6 @@ pub mod link;
 pub mod note;
 pub mod object;
 pub mod postable;
+pub mod public_key;
 pub mod question;
 pub mod tombstone;
-pub mod public_key;

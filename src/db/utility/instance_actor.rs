@@ -1,9 +1,6 @@
 use url::Url;
 
-use crate::{
-    activitystream_objects::actors::{Actor},
-    cryptography::openssl::OpenSSLPrivate,
-};
+use crate::{activitystream_objects::actors::Actor, cryptography::openssl::OpenSSLPrivate};
 
 use super::new_actor::instance_actor_links;
 

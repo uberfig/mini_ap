@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 pub trait Headers {
     fn get(&self, key: &str) -> Option<String>;
 }
@@ -28,5 +30,16 @@ impl Headers for ActixHeaders {
             Ok(x) => Some(x),
             Err(_) => None,
         }
+    }
+}
+
+pub struct HashMapHeaders {
+    pub headermap: HashMap<String, String>,
+}
+
+impl Headers for HashMapHeaders {
+    fn get(&self, key: &str) -> Option<String> {
+        let val = self.headermap.get(key)?;
+        Some(val.to_string())
     }
 }

@@ -2,7 +2,9 @@ use crate::{
     cryptography::digest::sha256_hash,
     db::conn::{Conn, EntityOrigin, VersiaConn},
     protocol::{
-        headers::ActixHeaders, http_method::HttpMethod, versia_protocol::{requests::Signer, verify::verify_request}
+        headers::ActixHeaders,
+        http_method::HttpMethod,
+        versia_protocol::{requests::Signer, verify::verify_request},
     },
     versia_types::{
         entities::{

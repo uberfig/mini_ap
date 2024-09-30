@@ -24,12 +24,14 @@ pub enum SignatureErr {
     InvalidDomain,
     NoHeaders,
     UnkownAlgorithm,
+    MissingHeader(String),
 }
 
 /// A parsed representation of the `Signature:` header
 ///
 /// `keyId="https://my.example.com/actor#main-key",headers="(request-target) host date",signature="Y2FiYW...IxNGRiZDk4ZA=="`
-pub struct SignatureHeaders {
+#[derive(Debug, Clone)]
+pub struct SignatureHeader {
     pub headers: Vec<String>,
     /// defaults to rsa-sha256 if not present
     pub algorithm: Algorithms,
@@ -39,7 +41,7 @@ pub struct SignatureHeaders {
     pub signature: String,
 }
 
-impl SignatureHeaders {
+impl SignatureHeader {
     /// parse the signature header
     pub fn parse(signature: &str) -> Result<Self, SignatureErr> {
         let signature_headers = get_signature_headers(signature);
@@ -87,6 +89,7 @@ impl SignatureHeaders {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Signature {
     pub method: HttpMethod,
     /// the domain that is hosting the resource
@@ -94,7 +97,7 @@ pub struct Signature {
     /// the path of the request
     pub request_target: String,
     /// A parsed representation of the `Signature:` header
-    pub signature_header: SignatureHeaders,
+    pub signature_header: SignatureHeader,
 }
 
 impl Signature {
@@ -108,32 +111,38 @@ impl Signature {
             method,
             host,
             request_target,
-            signature_header: SignatureHeaders::parse(signature_header)?,
+            signature_header: SignatureHeader::parse(signature_header)?,
         })
     }
-    pub fn generate_sign_string<H: Headers>(&self, request_headers: H) -> String {
+    pub fn generate_sign_string<H: Headers>(
+        &self,
+        request_headers: H,
+    ) -> Result<String, SignatureErr> {
         let headers = self
             .signature_header
             .headers
             .iter()
             .map(std::ops::Deref::deref);
-        let comparison_string: Vec<String> = headers
-            .filter_map(|signed_header_name| match signed_header_name {
-                "(request-target)" => Some(format!(
+        let mut comparison_string: Vec<String> = Vec::new();
+        for signed_header_name in headers {
+            match signed_header_name {
+                "(request-target)" => comparison_string.push(format!(
                     "(request-target): {} {}",
                     self.method.stringify(),
                     &self.request_target
                 )),
-                "host" => Some(format!("host: {}", &self.host)),
+                "host" => comparison_string.push(format!("host: {}", &self.host)),
                 _ => {
-                    let value = request_headers.get(signed_header_name)?;
+                    let Some(value) = request_headers.get(signed_header_name) else {
+                        return Err(SignatureErr::MissingHeader(signed_header_name.to_string()));
+                    };
                     let x = format!("{signed_header_name}: {value}",);
-                    Some(x)
+                    comparison_string.push(x);
                 }
-            })
-            .collect();
+            }
+        }
 
-        comparison_string.join("\n")
+        Ok(comparison_string.join("\n"))
     }
 }
 
@@ -143,7 +152,7 @@ pub fn get_signature_headers(signature_header: &str) -> HashMap<String, String> 
         .filter_map(|pair| {
             pair.split_once('=').map(|(key, value)| {
                 (
-                    key.replace(|c| !char::is_alphanumeric(c), ""),
+                    key.replace(|c| strip_values(c), ""),
                     value.replace(|c| strip_values(c), ""),
                 )
             })
@@ -152,24 +161,44 @@ pub fn get_signature_headers(signature_header: &str) -> HashMap<String, String> 
 }
 
 fn strip_values(c: char) -> bool {
-    c.eq(&'"') || c.eq(&' ')
+    c.eq(&'"')
+    // || c.eq(&' ')
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::protocol::headers::HashMapHeaders;
+
     use super::*;
 
     #[test]
     fn parse_get() -> Result<(), String> {
         let signature = Signature::from_request(
             HttpMethod::Get,
-            "example.com".to_string(),
-            "/".to_string(),
+            "mastodon.example".to_string(),
+            "/users/username/outbox".to_string(),
             r#"keyId="https://my.example.com/actor#main-key",headers="(request-target) host date",signature="Y2FiYW...IxNGRiZDk4ZA==""#,
         );
-        match signature {
-            Ok(_) => Ok(()),
-            Err(x) => Err(serde_json::to_string_pretty(&x).unwrap()),
+        if let Err(x) = signature {
+            return Err(serde_json::to_string_pretty(&x).unwrap());
         }
+
+        dbg!(&signature);
+
+        let mut hashmap = HashMap::new();
+        hashmap.insert("host".to_string(), "mastodon.example".to_string());
+        hashmap.insert("date".to_string(), "18 Dec 2019 10:08:46 GMT".to_string());
+        let request_headers = HashMapHeaders { headermap: hashmap };
+
+        let signed_string = match signature.unwrap().generate_sign_string(request_headers) {
+            Ok(ok) => ok,
+            Err(err) => return Err(serde_json::to_string_pretty(&err).unwrap()),
+        };
+
+        let correct = "(request-target): get /users/username/outbox\nhost: mastodon.example\ndate: 18 Dec 2019 10:08:46 GMT";
+        if signed_string.ne(&correct) {
+            return Err(format!("bad sign string: {}", signed_string));
+        }
+        Ok(())
     }
 }

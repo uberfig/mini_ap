@@ -2,7 +2,7 @@ use crate::{
     cryptography::digest::sha256_hash,
     db::conn::{Conn, EntityOrigin, VersiaConn},
     protocol::{
-        headers::ActixHeaders, http_method::HttpMethod, versia_protocol::verify::verify_request
+        headers::ActixHeaders, http_method::HttpMethod, versia_protocol::verify::verify_request,
     },
 };
 use actix_web::{
