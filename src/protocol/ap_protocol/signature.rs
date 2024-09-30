@@ -183,7 +183,7 @@ mod tests {
             HttpMethod::Get,
             "mastodon.example".to_string(),
             "/users/username/outbox".to_string(),
-            r#"keyId="https://my.example.com/actor#main-key",headers="(request-target) host date",signature="Y2FiYW...IxNGRiZDk4ZA==""#,
+            r#"keyId="https://my.example.com/actor#main-key",headers="(request-target) host date",signature="Y2FiYWIxNGRiZDk4ZA==""#,
         ) {
             Ok(x) => x,
             Err(x) => return Err(serde_json::to_string_pretty(&x).unwrap()),
