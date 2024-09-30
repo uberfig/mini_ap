@@ -6,7 +6,7 @@ use crate::{
         inboxable::{Inboxable, InboxableVerifyErr, VerifiedInboxable},
     },
     cryptography::{
-        digest::sha256_hash,
+        digest::{sha256_hash, sha512_hash},
         key::{PrivateKey, PublicKey},
     },
     protocol::{errors::FetchErr, headers::Headers, http_method::HttpMethod},
@@ -48,25 +48,11 @@ pub async fn verify_post<K: PrivateKey, H: Headers>(
     let Some(digest) = request_headers.get("Digest") else {
         return Err(RequestVerificationError::NoMessageDigest);
     };
-    if !digest.starts_with("SHA-256=") {}
-
-    let object: Result<Inboxable, _> = serde_json::from_str(body);
-    let Ok(object) = object else {
-        println!("deserialize failure\n{}", body);
-        return Err(RequestVerificationError::BodyDeserializeErr);
-    };
-    let generated_digest = "SHA-256=".to_owned() + &sha256_hash(body.as_bytes());
-
-    if !digest.eq(&generated_digest) {
-        return Err(RequestVerificationError::DigestDoesNotMatch);
-    }
 
     //get the signature header
-
     let Some(signature_header) = request_headers.get("Signature") else {
         return Err(RequestVerificationError::NoSignatureHeader);
     };
-
     let signature = match Signature::from_request(
         HttpMethod::Post,
         instance_domain.to_string(),
@@ -76,6 +62,21 @@ pub async fn verify_post<K: PrivateKey, H: Headers>(
         Ok(x) => x,
         Err(x) => return Err(RequestVerificationError::SignatureErr(x)),
     };
+    
+    let object: Result<Inboxable, _> = serde_json::from_str(body);
+    let Ok(object) = object else {
+        println!("deserialize failure\n{}", body);
+        return Err(RequestVerificationError::BodyDeserializeErr);
+    };
+    let generated_digest = match signature.signature_header.algorithm {
+        super::signature::Algorithms::RsaSha256 => "SHA-256=".to_owned() + &sha256_hash(body.as_bytes()),
+        super::signature::Algorithms::Hs2019 => "SHA-512=".to_owned() + &sha512_hash(body.as_bytes()),
+    };
+
+    if !digest.eq(&generated_digest) {
+        return Err(RequestVerificationError::DigestDoesNotMatch);
+    }
+    
 
     let fetched: Result<Actor, FetchErr> = authorized_fetch(
         &signature.signature_header.key_id,

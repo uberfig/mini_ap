@@ -1,4 +1,5 @@
 use base64::Engine;
+use openssl::sha::Sha512;
 use sha2::{Digest, Sha256};
 
 /// generates an sha256 digest of the provided buffer encoded in base64
@@ -7,5 +8,14 @@ pub fn sha256_hash(body: &[u8]) -> String {
     // write input message
     hasher.update(body);
     let finished = hasher.finalize();
+    base64::prelude::BASE64_STANDARD.encode(finished)
+}
+
+/// generates an sha512 digest of the provided buffer encoded in base64
+pub fn sha512_hash(body: &[u8]) -> String {
+    let mut hasher = Sha512::new();
+    // write input message
+    hasher.update(body);
+    let finished = hasher.finish();
     base64::prelude::BASE64_STANDARD.encode(finished)
 }
