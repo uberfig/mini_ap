@@ -62,21 +62,24 @@ pub async fn verify_post<K: PrivateKey, H: Headers>(
         Ok(x) => x,
         Err(x) => return Err(RequestVerificationError::SignatureErr(x)),
     };
-    
+
     let object: Result<Inboxable, _> = serde_json::from_str(body);
     let Ok(object) = object else {
         println!("deserialize failure\n{}", body);
         return Err(RequestVerificationError::BodyDeserializeErr);
     };
     let generated_digest = match signature.signature_header.algorithm {
-        super::signature::Algorithms::RsaSha256 => "SHA-256=".to_owned() + &sha256_hash(body.as_bytes()),
-        super::signature::Algorithms::Hs2019 => "SHA-512=".to_owned() + &sha512_hash(body.as_bytes()),
+        super::signature::Algorithms::RsaSha256 => {
+            "SHA-256=".to_owned() + &sha256_hash(body.as_bytes())
+        }
+        super::signature::Algorithms::Hs2019 => {
+            "SHA-512=".to_owned() + &sha512_hash(body.as_bytes())
+        }
     };
 
     if !digest.eq(&generated_digest) {
         return Err(RequestVerificationError::DigestDoesNotMatch);
     }
-    
 
     let fetched: Result<Actor, FetchErr> = authorized_fetch(
         &signature.signature_header.key_id,
