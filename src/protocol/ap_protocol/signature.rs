@@ -25,6 +25,8 @@ pub enum SignatureErr {
     NoHeaders,
     UnkownAlgorithm,
     MissingHeader(String),
+    NoDate,
+    BadSignature,
 }
 
 /// A parsed representation of the `Signature:` header
@@ -38,7 +40,7 @@ pub struct SignatureHeader {
     pub key_id: Url,
     pub key_domain: String,
     /// the contained signature
-    pub signature: String,
+    pub signature: Vec<u8>,
 }
 
 impl SignatureHeader {
@@ -79,12 +81,16 @@ impl SignatureHeader {
 
         let headers: Vec<String> = headers.split_ascii_whitespace().map(String::from).collect();
 
+        let Ok(signature) = openssl::base64::decode_block(signature) else {
+            return Err(SignatureErr::BadSignature);
+        };
+
         Ok(Self {
             headers,
             algorithm,
             key_id,
             key_domain,
-            signature: signature.clone(),
+            signature,
         })
     }
 }
@@ -116,7 +122,7 @@ impl Signature {
     }
     pub fn generate_sign_string<H: Headers>(
         &self,
-        request_headers: H,
+        request_headers: &H,
     ) -> Result<String, SignatureErr> {
         let headers = self
             .signature_header
@@ -173,15 +179,15 @@ mod tests {
 
     #[test]
     fn parse_get() -> Result<(), String> {
-        let signature = Signature::from_request(
+        let signature = match Signature::from_request(
             HttpMethod::Get,
             "mastodon.example".to_string(),
             "/users/username/outbox".to_string(),
             r#"keyId="https://my.example.com/actor#main-key",headers="(request-target) host date",signature="Y2FiYW...IxNGRiZDk4ZA==""#,
-        );
-        if let Err(x) = signature {
-            return Err(serde_json::to_string_pretty(&x).unwrap());
-        }
+        ) {
+            Ok(x) => x,
+            Err(x) => return Err(serde_json::to_string_pretty(&x).unwrap()),
+        };
 
         dbg!(&signature);
 
@@ -190,7 +196,7 @@ mod tests {
         hashmap.insert("date".to_string(), "18 Dec 2019 10:08:46 GMT".to_string());
         let request_headers = HashMapHeaders { headermap: hashmap };
 
-        let signed_string = match signature.unwrap().generate_sign_string(request_headers) {
+        let signed_string = match signature.generate_sign_string(&request_headers) {
             Ok(ok) => ok,
             Err(err) => return Err(serde_json::to_string_pretty(&err).unwrap()),
         };

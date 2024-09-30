@@ -32,6 +32,6 @@ pub trait PrivateKey: Key + Clone {
 
 pub trait PublicKey: Key + Clone {
     /// verify that the provided content was signed with this key
-    fn verify(&self, plain_content: &str, signature: &str) -> bool;
+    fn verify(&self, plain_content: &[u8], signature: &[u8]) -> bool;
     // fn from_pem(pem: &str, algorithm: KeyType) -> Result<Self, ParseErr>;
 }

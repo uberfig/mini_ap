@@ -1,6 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use url::Url;
 
 use crate::{
     activitystream_objects::{
@@ -11,10 +9,13 @@ use crate::{
         digest::sha256_hash,
         key::{PrivateKey, PublicKey},
     },
-    protocol::{errors::FetchErr, headers::Headers},
+    protocol::{errors::FetchErr, headers::Headers, http_method::HttpMethod},
 };
 
-use super::fetch::authorized_fetch;
+use super::{
+    fetch::authorized_fetch,
+    signature::{Signature, SignatureErr},
+};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum RequestVerificationError {
@@ -26,27 +27,23 @@ pub enum RequestVerificationError {
     BadMessageSignature,
     NoSignatureKey,
     NoSignature,
-    SignatureIncorrectBase64,
+    // SignatureIncorrectBase64,
     ActorFetchFailed(FetchErr),
     ActorFetchBodyFailed,
-    ActorDeserializeFailed,
-    NoSignatureHeaders,
     SignatureVerifyFailed,
-    NoDate,
-    MissingSignedHeaderField(String),
+    // NoDate,
+    // MissingSignedHeaderField(String),
     BodyDeserializeErr,
     ContentErr(InboxableVerifyErr),
-    KeyOwnerDoesNotMatch,
-    KeyLinkNotActor,
-    CannotParseKeyUrl,
-    KeyOwnerFromIP,
-    InvalidKey,
+    // KeyOwnerDoesNotMatch,
+
+    SignatureErr(SignatureErr),
 }
 
 /// verifys a request and returns the Inboxable if its valid
 /// create activites are stripped and turned into their inner
 /// postable so we don't have to deal with the added complexity
-pub async fn verify_incoming<K: PrivateKey, H: Headers>(
+pub async fn verify_post<K: PrivateKey, H: Headers>(
     request_headers: &H,
     body: &str,
     path: &str,
@@ -59,6 +56,9 @@ pub async fn verify_incoming<K: PrivateKey, H: Headers>(
     let Some(digest) = request_headers.get("Digest") else {
         return Err(RequestVerificationError::NoMessageDigest);
     };
+    if !digest.starts_with("SHA-256=") {
+        
+    }
 
     let object: Result<Inboxable, _> = serde_json::from_str(body);
     let Ok(object) = object else {
@@ -77,69 +77,49 @@ pub async fn verify_incoming<K: PrivateKey, H: Headers>(
         return Err(RequestVerificationError::NoMessageSignature);
     };
 
-    let signature_header = get_signature_headers(signature_header);
+    let signature = match Signature::from_request(
+        HttpMethod::Post,
+        instance_domain.to_string(),
+        path.to_string(),
+        &signature_header,
+    ) {
+        Ok(x) => x,
+        Err(x) => return Err(RequestVerificationError::SignatureErr(x)),
+    };
 
-    let Some(key_id) = signature_header.get("keyId") else {
-        return Err(RequestVerificationError::NoSignatureKey);
-    };
-    let key_id = key_id.replace('"', "");
-    let Ok(key_id) = Url::parse(&key_id) else {
-        return Err(RequestVerificationError::CannotParseKeyUrl);
-    };
-    let Some(domain) = key_id.domain() else {
-        return Err(RequestVerificationError::KeyOwnerFromIP);
-    };
-    let Some(signature) = signature_header.get("signature") else {
-        return Err(RequestVerificationError::NoSignature);
-    };
-    let signature = signature.replace('"', "");
-
-    let fetched: Result<Actor, FetchErr> =
-        authorized_fetch(&key_id, instance_key_id, instance_private_key).await;
+    let fetched: Result<Actor, FetchErr> = authorized_fetch(
+        &signature.signature_header.key_id,
+        instance_key_id,
+        instance_private_key,
+    )
+    .await;
 
     let actor = match fetched {
         Ok(x) => x,
         Err(x) => return Err(RequestVerificationError::ActorFetchFailed(x)),
     };
 
-    let Some(headers) = signature_header.get("headers") else {
-        return Err(RequestVerificationError::NoSignatureHeaders);
-    };
-
     let Some(_) = request_headers.get("date") else {
-        return Err(RequestVerificationError::NoDate);
+        return Err(RequestVerificationError::SignatureErr(SignatureErr::NoDate));
     };
 
     //generate a sign string of the actual request's headers with the real header values mentoned in the provided sign string
-    let comparison_string: Vec<String> = headers
-        .replace('"', "")
-        .split(' ')
-        .filter_map(|signed_header_name| match signed_header_name {
-            "(request-target)" => Some(format!("(request-target): post {path}")),
-            "host" => Some(format!("host: {instance_domain}")),
-            _ => {
-                let value = request_headers.get(signed_header_name)?;
-                let x = format!("{signed_header_name}: {value}",);
-                // dbg!(&x);
-                Some(x)
-            }
-        })
-        .collect();
-
-    let comparison_string = comparison_string.join("\n");
-    // dbg!(&comparison_string);
+    let comparison_string = match signature.generate_sign_string(request_headers) {
+        Ok(x) => x,
+        Err(x) => return Err(RequestVerificationError::SignatureErr(x)),
+    };
 
     let accepted = actor
         .public_key
         .public_key_pem
-        .verify(&comparison_string, &signature);
+        .verify(comparison_string.as_bytes(), &signature.signature_header.signature);
 
     if !accepted {
         return Err(RequestVerificationError::SignatureVerifyFailed);
     }
 
     let object = match object
-        .verify(domain, instance_key_id, instance_private_key)
+        .verify(&signature.signature_header.key_domain, instance_key_id, instance_private_key)
         .await
     {
         Ok(x) => x,
@@ -147,18 +127,4 @@ pub async fn verify_incoming<K: PrivateKey, H: Headers>(
     };
 
     Ok(object)
-}
-
-pub fn get_signature_headers(signature_header: String) -> HashMap<String, String> {
-    signature_header
-        .split(',')
-        .filter_map(|pair| {
-            pair.split_once('=').map(|(key, value)| {
-                (
-                    key.replace("/[^A-Za-z]/", ""),
-                    value.replace("/[^A-Za-z]/", ""),
-                )
-            })
-        })
-        .collect()
 }

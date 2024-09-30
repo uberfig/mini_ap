@@ -61,13 +61,10 @@ impl Key for OpenSSLPublic {
 }
 
 impl PublicKey for OpenSSLPublic {
-    fn verify(&self, plain_content: &str, signature: &str) -> bool {
+    fn verify(&self, plain_content: &[u8], signature: &[u8]) -> bool {
         let mut verifier =
             openssl::sign::Verifier::new(openssl::hash::MessageDigest::sha256(), &self.0).unwrap();
-        let input = &plain_content;
-        verifier.update(input.as_bytes()).unwrap();
-
-        let signature = openssl::base64::decode_block(signature).unwrap();
-        verifier.verify(&signature).unwrap()
+        verifier.update(plain_content).unwrap();
+        verifier.verify(signature).unwrap()
     }
 }

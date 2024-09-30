@@ -73,7 +73,7 @@ pub async fn verify_request<H: Headers, V: VersiaVerificationCache>(
     };
 
     let verify_string = signature_string(method, path, &nonce, hash, 0);
-    if verifying_key.verify(&verify_string, &signature) {
+    if verifying_key.verify(verify_string.as_bytes(), signature.as_bytes()) {
         return Ok(signed_by);
     }
     Err(VerifyRequestErr::SignatureVerificationFailure)
