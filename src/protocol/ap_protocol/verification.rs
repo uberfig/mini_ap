@@ -126,3 +126,57 @@ pub async fn verify_post<K: PrivateKey, H: Headers>(
 
     Ok(object)
 }
+
+pub async fn verify_get<K: PrivateKey, H: Headers>(
+    request_headers: &H,
+    path: &str,
+    instance_domain: &str,
+    instance_key_id: &str,
+    instance_private_key: &mut K,
+) -> Result<(), RequestVerificationError> {
+    //get the signature header
+    let Some(signature_header) = request_headers.get("Signature") else {
+        return Err(RequestVerificationError::NoSignatureHeader);
+    };
+    let signature = match Signature::from_request(
+        HttpMethod::Post,
+        instance_domain.to_string(),
+        path.to_string(),
+        &signature_header,
+    ) {
+        Ok(x) => x,
+        Err(x) => return Err(RequestVerificationError::SignatureErr(x)),
+    };
+
+    let fetched: Result<Actor, FetchErr> = authorized_fetch(
+        &signature.signature_header.key_id,
+        instance_key_id,
+        instance_private_key,
+    )
+    .await;
+
+    let actor = match fetched {
+        Ok(x) => x,
+        Err(x) => return Err(RequestVerificationError::ActorFetchFailed(x)),
+    };
+
+    let Some(_) = request_headers.get("date") else {
+        return Err(RequestVerificationError::SignatureErr(SignatureErr::NoDate));
+    };
+
+    //generate a sign string of the actual request's headers with the real header values mentoned in the provided sign string
+    let comparison_string = match signature.generate_sign_string(request_headers) {
+        Ok(x) => x,
+        Err(x) => return Err(RequestVerificationError::SignatureErr(x)),
+    };
+
+    let accepted = actor.public_key.public_key_pem.verify(
+        comparison_string.as_bytes(),
+        &signature.signature_header.signature,
+    );
+
+    if !accepted {
+        return Err(RequestVerificationError::SignatureVerifyFailed);
+    }
+    Ok(())
+}
