@@ -7,7 +7,7 @@ use crate::{
     cryptography::openssl::OpenSSLPublic,
     db::{
         conn::{Conn, DbErr, EntityOrigin},
-        utility::{instance_actor::InstanceActor, new_actor::NewLocal, protocols::Protocols},
+        utility::{instance_actor::InstanceActor, new_actor::NewLocal, protocols::Protocol},
         Follower, Like,
     },
     protocol::versia_protocol::requests::Signer,
@@ -34,7 +34,7 @@ impl Conn for PgConn {
     ) -> Result<i64, DbErr> {
         todo!()
     }
-    async fn get_key(&self, signed_by: &Signer) -> Option<OpenSSLPublic> {
+    async fn get_public_key(&self, signed_by: &Signer) -> Option<OpenSSLPublic> {
         todo!()
     }
     async fn get_user_post_count(&self, uuid: &str, origin: &EntityOrigin) -> Option<u64> {
@@ -50,6 +50,9 @@ impl Conn for PgConn {
         todo!()
     }
     async fn get_versia_user(&self, uuid: &str, origin: &EntityOrigin) -> Option<User> {
+        todo!()
+    }
+    async fn get_activitypub_actor(&self, uuid: &str, origin: &EntityOrigin) -> Option<Actor> {
         todo!()
     }
     async fn delete_user(&self, uuid: &str, origin: &EntityOrigin) -> Result<(), ()> {
@@ -86,7 +89,7 @@ impl Conn for PgConn {
         todo!()
     }
 
-    async fn get_protocol(&self, instance: &str) -> Protocols {
+    async fn get_protocol(&self, instance: &str) -> Protocol {
         todo!()
     }
 

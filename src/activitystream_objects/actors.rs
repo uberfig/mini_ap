@@ -62,6 +62,9 @@ pub struct Actor {
     pub outbox: Url,
     pub followers: Url,
     pub following: Url,
+
+	#[serde(skip_serializing_if = "Option::is_none")]
+	pub versia_url: Option<Url>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

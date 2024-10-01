@@ -108,9 +108,9 @@ async fn webfinger(
         //not the instance actor
         false => {
             let actor = conn
-                .get_local_user_actor(&preferred_username, &state.instance_domain)
+                .get_local_actor(&preferred_username, &state.instance_domain)
                 .await;
-            let (actor, _) = match actor {
+            let actor = match actor {
                 Some(x) => x,
                 None => {
                     return Err(ErrorNotFound("not found"));
