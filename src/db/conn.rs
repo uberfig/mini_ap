@@ -7,13 +7,12 @@ use crate::{
     activitystream_objects::actors::Actor,
     cryptography::openssl::OpenSSLPublic,
     protocol::{
-        ap_protocol::fetch::authorized_fetch,
         errors::FetchErr,
         versia_protocol::{requests::Signer, verify::VersiaVerificationCache},
     },
     versia_types::{
         entities::{
-            instance_metadata::InstanceMetadata, public_key::AlgorithmsPublicKey, user::User,
+            instance_metadata::InstanceMetadata, user::User,
         },
         postable::Postable,
     },

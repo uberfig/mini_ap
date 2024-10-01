@@ -1,16 +1,47 @@
-CREATE TABLE internal_users (
-	local_id 			BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
-	uid					BIGINT NULL UNIQUE,
-	password			TEXT NOT NULL, --stored with argon2
-	preferred_username	TEXT NOT NULL UNIQUE, --basically the username/login name
+CREATE TABLE instances (
+	domain				TEXT NOT NULL PRIMARY KEY UNIQUE,
+	--this is the main domain of the instance
+	is_primary			BOOLEAN NOT NULL DEFAULT false,
+	--we will support multiple domains and if we are
+	--also authoratative over a dmain it will be true
+	is_authoratative	BOOLEAN NOT NULL DEFAULT false,
+	
+	blocked				BOOLEAN NOT NULL DEFAULT false,
+	allowlisted			BOOLEAN NOT NULL DEFAULT false,
+	protocol			TEXT NULL,
+	favicon				BYTEA NULL
+);
+
+CREATE TABLE users (
+	-- we generate a new uuid for all users
+	uuid				TEXT NOT NULL PRIMARY KEY UNIQUE,
+	-- will be a link for activitypub users
+	id					TEXT NOT NULL,
+	domain				TEXT NOT NULL REFERENCES instances(domain) ON DELETE CASCADE,
+	preferred_username	TEXT NOT NULL,
 	display_name		TEXT NULL,
-	email				TEXT NULL,
 	summary				TEXT NULL, -- used as a user's bio
-	private_key_pem		TEXT NOT NULL,
 	public_key_pem		TEXT NOT NULL,
-	permission_level 	SMALLINT NOT NULL,
+	public_key_id		TEXT NOT NULL,
 	manual_followers	BOOLEAN NOT NULL DEFAULT false, -- manually approves followers
-	custom_domain		TEXT NULL
+	url					TEXT NOT NULL,
+
+	banned				BOOLEAN NOT NULL DEFAULT false,
+	reason				TEXT NULL,
+
+	-- links
+	inbox				TEXT NOT NULL,
+	outbox				TEXT NOT NULL,
+	followers			TEXT NOT NULL,
+	following			TEXT NOT NULL,
+	--only for users we are authoratative over
+	password			TEXT NULL, 	--stored with argon2
+	email				TEXT NULL,
+	private_key_pem		TEXT NULL,
+	permission_level 	SMALLINT NULL,
+
+	UNIQUE (domain, preferred_username),
+	UNIQUE (domain, id)
 );
 
 CREATE TABLE ap_instance_actor (
@@ -18,102 +49,93 @@ CREATE TABLE ap_instance_actor (
 	public_key_pem		TEXT NOT NULL
 );
 
-----------------------------------------------------------------
-
-CREATE TABLE federated_instances (
-	instance_id			BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
-	domain				TEXT NOT NULL UNIQUE,
-	blocked				BOOLEAN NOT NULL DEFAULT false,
-	allowlisted			BOOLEAN NOT NULL DEFAULT false,
-	software			TEXT NULL,
-	favicon				BYTEA NULL
-);
-
--- federated activitypub users, doesn't include internal
-CREATE TABLE federated_ap_users (
-	fedi_id			BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
-	uid					BIGINT NULL UNIQUE,
-	id					TEXT NOT NULL UNIQUE,
-	type_field			TEXT NOT NULL DEFAULT 'Person',
-	preferred_username	TEXT NOT NULL,
-	domain				TEXT NOT NULL,
-	name				TEXT NULL, --their display name
-	summary				TEXT NULL,
-	url					TEXT NULL,
-	public_key_pem		TEXT NOT NULL,
-	public_key_id		TEXT NOT NULL,
-
-	-- links
-	inbox				TEXT NOT NULL,
-	outbox				TEXT NOT NULL,
-	followers			TEXT NOT NULL,
-	following			TEXT NOT NULL,
-
-	manual_followers	BOOLEAN NOT NULL DEFAULT false,
-	memorial			BOOLEAN NOT NULL DEFAULT false,
-	indexable			BOOLEAN NOT NULL DEFAULT false,
-	discoverable		BOOLEAN NOT NULL DEFAULT false
-	-- featured			TEXT,
-	-- featuredTags		TEXT,
-);
-
-CREATE TABLE defed_users (
-	id			TEXT PRIMARY KEY NOT NULL UNIQUE, 
-	uid			BIGINT NOT NULL UNIQUE,
-	reason		TEXT NULL
-);
-
-CREATE TABLE unified_users (
-	uid			BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
-	is_local	BOOLEAN NOT NULL,
-	defed		BOOLEAN NOT NULL DEFAULT false,
-	fedi_id		BIGINT NULL UNIQUE REFERENCES federated_ap_users(fedi_id) ON DELETE CASCADE,
-	local_id	BIGINT NULL UNIQUE REFERENCES internal_users(local_id) ON DELETE CASCADE
-);
-
 CREATE TABLE following (
 	-- the user that is following
-	follower		BIGINT NOT NULL REFERENCES unified_users(uid) ON DELETE CASCADE,
+	follower		TEXT NOT NULL REFERENCES users(uuid) ON DELETE CASCADE,
 	-- the user that is being followed
-	target_user		BIGINT NOT NULL REFERENCES unified_users(uid) ON DELETE CASCADE,
+	target_user		TEXT NOT NULL REFERENCES users(uuid) ON DELETE CASCADE,
 	pending			BOOLEAN NOT NULL DEFAULT true,
 	published		BIGINT NOT NULL,
 	PRIMARY KEY(follower, target_user)
 );
 
+-- like servers on discord, a group of groups
+CREATE TABLE communities (
+	url			TEXT NOT NULL PRIMARY KEY UNIQUE,
+	id			TEXT NOT NULL UNIQUE,
+	domain		TEXT NOT NULL REFERENCES instances(domain) ON DELETE CASCADE,
+	-- link to collection of members and groups
+	members		TEXT NOT NULL UNIQUE,
+	groups		TEXT NOT NULL UNIQUE,
+	-- name and description hold the json text content format
+	name		TEXT NULL,
+	description TEXT NULL,
+	UNIQUE (domain, id)
+);
+
+-- groups will be used for messaging like discord channels
+CREATE TABLE groups (
+	url			TEXT NOT NULL PRIMARY KEY UNIQUE,
+	id			TEXT NOT NULL,
+	domain		TEXT NOT NULL REFERENCES instances(domain) ON DELETE CASCADE,
+	-- groups that are part of a community will be ordered from 
+	-- smallest to largest. to reorder, incriment all groups part of
+	-- a community that are greater than or equal to the position you
+	-- want to move one to and then update the group to be at that position
+	display_order	BIGINT NOT NULL DEFAULT 0,
+	-- link to collection of members and notes
+	members		TEXT NOT NULL UNIQUE,
+	notes		TEXT NULL UNIQUE,
+	-- name and description hold the json text content format
+	name		TEXT NULL,
+	description TEXT NULL,
+	UNIQUE (domain, id)
+);
+
 CREATE TABLE posts (
-	obj_id		BIGSERIAL PRIMARY KEY NOT NULL UNIQUE,
-	is_local	BOOLEAN NOT NULL,
-	fedi_id		TEXT NULL UNIQUE,	--not used for internal posts
+	-- we generate a new uuid for all posts
+	uuid		TEXT NOT NULL PRIMARY KEY UNIQUE,
+	-- will be a link for activitypub users
+	id			TEXT NOT NULL,
+	domain		TEXT NOT NULL REFERENCES instances(domain) ON DELETE CASCADE,
+
 	surtype		TEXT NOT NULL,
 	subtype		TEXT NOT NULL,
+	category	TEXT NOT NULL,
 
 	likes		BIGINT NOT NULL DEFAULT 0,
-	-- local_post	BOOLEAN NOT NULL, -- created by a local user
+	boosts		BIGINT NOT NULL DEFAULT 0,
+	reactions	TEXT NULL,
+
 	local_only	BOOLEAN NOT NULL DEFAULT false,
+	followers_only	BOOLEAN NOT NULL DEFAULT false,
+	in_group		TEXT NULL REFERENCES groups(url) ON DELETE CASCADE,
 	published	BIGINT NOT NULL,
-	in_reply_to	BIGINT NULL REFERENCES posts(obj_id) ON DELETE SET NULL,
+
+	is_reply	BOOLEAN NOT NULL DEFAULT false,
+	in_reply_to	TEXT NULL REFERENCES posts(uuid) ON DELETE SET NULL,
 	
 	block_replies BOOLEAN NOT NULL DEFAULT false,
 	restrict_replies BOOLEAN NOT NULL DEFAULT false, --only those followed by or mentoned by the creator can comment
 	local_only_replies BOOLEAN NOT NULL DEFAULT false,
 
 	content		TEXT NULL,
-	domain		TEXT NOT NULL,
-	-- REFERENCES federated_instances(domain) ON DELETE CASCADE,
-
 	-- used for questions
 	multi_select 		BOOLEAN NULL,
 	options				TEXT NULL, -- the array of json options in text
 	closed				BIGINT NULL,
 	local_only_voting 	BOOLEAN NULL,
 
-	actor	BIGINT NULL REFERENCES unified_users(uid) ON DELETE CASCADE
+	actor	TEXT NOT NULL REFERENCES users(uuid) ON DELETE CASCADE
 );
 
 CREATE TABLE likes (
-	actor		BIGINT NULL REFERENCES unified_users(uid) ON DELETE CASCADE,
-	post 		BIGINT NOT NULL REFERENCES posts(obj_id) ON DELETE CASCADE,
+	-- uses the id from versia or just slap in the id url from ap
+	-- needs to be here for versia compatibility
+	id			TEXT NOT NULL,
+	url			TEXT NOT NULL UNIQUE,
+	actor		TEXT NOT NULL REFERENCES users(uuid) ON DELETE CASCADE,
+	post 		TEXT NOT NULL REFERENCES posts(uuid) ON DELETE CASCADE,
 	published	BIGINT NOT NULL,
 	PRIMARY KEY(actor, post)
 );
