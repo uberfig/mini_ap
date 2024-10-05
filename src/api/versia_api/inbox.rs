@@ -14,7 +14,7 @@ use crate::{
         postable::Postable,
     },
 };
-use actix_web::{error::ErrorBadRequest, rt::spawn};
+use actix_web::{error::ErrorBadRequest, http::StatusCode, rt::spawn};
 
 use actix_web::{
     dev::ResourcePath, error::ErrorUnauthorized, post, web::Data, HttpRequest, HttpResponse, Result,
@@ -93,6 +93,7 @@ pub async fn inbox(
         Ok(x) => {
             spawn(handle_inbox(signer, x, state, conn));
             Ok(HttpResponse::Ok()
+                .status(StatusCode::ACCEPTED)
                 .content_type("application/json; charset=UTF-8")
                 .body(""))
         }

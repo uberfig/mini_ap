@@ -16,10 +16,7 @@ use crate::{
     },
 };
 
-use super::{
-    utility::{instance_actor::InstanceActor, new_actor::NewLocal, protocols::Protocol},
-    Follower, Like, PermissionLevel, PostType,
-};
+use super::utility::{instance_actor::InstanceActor, new_actor::NewLocal, protocols::Protocol};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum InsertErr {

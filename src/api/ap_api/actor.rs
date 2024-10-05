@@ -6,7 +6,10 @@ use actix_web::{
 };
 
 use crate::{
-    db::{conn::Conn, utility::new_actor::NewLocal},
+    db::{
+        conn::Conn,
+        utility::{instance_actor::InstanceActor, new_actor::NewLocal},
+    },
     protocol::{ap_protocol::verification::verify_get, headers::ActixHeaders},
 };
 
@@ -28,10 +31,7 @@ pub async fn get_actor(
             &headers,
             path.as_str(),
             &state.instance_domain,
-            &format!(
-                "https://{}/{}",
-                &state.instance_domain, &state.instance_domain
-            ),
+            &InstanceActor::get_key_id(&state.instance_domain),
             &mut instance_key.get_private_key(),
         )
         .await;

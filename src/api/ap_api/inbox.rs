@@ -1,13 +1,23 @@
 use std::sync::Mutex;
 
 use actix_web::{
-    error::Error,
-    get, post,
+    error::{Error, ErrorUnauthorized},
+    get,
+    http::StatusCode,
+    post,
+    rt::spawn,
     web::{self, Data},
     HttpRequest, HttpResponse, Result,
 };
 
-use crate::db::conn::Conn;
+use crate::{
+    activitystream_objects::inboxable::VerifiedInboxable,
+    db::{conn::Conn, utility::instance_actor::InstanceActor},
+    protocol::{
+        ap_protocol::verification::{verify_post, RequestVerificationError},
+        headers::ActixHeaders,
+    },
+};
 pub struct Inbox {
     pub inbox: Mutex<Vec<String>>,
 }
@@ -23,20 +33,20 @@ pub async fn inspect_inbox(inbox: Data<Inbox>) -> String {
 #[post("/inbox")]
 pub async fn shared_inbox(
     request: HttpRequest,
-    inbox: Data<Inbox>,
+    // inbox: Data<Inbox>,
     body: web::Bytes,
     conn: Data<Box<dyn Conn + Sync>>,
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse, Error> {
     dbg!(&request);
-    handle_inbox(request, "/inbox", inbox, body, conn, state).await
+    inbox(request, "/inbox", body, conn, state).await
 }
 
 #[post("/users/{preferred_username}/inbox")]
 pub async fn private_inbox(
     request: HttpRequest,
     path: web::Path<String>,
-    inbox: Data<Inbox>,
+    // inbox: Data<Inbox>,
     body: web::Bytes,
     conn: Data<Box<dyn Conn + Sync>>,
     state: Data<crate::config::Config>,
@@ -45,73 +55,53 @@ pub async fn private_inbox(
     let preferred_username = path.into_inner();
     let path = format!("/users/{}/inbox", &preferred_username);
 
-    handle_inbox(request, &path, inbox, body, conn, state).await
+    inbox(request, &path, body, conn, state).await
 }
 
-async fn handle_inbox(
+async fn inbox(
     request: HttpRequest,
     path: &str,
-    inbox: Data<Inbox>,
     body: web::Bytes,
     conn: Data<Box<dyn Conn + Sync>>,
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse, Error> {
-    todo!()
-    // let mut instance_actor_key = conn.get_instance_actor().await.get_private_key();
+    let Ok(body) = String::from_utf8(body.to_vec()) else {
+        return Ok(HttpResponse::Unauthorized()
+            .body(serde_json::to_string(&RequestVerificationError::BadMessageBody).unwrap()));
+    };
+    let mut instance_actor_key = conn.get_instance_actor().await.get_private_key();
 
-    // let Ok(body) = String::from_utf8(body.to_vec()) else {
-    //     return Ok(HttpResponse::Unauthorized()
-    //         .body(serde_json::to_string(&RequestVerificationError::BadMessageBody).unwrap()));
-    // };
+    let headers = ActixHeaders {
+        headermap: request.headers().clone(),
+    };
+    let verified = match verify_post(
+        &headers,
+        &body,
+        path,
+        &state.instance_domain,
+        &InstanceActor::get_key_id(&state.instance_domain),
+        &mut instance_actor_key,
+    )
+    .await
+    {
+        Ok(ok) => ok,
+        Err(err) => return Err(ErrorUnauthorized(serde_json::to_string(&err).unwrap())),
+    };
 
-    // // println!("{}", &body);
+    spawn(handle_inbox(conn, state, verified));
 
-    // let x = verify_incoming(
-    //     &ActixHeaders {
-    //         headermap: request.headers().clone(),
-    //     },
-    //     &body,
-    //     path,
-    //     &state.instance_domain,
-    //     &format!("https://{}/actor/ap#main-key", &state.instance_domain),
-    //     &mut instance_actor_key,
-    // )
-    // .await;
+    Ok(HttpResponse::Ok().status(StatusCode::ACCEPTED).body(""))
+}
 
-    // match x {
-    //     Ok(x) => {
-    //         // println!("{}", &x);
-
-    //         {
-    //             let mut guard = inbox.inbox.lock().unwrap();
-    //             let data = &mut *guard;
-    //             let deserialized = serde_json::to_string(&x).unwrap();
-    //             data.push(format!("Success:\n{}", deserialized));
-    //         }
-
-    //         process_incoming(conn, state, x).await;
-
-    //         return Ok(HttpResponse::Ok()
-    //             .status(StatusCode::OK)
-    //             .body("OK".to_string()));
-    //     }
-    //     Err(x) => {
-    //         if matches!(
-    //             &x,
-    //             RequestVerificationError::ActorFetchFailed(FetchErr::IsTombstone(_))
-    //         ) {
-    //             println!("another tombstone");
-    //             return Ok(HttpResponse::Ok()
-    //                 .status(StatusCode::OK)
-    //                 .body("OK".to_string()));
-    //         }
-    //         {
-    //             let mut guard = inbox.inbox.lock().unwrap();
-    //             let data = &mut *guard;
-    //             let deserialized = serde_json::to_string(&x).unwrap();
-    //             data.push(format!("failure:{}\n{}", deserialized, body));
-    //         }
-    //         Ok(HttpResponse::Unauthorized().body(serde_json::to_string(&x).unwrap()))
-    //     }
-    // }
+async fn handle_inbox(
+    conn: Data<Box<dyn Conn + Sync>>,
+    state: Data<crate::config::Config>,
+    item: VerifiedInboxable,
+) {
+    match item {
+        VerifiedInboxable::Postable(postable) => todo!(),
+        VerifiedInboxable::Delete(delete) => todo!(),
+        VerifiedInboxable::Follow(follow) => todo!(),
+        VerifiedInboxable::FollowResponse(follow_response) => todo!(),
+    }
 }

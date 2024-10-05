@@ -1,8 +1,4 @@
-use url::Url;
-
 use crate::{activitystream_objects::actors::Actor, cryptography::openssl::OpenSSLPrivate};
-
-use super::new_actor::instance_actor_links;
 
 pub struct InstanceActor {
     pub private_key_pem: String,
@@ -28,8 +24,11 @@ impl InstanceActor {
         // .unwrap()
         todo!()
     }
-    pub fn to_actor(&self, domain: &str) -> Actor {
-        let links = instance_actor_links(domain);
+    pub fn get_key_id(domain: &str) -> String {
+        format!("https://{}/{}", domain, domain)
+    }
+    pub fn to_actor(&self, _domain: &str) -> Actor {
+        // let links = instance_actor_links(domain);
         todo!()
         // Actor {
         //     type_field: crate::activitystream_objects::actors::ActorType::Application,

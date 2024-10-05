@@ -3,7 +3,6 @@ pub mod postgres;
 #[cfg(test)]
 pub mod tests;
 pub mod utility;
-use utility::{permission::PermissionLevel, post_types::PostType};
 
 use crate::protocol::protocols::Protocols;
 
