@@ -8,6 +8,7 @@ pub mod delete;
 pub mod follow_and_response;
 pub mod inboxable;
 pub mod link;
+pub mod new_post;
 pub mod note;
 pub mod object;
 pub mod postable;

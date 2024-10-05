@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 use crate::{
-    activitystream_objects::actors::Actor,
+    activitystream_objects::{actors::Actor, postable::ApPostable},
     cryptography::openssl::OpenSSLPublic,
     protocol::{
         errors::FetchErr,
@@ -59,6 +59,9 @@ pub enum ProtoUser {
 
 #[async_trait]
 pub trait Conn: Sync {
+    async fn get_ap_post(&self, post_id: &str, origin: &EntityOrigin) -> Option<ApPostable>;
+    /// inserts a federated post into the db and returns the uuid if successful
+    async fn create_ap_post(&self, post: ApPostable, origin: &EntityOrigin) -> Result<String, ()>;
     /// run any prep for the database, for example running migrations
     async fn init(&self) -> Result<(), String>;
     /// gets the instance actor. creates one if its not present
@@ -67,7 +70,7 @@ pub trait Conn: Sync {
     /// returns the uid if sucessful
     async fn create_user(&self, domain: &str, content: &NewLocal) -> Result<String, ()>;
     /// backfills if not in db
-    async fn get_actor(&self, uuid: &str, origin: &EntityOrigin) -> Option<u64>;
+    async fn get_actor(&self, uuid: &str, origin: &EntityOrigin) -> Option<Actor>;
     /// only gets an actor we have authority over, does not backfill
     async fn get_local_actor(&self, username: &str, domain: &str) -> Option<Actor>;
 

@@ -12,8 +12,11 @@ CREATE TABLE instances (
 );
 
 CREATE TABLE users (
-	-- will be the url for versia users
+	-- we will generate a uuid for all users
 	uid					TEXT NOT NULL PRIMARY KEY UNIQUE,
+	-- this is the id field of activitypub and the url for versia
+	resource_link		TEXT NOT NULL UNIQUE,
+	-- this will just be the resource link for ap users
 	versia_id			TEXT NOT NULL,
 	-- used for the actual webpage for the user not the versia url
 	url					TEXT NOT NULL,
@@ -59,7 +62,9 @@ CREATE TABLE following (
 
 -- like servers on discord, a group of groups
 CREATE TABLE communities (
-	url			TEXT NOT NULL PRIMARY KEY UNIQUE,
+	-- all communities will have a generated uuid
+	com_id 		TEXT NOT NULL PRIMARY KEY UNIQUE,
+	url			TEXT NOT NULL UNIQUE,
 	-- the uuid of the community
 	id			TEXT NOT NULL,
 	domain		TEXT NOT NULL REFERENCES instances(domain) ON DELETE CASCADE,
@@ -74,10 +79,13 @@ CREATE TABLE communities (
 
 -- groups will be used for messaging like discord channels
 CREATE TABLE groups (
-	url			TEXT NOT NULL PRIMARY KEY UNIQUE,
+	-- all groups will have a generated uuid
+	group_id 	TEXT NOT NULL PRIMARY KEY UNIQUE,
+	url			TEXT NOT NULL UNIQUE,
 	-- the uuid of the group
 	id			TEXT NOT NULL,
 	domain		TEXT NOT NULL REFERENCES instances(domain) ON DELETE CASCADE,
+	community	TEXT NULL REFERENCES communities(com_id) ON DELETE CASCADE,
 	-- groups that are part of a community will be ordered from 
 	-- smallest to largest. to reorder, incriment all groups part of
 	-- a community that are greater than or equal to the position you
@@ -109,7 +117,7 @@ CREATE TABLE posts (
 
 	local_only	BOOLEAN NOT NULL DEFAULT false,
 	followers_only	BOOLEAN NOT NULL DEFAULT false,
-	in_group		TEXT NULL REFERENCES groups(url) ON DELETE CASCADE,
+	in_group		TEXT NULL REFERENCES groups(group_id) ON DELETE CASCADE,
 	published	BIGINT NOT NULL,
 
 	is_reply	BOOLEAN NOT NULL DEFAULT false,

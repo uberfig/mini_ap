@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+use super::context::Context;
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum QuestionType {
     Question,
@@ -26,14 +28,20 @@ pub struct Question {
     pub type_field: QuestionType,
     #[serde(flatten)]
     pub options: ChoiceType,
-    #[serde(skip_serializing_if = "Option::is_none")]
     /// indicates that a poll can only be voted on by local users
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub local_only: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub closed: Option<String>, //TODO
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub versia_url: Option<Url>,
+}
+
+impl Question {
+    pub fn get_context() -> Context {
+        todo!()
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

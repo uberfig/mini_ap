@@ -21,6 +21,8 @@ pub async fn get_actor(
     request: HttpRequest,
 ) -> Result<HttpResponse> {
     dbg!(&request);
+    let preferred_username = path.into_inner();
+    let path = format!("/ap/users/{}", &preferred_username);
 
     if state.force_auth_fetch {
         let headers = ActixHeaders {
@@ -40,8 +42,6 @@ pub async fn get_actor(
             return Err(ErrorUnauthorized(serde_json::to_string(&err).unwrap()));
         }
     }
-
-    let preferred_username = path.into_inner();
 
     let actor = conn
         .get_local_actor(&preferred_username, &state.instance_domain)

@@ -12,7 +12,10 @@ use actix_web::{
 
 use crate::{
     activitystream_objects::inboxable::VerifiedInboxable,
-    db::{conn::Conn, utility::instance_actor::InstanceActor},
+    db::{
+        conn::{Conn, EntityOrigin},
+        utility::instance_actor::InstanceActor,
+    },
     protocol::{
         ap_protocol::verification::{verify_post, RequestVerificationError},
         headers::ActixHeaders,
@@ -39,7 +42,7 @@ pub async fn shared_inbox(
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse, Error> {
     dbg!(&request);
-    inbox(request, "/inbox", body, conn, state).await
+    inbox(request, "/ap/inbox", body, conn, state).await
 }
 
 #[post("/users/{preferred_username}/inbox")]
@@ -53,7 +56,7 @@ pub async fn private_inbox(
 ) -> Result<HttpResponse, Error> {
     println!("private inbox");
     let preferred_username = path.into_inner();
-    let path = format!("/users/{}/inbox", &preferred_username);
+    let path = format!("/ap/users/{}/inbox", &preferred_username);
 
     inbox(request, &path, body, conn, state).await
 }
@@ -93,13 +96,22 @@ async fn inbox(
     Ok(HttpResponse::Ok().status(StatusCode::ACCEPTED).body(""))
 }
 
+#[allow(unused_variables)]
 async fn handle_inbox(
     conn: Data<Box<dyn Conn + Sync>>,
     state: Data<crate::config::Config>,
     item: VerifiedInboxable,
 ) {
     match item {
-        VerifiedInboxable::Postable(postable) => todo!(),
+        VerifiedInboxable::Postable(postable) => {
+            let id = postable.id().clone();
+            let _ = conn
+                .create_ap_post(
+                    postable,
+                    &EntityOrigin::Federated(id.domain().expect("verified post missing domain")),
+                )
+                .await;
+        }
         VerifiedInboxable::Delete(delete) => todo!(),
         VerifiedInboxable::Follow(follow) => todo!(),
         VerifiedInboxable::FollowResponse(follow_response) => todo!(),

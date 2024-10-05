@@ -1,6 +1,5 @@
 use super::{context::ContextWrap, public_key::PublicKey};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use url::Url;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -71,27 +70,6 @@ impl Actor {
     pub fn wrap_context(self) -> ContextWrap<Self> {
         todo!()
     }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(untagged)]
-pub enum Context {
-    Array(Vec<ContextItem>),
-    Single(Url),
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(untagged)]
-pub enum ContextItem {
-    String(String),
-    Map(HashMap<String, ContextMapItem>),
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(untagged)]
-pub enum ContextMapItem {
-    String(String),
-    Map(HashMap<String, String>),
 }
 
 #[cfg(test)]

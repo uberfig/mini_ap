@@ -3,11 +3,11 @@ use deadpool_postgres::Pool;
 use url::Url;
 
 use crate::{
-    activitystream_objects::actors::Actor,
+    activitystream_objects::{actors::Actor, postable::ApPostable},
     cryptography::openssl::OpenSSLPublic,
     db::{
-        conn::{Conn, DbErr, EntityOrigin},
-        utility::{instance_actor::InstanceActor, protocols::Protocol},
+        conn::{Conn, EntityOrigin},
+        utility::{instance_actor::InstanceActor, new_actor::NewLocal, protocols::Protocol},
     },
     protocol::versia_protocol::requests::Signer,
     versia_types::{
@@ -16,7 +16,7 @@ use crate::{
     },
 };
 
-use super::{actors, init};
+use super::init;
 
 #[derive(Clone, Debug)]
 pub struct PgConn {
@@ -26,6 +26,21 @@ pub struct PgConn {
 #[allow(unused_variables)]
 #[async_trait]
 impl Conn for PgConn {
+    async fn get_ap_post(&self, post_id: &str, origin: &EntityOrigin) -> Option<ApPostable> {
+        todo!()
+    }
+    async fn create_ap_post(&self, post: ApPostable, origin: &EntityOrigin) -> Result<String, ()> {
+        todo!()
+    }
+    async fn create_user(&self, domain: &str, content: &NewLocal) -> Result<String, ()> {
+        todo!()
+    }
+    async fn get_local_actor(&self, username: &str, domain: &str) -> Option<Actor> {
+        todo!()
+    }
+    async fn get_key(&self, signed_by: &Signer) -> Option<OpenSSLPublic> {
+        todo!()
+    }
     // async fn load_new_federated_actor(
     //     &self,
     //     actor_id: &Url,
@@ -54,7 +69,7 @@ impl Conn for PgConn {
     // async fn get_activitypub_actor(&self, uuid: &str, origin: &EntityOrigin) -> Option<Actor> {
     //     todo!()
     // }
-    async fn delete_user(&self, uuid: &str, origin: &EntityOrigin) -> Result<(), ()> {
+    async fn delete_user(&self, uuid: &Url, origin: &EntityOrigin) -> Result<(), ()> {
         todo!()
     }
     async fn get_versia_post(&self, pid: &str, origin: &EntityOrigin) -> Option<VersiaPostable> {
@@ -84,7 +99,10 @@ impl Conn for PgConn {
     //     instance_actor::create_instance_actor(self, private_key_pem, public_key_pem).await
     // }
 
-    async fn get_versia_instance_metadata(&self, instance_domain: &str) -> InstanceMetadata {
+    async fn get_versia_instance_metadata(
+        &self,
+        instance_domain: &str,
+    ) -> Option<InstanceMetadata> {
         todo!()
     }
 
@@ -94,8 +112,9 @@ impl Conn for PgConn {
 
     //----------------------actors---------------------------
 
-    async fn get_actor(&self, uid: i64, instance_domain: &str) -> Option<Actor> {
-        actors::get_actor(self, uid, instance_domain).await
+    async fn get_actor(&self, uuid: &str, origin: &EntityOrigin) -> Option<Actor> {
+        todo!()
+        // actors::get_actor(self, uid, instance_domain).await
     }
     // async fn get_local_user_actor(
     //     &self,

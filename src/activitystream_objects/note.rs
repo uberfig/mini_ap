@@ -1,8 +1,6 @@
 use super::{
-    actors::Actor,
-    collections::ExtendsCollection,
-    core_types::OptionalArray,
-    link::{LinkSimpleOrExpanded, RangeLinkItem},
+    collections::ExtendsCollection, context::Context, core_types::OptionalArray,
+    link::LinkSimpleOrExpanded,
 };
 use crate::versia_types::serde_fns::{deserialize_time, serialize_time};
 use serde::{Deserialize, Serialize};
@@ -34,12 +32,12 @@ pub struct Note {
     pub type_field: NoteType,
     pub id: Url,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-
     pub attributed_to: Url,
-    // #[serde(skip_serializing_if = "Option::is_none")]
-    // pub audience: Option<String>,
+
+    #[serde(deserialize_with = "deserialize_time")]
+    #[serde(serialize_with = "serialize_time")]
+    pub published: i64,
+
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<String>,
 
@@ -49,12 +47,8 @@ pub struct Note {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub in_reply_to: Option<Url>,
 
-    #[serde(deserialize_with = "deserialize_time")]
-    #[serde(serialize_with = "serialize_time")]
-    pub published: i64,
-
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub to: Option<OptionalArray<RangeLinkItem<Actor>>>,
+    pub to: Option<OptionalArray<LinkSimpleOrExpanded>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub updated: Option<String>,
@@ -85,6 +79,12 @@ pub struct Note {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub versia_url: Option<Url>,
+}
+
+impl Note {
+    pub fn get_context() -> Context {
+        todo!()
+    }
 }
 
 #[cfg(test)]
