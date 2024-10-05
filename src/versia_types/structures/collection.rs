@@ -79,7 +79,7 @@ impl<T: Clone + PartialEq + Serialize + for<'a> Deserialize<'a>> Collection<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::versia_types::postable::Postable;
+    use crate::versia_types::postable::VersiaPostable;
 
     use super::*;
 
@@ -110,7 +110,7 @@ mod tests {
     ]
 }
 "#;
-        let deserialized: Result<Collection<Postable>, serde_json::Error> =
+        let deserialized: Result<Collection<VersiaPostable>, serde_json::Error> =
             serde_json::from_str(collection);
         match deserialized {
             Ok(_) => Ok(()),

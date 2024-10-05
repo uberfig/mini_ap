@@ -12,7 +12,7 @@ use crate::{
     protocol::versia_protocol::requests::Signer,
     versia_types::{
         entities::{instance_metadata::InstanceMetadata, user::User},
-        postable::Postable,
+        postable::VersiaPostable,
     },
 };
 
@@ -45,7 +45,7 @@ impl Conn for PgConn {
         origin: &EntityOrigin,
         page_size: u64,
         ofset: u64,
-    ) -> Option<Vec<Postable>> {
+    ) -> Option<Vec<VersiaPostable>> {
         todo!()
     }
     async fn get_versia_user(&self, uuid: &str, origin: &EntityOrigin) -> Option<User> {
@@ -57,14 +57,14 @@ impl Conn for PgConn {
     async fn delete_user(&self, uuid: &str, origin: &EntityOrigin) -> Result<(), ()> {
         todo!()
     }
-    async fn get_versia_post(&self, pid: &str, origin: &EntityOrigin) -> Option<Postable> {
+    async fn get_versia_post(&self, pid: &str, origin: &EntityOrigin) -> Option<VersiaPostable> {
         todo!()
     }
     async fn create_versia_post(
         &self,
-        post: Postable,
+        post: VersiaPostable,
         origin: &EntityOrigin,
-    ) -> Result<Postable, ()> {
+    ) -> Result<VersiaPostable, ()> {
         todo!()
     }
     async fn delete_post(&self, post_id: &str, origin: &EntityOrigin) -> Result<(), ()> {

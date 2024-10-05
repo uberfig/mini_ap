@@ -11,7 +11,7 @@ use crate::{
             change_follow::ChangeFollowing, delete::Delete, follow_response::FollowResponse,
             instance_metadata::InstanceMetadata, user::User,
         },
-        postable::Postable,
+        postable::VersiaPostable,
     },
 };
 use actix_web::{error::ErrorBadRequest, http::StatusCode, rt::spawn};
@@ -25,7 +25,7 @@ use serde::{Deserialize, Serialize};
 #[serde(untagged)]
 #[allow(clippy::large_enum_variant)]
 pub enum VersiaInboxItem {
-    Post(Postable),
+    Post(VersiaPostable),
     Delete(Delete),
     ChangeFollowing(ChangeFollowing),
     FollowResponse(FollowResponse),

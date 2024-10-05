@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use super::{link::RangeLinkItem, postable::Postable};
+use super::{link::RangeLinkItem, postable::ApPostable};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum CreateType {
@@ -36,7 +36,7 @@ pub struct Create {
     pub id: Url,
     pub actor: Url,
     /// a validated object should always be a concrete postable
-    pub object: RangeLinkItem<Postable>,
+    pub object: RangeLinkItem<ApPostable>,
 }
 
 #[cfg(test)]

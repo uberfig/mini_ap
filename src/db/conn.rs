@@ -12,7 +12,7 @@ use crate::{
     },
     versia_types::{
         entities::{instance_metadata::InstanceMetadata, user::User},
-        postable::Postable,
+        postable::VersiaPostable,
     },
 };
 
@@ -86,7 +86,7 @@ pub trait Conn: Sync {
         origin: &EntityOrigin,
         page_size: u64,
         ofset: u64,
-    ) -> Option<Vec<Postable>>;
+    ) -> Option<Vec<VersiaPostable>>;
     async fn get_key(&self, signed_by: &Signer) -> Option<OpenSSLPublic>;
     /// gets the metadata of an instance, backfills if not present
     async fn get_versia_instance_metadata(&self, instance_domain: &str)
@@ -94,13 +94,14 @@ pub trait Conn: Sync {
     /// get the protocol of the given instance. will backfill if the instance isn't in the db
     async fn get_protocol(&self, instance: &str) -> Protocol;
     async fn get_versia_user(&self, uuid: &str, origin: &EntityOrigin) -> Option<User>;
-    async fn get_versia_post(&self, post_id: &str, origin: &EntityOrigin) -> Option<Postable>;
+    async fn get_versia_post(&self, post_id: &str, origin: &EntityOrigin)
+        -> Option<VersiaPostable>;
     /// create a post and return the post
     async fn create_versia_post(
         &self,
-        post: Postable,
+        post: VersiaPostable,
         origin: &EntityOrigin,
-    ) -> Result<Postable, ()>;
+    ) -> Result<VersiaPostable, ()>;
     async fn delete_post(&self, post_id: &str, origin: &EntityOrigin) -> Result<(), ()>;
     async fn delete_user(&self, uid: &Url, origin: &EntityOrigin) -> Result<(), ()>;
 

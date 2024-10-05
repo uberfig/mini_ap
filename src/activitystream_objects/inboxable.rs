@@ -9,7 +9,7 @@ use super::{
     create::Create,
     delete::Delete,
     follow_and_response::{Follow, FollowResponse},
-    postable::Postable,
+    postable::ApPostable,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -26,7 +26,7 @@ pub enum Inboxable {
     /// spec can allow for this. when creating new posts
     /// we will just do creates as normally but we may send
     /// the post on its own as well down the road
-    Postable(Postable),
+    Postable(ApPostable),
     Create(Create),
     Delete(Delete),
     Follow(Follow),
@@ -41,7 +41,7 @@ pub enum VerifiedInboxable {
     ///
     /// we need to check if the thing already exists in the db
     /// anyway, might as well use that to determine the db logic
-    Postable(Postable),
+    Postable(ApPostable),
     Delete(Delete),
     Follow(Follow),
     FollowResponse(FollowResponse),
@@ -69,7 +69,7 @@ impl Inboxable {
                 let postable = match create.object {
                     crate::activitystream_objects::link::RangeLinkItem::Item(x) => x,
                     crate::activitystream_objects::link::RangeLinkItem::Link(post_id) => {
-                        let postable: Result<Postable, FetchErr> = authorized_fetch(
+                        let postable: Result<ApPostable, FetchErr> = authorized_fetch(
                             post_id.get_id(),
                             instance_key_id,
                             instance_private_key,

@@ -6,22 +6,22 @@ use super::{inboxable::InboxableVerifyErr, note::Note, question::Question};
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 #[allow(clippy::large_enum_variant)]
-pub enum Postable {
+pub enum ApPostable {
     Question(Question),
     Note(Note),
 }
 
-impl Postable {
+impl ApPostable {
     pub fn id(&self) -> &Url {
         match self {
-            Postable::Question(question) => &question.id,
-            Postable::Note(note) => &note.id,
+            ApPostable::Question(question) => &question.id,
+            ApPostable::Note(note) => &note.id,
         }
     }
     pub fn actor(&self) -> &Url {
         match self {
-            Postable::Question(question) => &question.actor,
-            Postable::Note(note) => &note.attributed_to,
+            ApPostable::Question(question) => &question.actor,
+            ApPostable::Note(note) => &note.attributed_to,
         }
     }
     pub fn verify(self, origin_domain: &str) -> Result<Self, InboxableVerifyErr> {
