@@ -20,7 +20,7 @@ pub async fn inspect_inbox(inbox: Data<Inbox>) -> String {
     format!("inbox: \n{}", data.join("\n\n"))
 }
 
-#[post("/inbox/ap")]
+#[post("/inbox")]
 pub async fn shared_inbox(
     request: HttpRequest,
     inbox: Data<Inbox>,
@@ -29,10 +29,10 @@ pub async fn shared_inbox(
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse, Error> {
     dbg!(&request);
-    handle_inbox(request, "/inbox/ap", inbox, body, conn, state).await
+    handle_inbox(request, "/inbox", inbox, body, conn, state).await
 }
 
-#[post("/users/{preferred_username}/inbox/ap")]
+#[post("/users/{preferred_username}/inbox")]
 pub async fn private_inbox(
     request: HttpRequest,
     path: web::Path<String>,
@@ -43,7 +43,7 @@ pub async fn private_inbox(
 ) -> Result<HttpResponse, Error> {
     println!("private inbox");
     let preferred_username = path.into_inner();
-    let path = format!("/users/{}/inbox/ap", &preferred_username);
+    let path = format!("/users/{}/inbox", &preferred_username);
 
     handle_inbox(request, &path, inbox, body, conn, state).await
 }

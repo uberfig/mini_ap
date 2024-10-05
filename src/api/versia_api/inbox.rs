@@ -34,7 +34,7 @@ pub enum VersiaInboxItem {
     InstanceMetadata(Box<InstanceMetadata>),
 }
 
-#[post("/users/{uuid}/inbox/versia")]
+#[post("/users/{uuid}/inbox")]
 pub async fn versia_user_inbox(
     request: HttpRequest,
     body: actix_web::web::Bytes,
@@ -44,7 +44,7 @@ pub async fn versia_user_inbox(
 ) -> Result<HttpResponse> {
     inbox(request, body, actix_path, state, conn).await
 }
-#[post("/inbox/versia")]
+#[post("/inbox")]
 pub async fn versia_shared_inbox(
     request: HttpRequest,
     body: actix_web::web::Bytes,

@@ -7,6 +7,7 @@ use crate::db::conn::Conn;
 pub struct Config {
     // pub database_url: String,
     pub instance_domain: String,
+    pub force_auth_fetch: bool,
     pub bind_address: String,
     pub contact_email: String,
     pub port: u16,

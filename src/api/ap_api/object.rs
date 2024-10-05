@@ -7,7 +7,7 @@ use actix_web::{
 
 use crate::db::conn::Conn;
 
-#[get("/users/{preferred_username}/statuses/{id}/ap")]
+#[get("/users/{preferred_username}/statuses/{id}")]
 pub async fn get_object(
     path: web::Path<(String, i64)>,
     conn: Data<Box<dyn Conn + Sync>>,
@@ -37,7 +37,7 @@ pub async fn get_object(
     //     .body(serde_json::to_string(&object).unwrap()))
 }
 
-#[get("/users/{preferred_username}/statuses/{id}/activity/ap")]
+#[get("/users/{preferred_username}/statuses/{id}/activity")]
 pub async fn get_object_create(
     path: web::Path<(String, i64)>,
     conn: Data<Box<dyn Conn + Sync>>,

@@ -3,16 +3,7 @@ use std::sync::Mutex;
 use actix_web::{get, web::Data, App, HttpResponse, HttpServer, Responder};
 
 use crate::{
-    api::{
-        ap_api::{
-            actor::{create_test, get_actor, get_instance_actor},
-            inbox::{inspect_inbox, private_inbox, shared_inbox, Inbox},
-            object::{get_object, get_object_create},
-            outbox::create_post,
-        },
-        versia_api::instance_discovery::versia_metadata,
-        webfinger::webfinger,
-    },
+    api::{ap_api::inbox::Inbox, routes::get_routes},
     config::Config,
 };
 
@@ -42,18 +33,7 @@ pub async fn start_application(config: Config) -> std::io::Result<()> {
             .app_data(Data::new(config.create_conn()))
             .app_data(inbox.clone())
             .app_data(Data::new(config.to_owned()))
-            .service(hello)
-            .service(webfinger)
-            .service(create_post)
-            .service(get_object)
-            .service(get_object_create)
-            .service(get_actor)
-            .service(get_instance_actor)
-            .service(create_test)
-            .service(private_inbox)
-            .service(shared_inbox)
-            .service(inspect_inbox)
-            .service(versia_metadata)
+            .service(get_routes())
     })
     .bind((bind, port))?
     .run()

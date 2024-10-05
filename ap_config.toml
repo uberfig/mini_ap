@@ -1,4 +1,5 @@
 instance_domain="testing.ivytime.gay"
+force_auth_fetch=false
 bind_address="127.0.0.1"
 port=8020
 contact_email="public.ivy.gifford@gmail.com"

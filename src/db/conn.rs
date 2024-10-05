@@ -11,9 +11,7 @@ use crate::{
         versia_protocol::{requests::Signer, verify::VersiaVerificationCache},
     },
     versia_types::{
-        entities::{
-            instance_metadata::InstanceMetadata, user::User,
-        },
+        entities::{instance_metadata::InstanceMetadata, user::User},
         postable::Postable,
     },
 };
@@ -94,7 +92,8 @@ pub trait Conn: Sync {
     ) -> Option<Vec<Postable>>;
     async fn get_key(&self, signed_by: &Signer) -> Option<OpenSSLPublic>;
     /// gets the metadata of an instance, backfills if not present
-    async fn get_versia_instance_metadata(&self, instance_domain: &str) -> Option<InstanceMetadata>;
+    async fn get_versia_instance_metadata(&self, instance_domain: &str)
+        -> Option<InstanceMetadata>;
     /// get the protocol of the given instance. will backfill if the instance isn't in the db
     async fn get_protocol(&self, instance: &str) -> Protocol;
     async fn get_versia_user(&self, uuid: &str, origin: &EntityOrigin) -> Option<User>;
@@ -107,7 +106,6 @@ pub trait Conn: Sync {
     ) -> Result<Postable, ()>;
     async fn delete_post(&self, post_id: &str, origin: &EntityOrigin) -> Result<(), ()>;
     async fn delete_user(&self, uid: &Url, origin: &EntityOrigin) -> Result<(), ()>;
-
 
     // //----------------------actors---------------------------
 

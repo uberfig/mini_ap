@@ -1,4 +1,4 @@
-use super::public_key::PublicKey;
+use super::{context::ContextWrap, public_key::PublicKey};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use url::Url;
@@ -63,8 +63,14 @@ pub struct Actor {
     pub followers: Url,
     pub following: Url,
 
-	#[serde(skip_serializing_if = "Option::is_none")]
-	pub versia_url: Option<Url>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub versia_url: Option<Url>,
+}
+
+impl Actor {
+    pub fn wrap_context(self) -> ContextWrap<Self> {
+        todo!()
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

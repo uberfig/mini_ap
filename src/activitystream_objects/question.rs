@@ -33,7 +33,7 @@ pub struct Question {
     pub closed: Option<String>, //TODO
 
     #[serde(skip_serializing_if = "Option::is_none")]
-	pub versia_url: Option<Url>,
+    pub versia_url: Option<Url>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

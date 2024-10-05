@@ -1,25 +1,45 @@
 use actix_web::{
-    error::ErrorNotFound,
+    error::{ErrorNotFound, ErrorUnauthorized},
     get,
     web::{self, Data},
-    HttpResponse, Result,
+    HttpRequest, HttpResponse, Result,
 };
 
-use crate::db::{conn::Conn, utility::new_actor::NewLocal};
+use crate::{
+    db::{conn::Conn, utility::new_actor::NewLocal},
+    protocol::{ap_protocol::verification::verify_get, headers::ActixHeaders},
+};
 
-#[get("/users/{preferred_username}/ap")]
+#[get("/users/{preferred_username}")]
 pub async fn get_actor(
     path: web::Path<String>,
     state: Data<crate::config::Config>,
     conn: Data<Box<dyn Conn + Sync>>,
-    // request: HttpRequest,
-    // body: web::Bytes,
+    request: HttpRequest,
 ) -> Result<HttpResponse> {
-    // println!("getting the actor");
+    dbg!(&request);
 
-    // dbg!(request);
-    // dbg!(&body);
-    // dbg!(String::from_utf8(body.to_vec()).unwrap());
+    if state.force_auth_fetch {
+        let headers = ActixHeaders {
+            headermap: request.headers().clone(),
+        };
+        let instance_key = conn.get_instance_actor().await;
+        let verified = verify_get(
+            &headers,
+            path.as_str(),
+            &state.instance_domain,
+            &format!(
+                "https://{}/{}",
+                &state.instance_domain, &state.instance_domain
+            ),
+            &mut instance_key.get_private_key(),
+        )
+        .await;
+
+        if let Err(err) = verified {
+            return Err(ErrorUnauthorized(serde_json::to_string(&err).unwrap()));
+        }
+    }
 
     let preferred_username = path.into_inner();
 
@@ -46,37 +66,32 @@ pub async fn create_test(
     let preferred_username = path.into_inner();
 
     let x = conn
-        .create_user( 
+        .create_user(
             &state.instance_domain,
-            &NewLocal::new(
-            preferred_username,
-            "filler".to_string(),
-            None,
-            None,
-        ))
+            &NewLocal::new(preferred_username, "filler".to_string(), None, None),
+        )
         .await
         .unwrap();
 
     Ok(HttpResponse::Ok().body(format!("{x}")))
 }
 
-#[get("/actor/ap")]
+#[get("/actor")]
 pub async fn get_instance_actor(
     conn: Data<Box<dyn Conn + Sync>>,
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse> {
     println!("getting the instance actor");
-    todo!()
-    // Ok(HttpResponse::Ok()
-    //     .content_type("application/activity+json; charset=utf-8")
-    //     .body(
-    //         serde_json::to_string(
-    //             &conn
-    //                 .get_instance_actor()
-    //                 .await
-    //                 .to_actor(&state.instance_domain)
-    //                 .to_activitystream(),
-    //         )
-    //         .unwrap(),
-    //     ))
+    Ok(HttpResponse::Ok()
+        .content_type("application/activity+json; charset=utf-8")
+        .body(
+            serde_json::to_string(
+                &conn
+                    .get_instance_actor()
+                    .await
+                    .to_actor(&state.instance_domain)
+                    .wrap_context(),
+            )
+            .unwrap(),
+        ))
 }

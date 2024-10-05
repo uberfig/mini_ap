@@ -83,8 +83,8 @@ pub struct Note {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub replies: Option<ExtendsCollection>,
 
-	#[serde(skip_serializing_if = "Option::is_none")]
-	pub versia_url: Option<Url>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub versia_url: Option<Url>,
 }
 
 #[cfg(test)]

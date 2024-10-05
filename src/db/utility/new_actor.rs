@@ -1,7 +1,9 @@
 use url::Url;
 
 use crate::cryptography::{
-    key::{Key, KeyType, PrivateKey}, openssl::OpenSSLPrivate, private_key::AlgorithmsPrivateKey
+    key::{Key, KeyType, PrivateKey},
+    openssl::OpenSSLPrivate,
+    private_key::AlgorithmsPrivateKey,
 };
 
 use super::permission::PermissionLevel;
@@ -87,7 +89,9 @@ impl NewLocal {
         };
         let private_key = OpenSSLPrivate::generate(KeyType::Ed25519);
         let private_key_pem = private_key.to_pem().expect("generated an invalid key");
-        let public_key_pem = private_key.public_key_pem().expect("generated an invalid key");
+        let public_key_pem = private_key
+            .public_key_pem()
+            .expect("generated an invalid key");
 
         let salt = SaltString::generate(&mut OsRng);
         let argon2 = Argon2::default();
