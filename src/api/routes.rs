@@ -5,7 +5,7 @@ use super::{
 };
 
 pub fn get_routes() -> actix_web::Scope {
-    actix_web::web::scope("/")
+    actix_web::web::scope("")
         .service(webfinger)
         .service(versia_metadata)
         .service(get_versia_routes())
