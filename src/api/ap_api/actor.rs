@@ -10,7 +10,7 @@ use crate::{
         conn::Conn,
         utility::{instance_actor::InstanceActor, new_actor::NewLocal},
     },
-    protocol::{ap_protocol::verification::verify_get, headers::ActixHeaders},
+    protocols::protocol::{ap_protocol::verification::verify_get, headers::ActixHeaders},
 };
 
 #[get("/users/{preferred_username}")]

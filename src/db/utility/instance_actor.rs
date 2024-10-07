@@ -1,4 +1,6 @@
-use crate::{activitystream_objects::actors::Actor, cryptography::openssl::OpenSSLPrivate};
+use crate::{
+    cryptography::openssl::OpenSSLPrivate, protocols::types::activitystream_objects::actors::Actor,
+};
 
 pub struct InstanceActor {
     pub private_key_pem: String,

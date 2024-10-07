@@ -1,20 +1,23 @@
+use crate::{
+    cryptography::openssl::OpenSSLPublic,
+    protocols::{
+        protocol::{
+            errors::FetchErr,
+            versia_protocol::{requests::Signer, verify::VersiaVerificationCache},
+        },
+        types::{
+            activitystream_objects::{actors::Actor, postable::ApPostable},
+            versia_types::{
+                entities::{instance_metadata::InstanceMetadata, user::User},
+                postable::VersiaPostable,
+            },
+        },
+    },
+};
 use actix_web::web::Data;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use url::Url;
-
-use crate::{
-    activitystream_objects::{actors::Actor, postable::ApPostable},
-    cryptography::openssl::OpenSSLPublic,
-    protocol::{
-        errors::FetchErr,
-        versia_protocol::{requests::Signer, verify::VersiaVerificationCache},
-    },
-    versia_types::{
-        entities::{instance_metadata::InstanceMetadata, user::User},
-        postable::VersiaPostable,
-    },
-};
 
 use super::utility::{instance_actor::InstanceActor, new_actor::NewLocal, protocols::Protocol};
 

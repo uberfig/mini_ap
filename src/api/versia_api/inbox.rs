@@ -1,17 +1,22 @@
 use crate::{
     cryptography::digest::sha256_hash,
     db::conn::{Conn, EntityOrigin, VersiaConn},
-    protocol::{
-        headers::ActixHeaders,
-        http_method::HttpMethod,
-        versia_protocol::{requests::Signer, verify::verify_request},
-    },
-    versia_types::{
-        entities::{
-            change_follow::ChangeFollowing, delete::Delete, follow_response::FollowResponse,
-            instance_metadata::InstanceMetadata, user::User,
+    protocols::{
+        protocol::{
+            headers::ActixHeaders,
+            http_method::HttpMethod,
+            versia_protocol::{requests::Signer, verify::verify_request},
         },
-        postable::VersiaPostable,
+        types::versia_types::{
+            entities::{
+                change_follow::ChangeFollowing,
+                delete::{Delete, DeletedType},
+                follow_response::FollowResponse,
+                instance_metadata::InstanceMetadata,
+                user::User,
+            },
+            postable::VersiaPostable,
+        },
     },
 };
 use actix_web::{error::ErrorBadRequest, http::StatusCode, rt::spawn};
@@ -126,13 +131,12 @@ pub async fn handle_inbox(
                 .expect("failed to insert post");
         }
         VersiaInboxItem::Delete(delete) => match delete.deleted_type {
-            crate::versia_types::entities::delete::DeletedType::Note
-            | crate::versia_types::entities::delete::DeletedType::Share => {
+            DeletedType::Note | DeletedType::Share => {
                 conn.delete_post(&delete.id, &EntityOrigin::Federated(authoratative_domain))
                     .await
                     .expect("failed to delete post");
             }
-            crate::versia_types::entities::delete::DeletedType::User => todo!(),
+            DeletedType::User => todo!(),
         },
         VersiaInboxItem::ChangeFollowing(change_following) => todo!(),
         VersiaInboxItem::FollowResponse(follow_response) => todo!(),

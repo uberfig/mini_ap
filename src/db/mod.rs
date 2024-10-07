@@ -1,10 +1,10 @@
+use crate::protocols::protocol::protocols::Protocols;
+
 pub mod conn;
 pub mod postgres;
 #[cfg(test)]
 pub mod tests;
 pub mod utility;
-
-use crate::protocol::protocols::Protocols;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Follower {

@@ -2,9 +2,8 @@ use tokio_postgres::Row;
 use url::Url;
 
 use crate::{
-    activitystream_objects::actors::{Actor, ActorType},
     cryptography::{key::Key, openssl::OpenSSLPublic},
-    db::utility::new_actor::generate_ap_links,
+    protocols::types::activitystream_objects::actors::{Actor, ActorType},
 };
 
 use super::pg_conn::PgConn;
@@ -52,7 +51,7 @@ fn fedi_user_from_row(result: Row) -> Actor {
     let following: String = result.get("following");
     let pem: &str = result.get("public_key_pem");
 
-    let key = crate::activitystream_objects::public_key::PublicKey {
+    let key = crate::protocols::types::activitystream_objects::public_key::PublicKey {
         id: Url::parse(&public_key_id).unwrap(),
         owner: id.clone(),
         public_key_pem: OpenSSLPublic::from_pem(pem.as_bytes()).unwrap(),

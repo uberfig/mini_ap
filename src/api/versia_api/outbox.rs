@@ -1,10 +1,12 @@
 use crate::{
     cryptography::digest::sha256_hash,
     db::conn::{Conn, EntityOrigin, VersiaConn},
-    protocol::{
-        headers::ActixHeaders, http_method::HttpMethod, versia_protocol::verify::verify_request,
+    protocols::{
+        protocol::{
+            headers::ActixHeaders, http_method::HttpMethod, versia_protocol::verify::verify_request,
+        },
+        types::versia_types::structures::collection::Collection,
     },
-    versia_types::structures::collection::Collection,
 };
 use actix_web::{
     error::{ErrorNotFound, ErrorUnauthorized},

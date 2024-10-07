@@ -3,16 +3,20 @@ use deadpool_postgres::Pool;
 use url::Url;
 
 use crate::{
-    activitystream_objects::{actors::Actor, postable::ApPostable},
     cryptography::openssl::OpenSSLPublic,
     db::{
         conn::{Conn, EntityOrigin},
         utility::{instance_actor::InstanceActor, new_actor::NewLocal, protocols::Protocol},
     },
-    protocol::versia_protocol::requests::Signer,
-    versia_types::{
-        entities::{instance_metadata::InstanceMetadata, user::User},
-        postable::VersiaPostable,
+    protocols::{
+        protocol::versia_protocol::requests::Signer,
+        types::{
+            activitystream_objects::{actors::Actor, postable::ApPostable},
+            versia_types::{
+                entities::{instance_metadata::InstanceMetadata, user::User},
+                postable::VersiaPostable,
+            },
+        },
     },
 };
 

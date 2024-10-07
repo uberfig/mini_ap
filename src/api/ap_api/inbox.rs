@@ -11,14 +11,16 @@ use actix_web::{
 };
 
 use crate::{
-    activitystream_objects::inboxable::VerifiedInboxable,
     db::{
         conn::{Conn, EntityOrigin},
         utility::instance_actor::InstanceActor,
     },
-    protocol::{
-        ap_protocol::verification::{verify_post, RequestVerificationError},
-        headers::ActixHeaders,
+    protocols::{
+        protocol::{
+            ap_protocol::verification::{verify_post, RequestVerificationError},
+            headers::ActixHeaders,
+        },
+        types::activitystream_objects::inboxable::VerifiedInboxable,
     },
 };
 pub struct Inbox {
