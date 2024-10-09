@@ -3,6 +3,7 @@ use url::Url;
 
 use super::super::versia_types::serde_fns::{deserialize_time, serialize_time};
 
+use super::postable::ApPostable;
 use super::{
     actors::Actor,
     collections::ExtendsCollection,
@@ -117,5 +118,5 @@ pub struct Object {
     pub duration: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub replies: Option<ExtendsCollection>,
+    pub replies: Option<ExtendsCollection<ApPostable>>,
 }

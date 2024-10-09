@@ -1,5 +1,7 @@
 // --------------collections----------------
 
+use std::fmt::Debug;
+
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -7,9 +9,9 @@ use super::link::RangeLinkItem;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
-pub enum ExtendsCollection {
-    Collection(Collection),
-    CollectionPage(CollectionPage),
+pub enum ExtendsCollection<T: Clone> {
+    Collection(Collection<T>),
+    CollectionPage(CollectionPage<T>),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -18,16 +20,16 @@ pub enum CollectionType {
     OrderedCollection,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Collection {
+pub struct Collection<T: Clone> {
     #[serde(rename = "type")]
     pub type_field: CollectionType,
     pub id: Url,
 
     pub total_items: Option<u32>,
     pub current: Option<String>,                      //TODO
-    pub first: Option<RangeLinkItem<CollectionPage>>, //TODO
+    pub first: Option<RangeLinkItem<CollectionPage<T>>>, //TODO
     pub last: Option<String>,                         //TODO
     pub items: Option<Vec<String>>,                   //TODO
 }
@@ -40,7 +42,14 @@ pub enum PageType {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct CollectionPage {
+pub enum StupidWrap<T> {
+    Items(T),
+    OrderedItems(Vec<T>),
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct CollectionPage<T: Clone> {
     #[serde(rename = "type")]
     pub type_field: PageType,
     /// id may be null if the collection page is within a collection
@@ -53,11 +62,14 @@ pub struct CollectionPage {
     pub current: Option<String>,    //TODO
     pub first: Option<String>,      //TODO
     pub last: Option<String>,       //TODO
-    pub items: Option<Vec<String>>, //TODO
+    #[serde(flatten)]
+    pub items: Option<StupidWrap<Box<T>>>, //TODO
 }
 
 #[cfg(test)]
 mod tests {
+    use url::Url;
+
     use super::super::context::ContextWrap;
 
     use super::{Collection, CollectionPage};
@@ -74,7 +86,7 @@ mod tests {
 	"first": "https://mastodon.social/users/Mastodon/followers?page=1"
 }
         "#;
-        let deserialized: Result<ContextWrap<Collection>, serde_json::Error> =
+        let deserialized: Result<ContextWrap<Collection<Url>>, serde_json::Error> =
             serde_json::from_str(index_page);
         match deserialized {
             Ok(_) => Ok(()),
@@ -111,7 +123,7 @@ mod tests {
 	]
 }
         "#;
-        let deserialized: Result<ContextWrap<CollectionPage>, serde_json::Error> =
+        let deserialized: Result<ContextWrap<CollectionPage<Url>>, serde_json::Error> =
             serde_json::from_str(index_page);
         match deserialized {
             Ok(_) => Ok(()),
