@@ -23,8 +23,8 @@ pub async fn get_object(
 ) -> Result<HttpResponse> {
     dbg!(&request);
 
-    let (preferred_username, id) = path.into_inner();
-    let path = format!("/ap/users/{}/statuses/{}", &preferred_username, &id);
+    let (_preferred_username, id) = path.into_inner();
+    let path = request.path();
 
     if state.force_auth_fetch {
         let headers = ActixHeaders {
@@ -33,7 +33,7 @@ pub async fn get_object(
         let instance_key = conn.get_instance_actor().await;
         let verified = verify_get(
             &headers,
-            &path,
+            path,
             &state.instance_domain,
             &InstanceActor::get_key_id(&state.instance_domain),
             &mut instance_key.get_private_key(),
@@ -69,11 +69,8 @@ pub async fn get_object_create(
 ) -> Result<HttpResponse> {
     dbg!(&request);
 
-    let (preferred_username, id) = path.into_inner();
-    let path = format!(
-        "/ap/users/{}/statuses/{}/activity",
-        &preferred_username, &id
-    );
+    let (_preferred_username, id) = path.into_inner();
+    let path = request.path();
 
     if state.force_auth_fetch {
         let headers = ActixHeaders {
@@ -82,7 +79,7 @@ pub async fn get_object_create(
         let instance_key = conn.get_instance_actor().await;
         let verified = verify_get(
             &headers,
-            &path,
+            path,
             &state.instance_domain,
             &InstanceActor::get_key_id(&state.instance_domain),
             &mut instance_key.get_private_key(),

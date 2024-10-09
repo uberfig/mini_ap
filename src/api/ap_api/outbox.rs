@@ -25,8 +25,7 @@ pub async fn ap_outbox(
     page: actix_web::web::Query<Option<Page>>,
 ) -> Result<HttpResponse> {
     let preferred_username = path.into_inner();
-    let path = format!("/ap/users/{}/outbox", &preferred_username);
-
+    let path = request.path();
     let page = match page.into_inner() {
         Some(x) => x.page,
         None => 1,
@@ -42,7 +41,7 @@ pub async fn ap_outbox(
         let instance_key = conn.get_instance_actor().await;
         let verified = verify_get(
             &headers,
-            path.as_str(),
+            path,
             &state.instance_domain,
             &InstanceActor::get_key_id(&state.instance_domain),
             &mut instance_key.get_private_key(),

@@ -22,7 +22,6 @@ pub async fn get_actor(
 ) -> Result<HttpResponse> {
     dbg!(&request);
     let preferred_username = path.into_inner();
-    let path = format!("/ap/users/{}", &preferred_username);
 
     if state.force_auth_fetch {
         let headers = ActixHeaders {
@@ -31,7 +30,7 @@ pub async fn get_actor(
         let instance_key = conn.get_instance_actor().await;
         let verified = verify_get(
             &headers,
-            path.as_str(),
+            request.path(),
             &state.instance_domain,
             &InstanceActor::get_key_id(&state.instance_domain),
             &mut instance_key.get_private_key(),

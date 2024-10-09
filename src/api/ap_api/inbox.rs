@@ -44,7 +44,7 @@ pub async fn shared_inbox(
     state: Data<crate::config::Config>,
 ) -> Result<HttpResponse, Error> {
     dbg!(&request);
-    inbox(request, "/ap/inbox", body, conn, state).await
+    inbox(request, body, conn, state).await
 }
 
 #[post("/users/{preferred_username}/inbox")]
@@ -60,12 +60,11 @@ pub async fn private_inbox(
     let preferred_username = path.into_inner();
     let path = format!("/ap/users/{}/inbox", &preferred_username);
 
-    inbox(request, &path, body, conn, state).await
+    inbox(request, body, conn, state).await
 }
 
 async fn inbox(
     request: HttpRequest,
-    path: &str,
     body: web::Bytes,
     conn: Data<Box<dyn Conn + Sync>>,
     state: Data<crate::config::Config>,
@@ -82,7 +81,7 @@ async fn inbox(
     let verified = match verify_post(
         &headers,
         &body,
-        path,
+        request.path(),
         &state.instance_domain,
         &InstanceActor::get_key_id(&state.instance_domain),
         &mut instance_actor_key,
