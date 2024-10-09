@@ -1,4 +1,5 @@
 use crate::{
+    api::page_query::Page,
     cryptography::digest::sha256_hash,
     db::conn::{Conn, EntityOrigin, VersiaConn},
     protocols::{
@@ -14,12 +15,6 @@ use actix_web::{
     web::Data,
     HttpRequest, HttpResponse, Result,
 };
-use serde::Deserialize;
-
-#[derive(Deserialize, Debug)]
-struct Page {
-    page: u64,
-}
 
 #[get("/users/{uuid}/outbox/versia")]
 pub async fn versia_outbox(

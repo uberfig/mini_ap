@@ -6,7 +6,7 @@ use actix_web::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::db::conn::Conn;
+use crate::db::conn::{Conn, EntityOrigin};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct WebfingerQuery {
@@ -108,7 +108,7 @@ async fn webfinger(
         //not the instance actor
         false => {
             let actor = conn
-                .get_local_actor(&preferred_username, &state.instance_domain)
+                .get_actor(&preferred_username, &EntityOrigin::Local(&state.instance_domain))
                 .await;
             let actor = match actor {
                 Some(x) => x,

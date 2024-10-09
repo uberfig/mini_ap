@@ -62,6 +62,14 @@ pub enum ProtoUser {
 
 #[async_trait]
 pub trait Conn: Sync {
+    // async fn get_actor_post_count(&self, uname: &str, origin: &EntityOrigin) -> Option<u64>;
+    async fn get_user_posts_ap(
+        &self,
+        uname: &str,
+        origin: &EntityOrigin,
+        page_size: u64,
+        ofset: u64,
+    ) -> Option<Vec<ApPostable>>;
     async fn get_ap_post(&self, post_id: &str, origin: &EntityOrigin) -> Option<ApPostable>;
     /// inserts a federated post into the db and returns the uuid if successful
     async fn create_ap_post(&self, post: ApPostable, origin: &EntityOrigin) -> Result<String, ()>;
@@ -72,10 +80,11 @@ pub trait Conn: Sync {
 
     /// returns the uid if sucessful
     async fn create_user(&self, domain: &str, content: &NewLocal) -> Result<String, ()>;
-    /// backfills if not in db
-    async fn get_actor(&self, uuid: &str, origin: &EntityOrigin) -> Option<Actor>;
+    /// gets actor, backfills if not in db
+    async fn backfill_actor(&self, username: &str, origin: &EntityOrigin) -> Option<Actor>;
+    async fn get_actor(&self, username: &str, origin: &EntityOrigin) -> Option<Actor>;
     /// only gets an actor we have authority over, does not backfill
-    async fn get_local_actor(&self, username: &str, domain: &str) -> Option<Actor>;
+    // async fn get_local_actor(&self, username: &str, domain: &str) -> Option<Actor>;
 
     /// signed_by will always be user for activitypub users
     /// this will backfill the user if they aren't in the db yet
@@ -83,8 +92,8 @@ pub trait Conn: Sync {
 
     //-------------------------versia---------------------
 
-    // versia new
-    async fn get_user_post_count(&self, uuid: &str, origin: &EntityOrigin) -> Option<u64>;
+    // TODO make versia routes just use unames
+    async fn get_user_post_count(&self, uname: &str, origin: &EntityOrigin) -> Option<u64>;
     /// ofset is one based
     async fn get_user_posts_versia(
         &self,

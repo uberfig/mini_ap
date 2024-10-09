@@ -7,7 +7,7 @@ use actix_web::{
 
 use crate::{
     db::{
-        conn::Conn,
+        conn::{Conn, EntityOrigin},
         utility::{instance_actor::InstanceActor, new_actor::NewLocal},
     },
     protocols::protocol::{ap_protocol::verification::verify_get, headers::ActixHeaders},
@@ -44,7 +44,7 @@ pub async fn get_actor(
     }
 
     let actor = conn
-        .get_local_actor(&preferred_username, &state.instance_domain)
+        .get_actor(&preferred_username, &EntityOrigin::Local(&state.instance_domain))
         .await;
 
     let Some(actor) = actor else {

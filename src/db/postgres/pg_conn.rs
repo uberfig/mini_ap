@@ -30,6 +30,21 @@ pub struct PgConn {
 #[allow(unused_variables)]
 #[async_trait]
 impl Conn for PgConn {
+    async fn backfill_actor(&self, username: &str, origin: &EntityOrigin) -> Option<Actor> {
+        todo!()
+    }
+    async fn get_actor(&self, username: &str, origin: &EntityOrigin) -> Option<Actor> {
+        todo!()
+    }
+    async fn get_user_posts_ap(
+        &self,
+        uname: &str,
+        origin: &EntityOrigin,
+        page_size: u64,
+        ofset: u64,
+    ) -> Option<Vec<ApPostable>> {
+        todo!()
+    }
     async fn get_ap_post(&self, post_id: &str, origin: &EntityOrigin) -> Option<ApPostable> {
         todo!()
     }
@@ -37,9 +52,6 @@ impl Conn for PgConn {
         todo!()
     }
     async fn create_user(&self, domain: &str, content: &NewLocal) -> Result<String, ()> {
-        todo!()
-    }
-    async fn get_local_actor(&self, username: &str, domain: &str) -> Option<Actor> {
         todo!()
     }
     async fn get_key(&self, signed_by: &Signer) -> Option<OpenSSLPublic> {
@@ -116,10 +128,10 @@ impl Conn for PgConn {
 
     //----------------------actors---------------------------
 
-    async fn get_actor(&self, uuid: &str, origin: &EntityOrigin) -> Option<Actor> {
-        todo!()
-        // actors::get_actor(self, uid, instance_domain).await
-    }
+    // async fn get_actor(&self, uuid: &str, origin: &EntityOrigin) -> Option<Actor> {
+    //     todo!()
+    //     // actors::get_actor(self, uid, instance_domain).await
+    // }
     // async fn get_local_user_actor(
     //     &self,
     //     preferred_username: &str,
